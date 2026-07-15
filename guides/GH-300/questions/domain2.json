@@ -1,0 +1,364 @@
+{
+  "domain": 2,
+  "domain_title": "Use GitHub Copilot features",
+  "questions": [
+    {
+      "id": "q2-001",
+      "objective": "2.1.1",
+      "type": "single",
+      "stem": "A developer wants to use GitHub Copilot to explain code directly on GitHub.com, but a teammate insists they first install a browser extension. What is the correct guidance?",
+      "options": [
+        {"id": "a", "text": "Install the GitHub Copilot browser extension before Copilot will work on GitHub.com"},
+        {"id": "b", "text": "No extension is needed — Copilot is built into GitHub.com; extensions are only required for IDEs"},
+        {"id": "c", "text": "Copilot is unavailable on GitHub.com and only runs in VS Code and JetBrains IDEs"},
+        {"id": "d", "text": "They must switch to Neovim because GitHub.com does not support Copilot chat"}
+      ],
+      "answer": "b",
+      "explanation": "GitHub.com requires no extension — Copilot is built into the web interface. Extensions are only needed in IDEs such as VS Code, Visual Studio, JetBrains, and Neovim. Copilot is fully available on GitHub.com, so options a, c, and d are incorrect.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-to-github-copilot/4-setup-configure-troubleshoot"]
+    },
+    {
+      "id": "q2-002",
+      "objective": "2.1.1",
+      "type": "multi",
+      "stem": "In which environments does GitHub Copilot run as a supported surface? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "GitHub.com"},
+        {"id": "b", "text": "Visual Studio Code"},
+        {"id": "c", "text": "JetBrains IDEs"},
+        {"id": "d", "text": "Neovim"},
+        {"id": "e", "text": "Microsoft Word"}
+      ],
+      "answer": ["a", "b", "c", "d"],
+      "explanation": "Copilot is supported on GitHub.com (no extension needed), VS Code, Visual Studio, JetBrains IDEs, and Neovim. Microsoft Word is not a supported Copilot coding surface, so option e is incorrect.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/2-code-completion-with-git-hub-copilot"]
+    },
+    {
+      "id": "q2-003",
+      "objective": "2.1.2",
+      "type": "single",
+      "stem": "A developer highlights a single function and wants a quick, in-place explanation without switching to the full Chat panel or leaving the editor cursor. Which trigger best fits?",
+      "options": [
+        {"id": "a", "text": "Inline chat (Ctrl+I) with the /explain slash command"},
+        {"id": "b", "text": "Accepting the inline ghost-text suggestion with Tab"},
+        {"id": "c", "text": "Agent Mode running a terminal command"},
+        {"id": "d", "text": "The Copilot CLI in a separate terminal window"}
+      ],
+      "answer": "a",
+      "explanation": "Inline chat opens at the cursor with Ctrl+I (Cmd+I on macOS) and supports slash commands like /explain, giving focused, context-specific help without opening the main Chat panel. Ghost text autocompletes but does not explain; Agent Mode and the CLI are heavier, less focused tools for this task.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-to-github-copilot/3-interacting-with-copilot"]
+    },
+    {
+      "id": "q2-004",
+      "objective": "2.1.2",
+      "type": "single",
+      "stem": "A task requires touching several files, installing a dependency, and running the test suite until it passes — all driven by Copilot with minimal manual steps. Which interaction mode is designed for this?",
+      "options": [
+        {"id": "a", "text": "Inline suggestions (ghost text)"},
+        {"id": "b", "text": "The Copilot Chat panel answering a single question"},
+        {"id": "c", "text": "Agent Mode"},
+        {"id": "d", "text": "Comments-to-code generation"}
+      ],
+      "answer": "c",
+      "explanation": "Agent Mode works autonomously and iteratively: it determines relevant files and dependencies, runs terminal commands such as installs and tests, and self-heals until the task succeeds. Inline suggestions, a single chat answer, and comments-to-code do not run terminal commands or iterate across multiple steps.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-agent-mode/2-what-is-agent-mode"]
+    },
+    {
+      "id": "q2-005",
+      "objective": "2.1.3",
+      "type": "single",
+      "stem": "A security team on Copilot Business excludes the secrets/ folder via content exclusions, yet notices Chat still references a symbol defined in that folder. What best explains this behavior?",
+      "options": [
+        {"id": "a", "text": "Content exclusions are disabled whenever Chat is used"},
+        {"id": "b", "text": "Semantic information (types/hover definitions) can still surface from non-excluded files, and the @github chat participant does not honor exclusions"},
+        {"id": "c", "text": "Exclusions only take effect after the repository is archived"},
+        {"id": "d", "text": "The team must upgrade to Enterprise for exclusions to work in Chat"}
+      ],
+      "answer": "b",
+      "explanation": "Content exclusions block completions and context from the excluded file itself, but documented IDE limitations mean semantic info (type/hover definitions) referenced from a non-excluded file can still appear, and exclusions are not applied to the @github chat participant. Exclusions are not disabled by Chat, do not depend on archiving, and are available on both Business and Enterprise.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions"]
+    },
+    {
+      "id": "q2-006",
+      "objective": "2.1.3",
+      "type": "tf",
+      "stem": "Content exclusions for specific files and repositories are available on the Copilot Pro plan.",
+      "options": [
+        {"id": "a", "text": "True"},
+        {"id": "b", "text": "False"}
+      ],
+      "answer": "b",
+      "explanation": "False. Content exclusions are a management capability available only on Copilot Business and Copilot Enterprise. Free and Pro do not offer content exclusions.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions"]
+    },
+    {
+      "id": "q2-007",
+      "objective": "2.2.1",
+      "type": "single",
+      "stem": "A developer asks whether GitHub Copilot CLI is the same program as the GitHub CLI (gh). What is the accurate description of their relationship?",
+      "options": [
+        {"id": "a", "text": "They are the same binary; copilot is just an alias for gh"},
+        {"id": "b", "text": "Copilot CLI replaces gh and gh is deprecated"},
+        {"id": "c", "text": "Copilot CLI runs independently from gh but reuses your existing GitHub authentication, and the two can be combined"},
+        {"id": "d", "text": "Copilot CLI requires a separate, non-GitHub account to sign in"}
+      ],
+      "answer": "c",
+      "explanation": "Copilot CLI brings Copilot to the terminal and runs independently from the GitHub CLI, but it authenticates with your existing GitHub credentials and complements gh for repo and issue tasks. It is not the same binary, does not deprecate gh, and does not use a separate non-GitHub account.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"]
+    },
+    {
+      "id": "q2-008",
+      "objective": "2.2.2",
+      "type": "single",
+      "stem": "A developer wants a single explanation of a shell command from Copilot CLI without entering a full interactive session. Which command should they run?",
+      "options": [
+        {"id": "a", "text": "copilot -i \"explain brew install git\""},
+        {"id": "b", "text": "copilot (with no arguments)"},
+        {"id": "c", "text": "gh copilot session start"},
+        {"id": "d", "text": "copilot --cloud"}
+      ],
+      "answer": "a",
+      "explanation": "The -i one-shot flag returns a single answer without launching interactive mode, e.g. copilot -i \"explain brew install git\". Running copilot with no arguments starts interactive mode; copilot --cloud opens a cloud-sandboxed session; gh copilot session start is not the documented one-shot pattern.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"]
+    },
+    {
+      "id": "q2-009",
+      "objective": "2.2.3",
+      "type": "single",
+      "stem": "In an interactive Copilot CLI session, a developer types \"please switch to a different model\" as plain text, but the model does not change. Why?",
+      "options": [
+        {"id": "a", "text": "Model switching requires the /model slash command; natural language cannot change session settings"},
+        {"id": "b", "text": "Model switching is only possible by restarting the terminal"},
+        {"id": "c", "text": "The Free plan forbids changing models entirely"},
+        {"id": "d", "text": "Natural language changed the model, but the confirmation message was suppressed"}
+      ],
+      "answer": "a",
+      "explanation": "Slash commands are the only way to control session settings and configuration; they cannot be replaced by natural language. Changing the model requires the /model slash command. Natural language handles explain, suggest, and revise — not configuration.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"]
+    },
+    {
+      "id": "q2-010",
+      "objective": "2.2.3",
+      "type": "single",
+      "stem": "Which pairing correctly matches a Copilot CLI slash command to its purpose?",
+      "options": [
+        {"id": "a", "text": "/mcp manages MCP servers, and /skills manages enhanced capabilities"},
+        {"id": "b", "text": "/model changes the color theme, and /theme selects the AI model"},
+        {"id": "c", "text": "/exit installs new tools, and /help exits the session"},
+        {"id": "d", "text": "/suggest can only be triggered by the /model command"}
+      ],
+      "answer": "a",
+      "explanation": "/mcp manages MCP servers and /skills manages enhanced capabilities. /model selects the AI model and /theme changes the theme (not the reverse); /exit ends the session and /help shows help; /suggest is a natural-language-capable request, unrelated to /model.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"]
+    },
+    {
+      "id": "q2-011",
+      "objective": "2.2.4",
+      "type": "single",
+      "stem": "A developer wants to begin work in a Copilot CLI session on one laptop and resume it later on a different machine without copying files around. Which option supports this?",
+      "options": [
+        {"id": "a", "text": "Local sandboxing with /sandbox enable"},
+        {"id": "b", "text": "Cloud sandboxing with copilot --cloud"},
+        {"id": "c", "text": "One-shot mode with copilot -i"},
+        {"id": "d", "text": "Attaching a file with @ in interactive mode"}
+      ],
+      "answer": "b",
+      "explanation": "Cloud sandboxing (copilot --cloud) runs in a fully isolated GitHub-hosted Linux environment; a stopped session snapshots its state so it can be resumed across devices. Local sandboxing uses the current machine's resources, one-shot mode returns a single answer, and @ only attaches file context.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"]
+    },
+    {
+      "id": "q2-012",
+      "objective": "2.2.4",
+      "type": "single",
+      "stem": "Members of an organization report they cannot start a cloud-sandboxed Copilot CLI session. What is the most likely governance cause?",
+      "options": [
+        {"id": "a", "text": "They forgot to run brew install copilot-cli"},
+        {"id": "b", "text": "The org/enterprise Cloud Sandbox access policy has not been enabled by an admin"},
+        {"id": "c", "text": "Cloud sessions require the Free plan to be downgraded first"},
+        {"id": "d", "text": "They must delete all Stopped sessions before an Active one can start"}
+      ],
+      "answer": "b",
+      "explanation": "Organization/enterprise admins must enable the Cloud Sandbox policy before members can use cloud sessions. Installation with Homebrew relates to setup, cloud sessions are not tied to downgrading Free, and cloud session states (Active/Stopped/Deleted) do not block starting a new session.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"]
+    },
+    {
+      "id": "q2-013",
+      "objective": "2.2.5",
+      "type": "multi",
+      "stem": "Copilot CLI access to your machine is governed along which permission axes? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Trusted directories"},
+        {"id": "b", "text": "Tool permissions (--allow-tool / --deny-tool)"},
+        {"id": "c", "text": "Path permissions"},
+        {"id": "d", "text": "URL permissions"},
+        {"id": "e", "text": "Screen-brightness permissions"}
+      ],
+      "answer": ["a", "b", "c", "d"],
+      "explanation": "Copilot CLI permissions are scoped by trusted directories, tool permissions (--allow-tool / --deny-tool), path permissions, and URL permissions. Screen brightness is not a permission axis, so option e is incorrect.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"]
+    },
+    {
+      "id": "q2-014",
+      "objective": "2.3.1",
+      "type": "single",
+      "stem": "A developer assigns a GitHub issue to Copilot, then adds clarifying requirements as a new comment on that issue, but the Cloud Agent ignores them. What is the correct way to steer the agent after it starts?",
+      "options": [
+        {"id": "a", "text": "Delete and re-create the issue so the agent re-reads it"},
+        {"id": "b", "text": "Mention @copilot in a comment on the agent's pull request (write permission required)"},
+        {"id": "c", "text": "Restart the GitHub Actions runner from the org settings"},
+        {"id": "d", "text": "Edit the copilot/ branch name to include the new requirements"}
+      ],
+      "answer": "b",
+      "explanation": "The Cloud Agent receives the issue content at assignment time; later comments on the issue are not seen. To guide it after it starts, mention @copilot on the agent's pull request (which requires write permission). Re-creating the issue, restarting runners, or renaming the branch are not the documented mechanisms.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-code-agent/3-assign-track-troubleshoot-copilot-code-agent-tasks"]
+    },
+    {
+      "id": "q2-015",
+      "objective": "2.3.1",
+      "type": "single",
+      "stem": "A team wants Copilot's agent to reach external tools and enterprise data through a standardized, vendor-neutral interface. The GitHub-hosted server for this is added over HTTP and authorized with OAuth. Which technology is being described?",
+      "options": [
+        {"id": "a", "text": "The Model Context Protocol (MCP), via the GitHub MCP Server at https://api.githubcopilot.com/mcp/"},
+        {"id": "b", "text": "A branch ruleset requiring pull request review"},
+        {"id": "c", "text": "Content exclusions configured at the organization level"},
+        {"id": "d", "text": "The GitHub CLI gh issue edit command"}
+      ],
+      "answer": "a",
+      "explanation": "MCP is an open standard (\"USB-C for AI tools\") that connects models to external tools and data. The hosted GitHub MCP Server is at https://api.githubcopilot.com/mcp/ and is added via MCP: Add server > HTTP, then authorized with OAuth. Rulesets, content exclusions, and gh issue edit serve unrelated purposes.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/mcp-server/3-configure-connect"]
+    },
+    {
+      "id": "q2-016",
+      "objective": "2.3.2",
+      "type": "tf",
+      "stem": "A Copilot code review on GitHub.com counts toward a branch's required approvals for merging.",
+      "options": [
+        {"id": "a", "text": "True"},
+        {"id": "b", "text": "False"}
+      ],
+      "answer": "b",
+      "explanation": "False. Copilot's review is advisory: it does not approve or reject a pull request and its comments do not count toward required approvals. A human reviewer must still approve before merge.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/code-reviews-pull-requests-github-copilot/3-copilot-reviewer-github"]
+    },
+    {
+      "id": "q2-017",
+      "objective": "2.3.2",
+      "type": "single",
+      "stem": "An administrator must ensure Copilot automatically reviews every pull request targeting main in a production repository — not just one user's PRs. What should they configure?",
+      "options": [
+        {"id": "a", "text": "Each developer's account-level Automatic Copilot code review toggle"},
+        {"id": "b", "text": "A branch ruleset that requires a pull request before merging and requests pull request review from Copilot"},
+        {"id": "c", "text": "A content exclusion on the main branch"},
+        {"id": "d", "text": "A copilot-instructions.md file with an applyTo glob"}
+      ],
+      "answer": "b",
+      "explanation": "Rulesets enforce automatic Copilot review at the repo/org level: create a branch ruleset that requires a pull request before merging and requests pull request review from Copilot. The personal Automatic Copilot code review toggle (Pro/Pro+) only covers one user's PRs; content exclusions and instructions files do not enforce reviews.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/code-reviews-pull-requests-github-copilot/4-issues-early-automated-reviews-copilot"]
+    },
+    {
+      "id": "q2-018",
+      "objective": "2.3.3",
+      "type": "single",
+      "stem": "A manager worries that sharing a Copilot Space could expose private repositories to teammates who lack access to them. Is that a valid concern?",
+      "options": [
+        {"id": "a", "text": "Yes — sharing a Space grants all viewers read access to every attached repository"},
+        {"id": "b", "text": "No — Spaces inherit GitHub permissions and grant no new access; viewers only see content they are already entitled to"},
+        {"id": "c", "text": "Yes — Spaces bypass permissions because they reference the main branch"},
+        {"id": "d", "text": "No — because Spaces can only ever contain free-text notes, never repositories"}
+      ],
+      "answer": "b",
+      "explanation": "Copilot Spaces inherit GitHub permissions and grant no new access, so only users already entitled to the linked content see it reflected in answers. Sharing a Space does not grant repo read access, does not bypass permissions, and Spaces can attach files, issues, PRs, and uploads — not only text.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-copilot-spaces/3-share-discover-govern"]
+    },
+    {
+      "id": "q2-019",
+      "objective": "2.3.4",
+      "type": "single",
+      "stem": "While debugging a complex multi-threaded issue, a developer selects a premium reasoning model in Copilot Chat instead of a standard model. What is the main trade-off to keep in mind?",
+      "options": [
+        {"id": "a", "text": "Premium reasoning models roughly double PRU consumption (~2 vs ~1) compared with standard models"},
+        {"id": "b", "text": "Premium models disable the ability to reference files with #file:"},
+        {"id": "c", "text": "Premium models remove the thumbs up/down feedback controls"},
+        {"id": "d", "text": "Premium models are only available on the Free plan"}
+      ],
+      "answer": "a",
+      "explanation": "Standard models (e.g., GPT-4o) cost about 1 PRU per request while premium reasoning models (e.g., o1-preview/o1-mini) cost about 2 PRUs — roughly double — so they should be reserved for genuinely complex tasks. Model choice does not disable #file: scoping or feedback controls, and premium models are not Free-only.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/3-git-hub-copilot-chat"]
+    },
+    {
+      "id": "q2-020",
+      "objective": "2.3.4",
+      "type": "single",
+      "stem": "A developer wants to focus a Copilot Chat question on the contents of a single file named controller.js. Which reference should they use?",
+      "options": [
+        {"id": "a", "text": "@terminal controller.js"},
+        {"id": "b", "text": "#file:controller.js"},
+        {"id": "c", "text": "/optimize controller.js"},
+        {"id": "d", "text": "@vscode controller.js"}
+      ],
+      "answer": "b",
+      "explanation": "The #file: scope tells Chat to focus on a specific file's contents, e.g. #file:controller.js. @terminal and @vscode are participants that scope to a tool/context, not a file, and /optimize is a slash command that refactors code rather than scoping the question to a file.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/3-git-hub-copilot-chat"]
+    },
+    {
+      "id": "q2-021",
+      "objective": "2.4.1",
+      "type": "single",
+      "stem": "An enterprise legal team requires IP indemnity coverage for all Copilot suggestions across the organization. Which setting is mandatory to qualify?",
+      "options": [
+        {"id": "a", "text": "Set Suggestions matching public code to Block for the organization"},
+        {"id": "b", "text": "Set Suggestions matching public code to Allow for the organization"},
+        {"id": "c", "text": "Enable content exclusions on every repository"},
+        {"id": "d", "text": "Require GitHub Enterprise Cloud for all members"}
+      ],
+      "answer": "a",
+      "explanation": "IP indemnity applies only when the Matching public code setting is set to Block; allowing matching suggestions forfeits indemnity coverage. Content exclusions and requiring Enterprise Cloud are separate features and are not the precondition for IP indemnity.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/3-github-copilot-contractual-protections-disabling-matching-public-code"]
+    },
+    {
+      "id": "q2-022",
+      "objective": "2.4.1",
+      "type": "multi",
+      "stem": "Which management and security features are available on Copilot Business or Enterprise but not on Free or Pro? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Content exclusions"},
+        {"id": "b", "text": "Usage metrics"},
+        {"id": "c", "text": "IP indemnity"},
+        {"id": "d", "text": "The public code (matching) filter"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Content exclusions, usage metrics, and IP indemnity are Business/Enterprise management and security features. The public code filter is available on all plans, so option d is not exclusive to Business/Enterprise.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/2-explore-github-copilot-plans-associated-management-customization-features"]
+    },
+    {
+      "id": "q2-023",
+      "objective": "2.4.2",
+      "type": "single",
+      "stem": "A compliance officer needs an auditable record of every change an autonomous agent made to a repository. Which Copilot capability provides this traceability?",
+      "options": [
+        {"id": "a", "text": "The Cloud Agent's session logs and pull request history"},
+        {"id": "b", "text": "Local IDE Agent Mode sessions, which are logged to GitHub automatically"},
+        {"id": "c", "text": "The inline suggestion cache in VS Code"},
+        {"id": "d", "text": "The @github chat participant's response history"}
+      ],
+      "answer": "a",
+      "explanation": "All Cloud Agent work is committed to GitHub with visible session logs and pull request timelines, providing durable traceability of every commit and action — an advantage over private local sessions. Local IDE agent sessions are not automatically committed to GitHub, and inline caches or chat responses are not audit trails.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/2-explore-github-copilot-plans-associated-management-customization-features"]
+    },
+    {
+      "id": "q2-024",
+      "objective": "2.4.3",
+      "type": "single",
+      "stem": "A platform team wants to delegate issues to Copilot from an automated pipeline instead of clicking through GitHub.com. Which approach aligns with the documented programmatic pattern?",
+      "options": [
+        {"id": "a", "text": "Use the GitHub GraphQL API (suggestedActors with CAN_BE_ASSIGNED, then replaceActorsForAssignable) or the gh CLI (gh issue edit)"},
+        {"id": "b", "text": "Edit the copilot-instructions.md file to auto-assign issues"},
+        {"id": "c", "text": "Enable a content exclusion so Copilot picks up issues automatically"},
+        {"id": "d", "text": "Add Copilot to the Reviewers menu on each pull request"}
+      ],
+      "answer": "a",
+      "explanation": "Copilot workflows can be driven programmatically: check availability with GraphQL suggestedActors (capability CAN_BE_ASSIGNED), then use createIssue or replaceActorsForAssignable, or run gh issue edit from the CLI. Instructions files, content exclusions, and the Reviewers menu serve different purposes and do not automate issue delegation.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-code-agent/3-assign-track-troubleshoot-copilot-code-agent-tasks"]
+    }
+  ]
+}

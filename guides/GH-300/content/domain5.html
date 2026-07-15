@@ -1,0 +1,238 @@
+<section class="domain" id="domain5" data-domain="5">
+<h1 id="d5">Domain 5 — Improve developer productivity with GitHub Copilot <span class="weight">10–15%</span></h1>
+<p class="domain-intro">This domain is about everyday, hands-on value: using Copilot to generate, refactor, and document code, to learn faster and stay in the editor, to produce sample data and modernize legacy code, and to build and maintain tests while surfacing security and performance improvements. A recurring theme runs through every objective — always review and run what Copilot generates.</p>
+
+<section class="skillgroup" id="sg-5-1">
+<h2 id="g-5-1">5.1 Enhance productivity and code quality</h2>
+
+<section class="objective" id="obj-5-1-1" data-skill="gen-refactor-doc">
+<h3 id="o-5-1-1">5.1.1 Use Copilot for code generation, refactoring, and documentation</h3>
+<div class="concept"><p>Copilot's core productivity win is "automating the boring stuff": it produces boilerplate, refactors existing code toward cleaner patterns, and writes documentation, freeing you to focus on complex, creative work. Its help spans the whole software development lifecycle (SDLC) — from turning requirements into starter code, through design and development, to maintenance.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>Code generation</b>: boilerplate for common tasks (a REST API, a class structure), scaffolding for models/migrations/config, and full implementations from descriptive comments or user stories.</li>
+<li><b>Refactoring</b>: suggests improved patterns and more efficient implementations, and can <b>translate code between languages</b>; in the SDLC <em>Maintenance</em> phase it proposes changes to keep a codebase modern.</li>
+<li><b>Documentation</b>: generates <b>inline comments</b>, <b>function descriptions</b> (parameters + return values), and <b>README</b> structure/content from the codebase, and helps keep docs consistent and in sync with changes.</li>
+<li><b>Personalized completion</b>: Copilot adapts to your coding style and project context over time, tailoring suggestions to observed patterns.</li>
+<li><b>SDLC reach</b>: requirement analysis (rapid prototyping, user-story → function/class, API design), design &amp; development (design patterns, code optimization), maintenance (bug-fix ideas, refactoring, legacy understanding).</li>
+</ul></div>
+<figure class="diagram" data-svg="productivity-sdlc"><figcaption>Copilot adds value at each SDLC stage — from prototyping requirements through design, testing, deployment, and maintenance.</figcaption></figure>
+<div class="code"><pre><code class="lang-python"># Comment-driven generation: describe intent, let Copilot draft the body.
+# Convert a snake_case dict's keys to camelCase (Copilot suggests the loop).
+def to_camel_case_keys(data: dict) -&gt; dict:
+    result = {}
+    for key, value in data.items():
+        parts = key.split("_")
+        camel = parts[0] + "".join(p.title() for p in parts[1:])
+        result[camel] = value
+    return result
+</code></pre></div>
+<div class="callout tip"><b>Tip:</b> Copilot is strongest at code-level tasks. Use it to draft and refactor, but keep high-level architecture and novel design decisions in human hands.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>"Automating the boring stuff" is the module's umbrella phrase for boilerplate, sample data, unit tests, and refactoring/translation — expect it as an answer.</li>
+<li>Documentation help includes <b>inline comments, function descriptions, and README generation</b> — not just comments.</li>
+<li>Refactoring includes <b>cross-language translation</b>; a common distractor omits that capability.</li>
+<li>Generated code can contain bugs or miss requirements — <b>review is always required</b>.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer needs a project README and function docstrings for an existing module. Which Copilot capability applies?</summary>
+<div class="answer"><b>Answer:</b> Documentation writing — inline comments, function descriptions, and README generation. <em>Why:</em> Copilot can assimilate the codebase to draft consistent docs, comments, and README structure.</div></details>
+<details class="q"><summary><b>Q2.</b> A team wants to convert a Python utility to JavaScript and clean up the logic. Which Copilot use case fits?</summary>
+<div class="answer"><b>Answer:</b> Refactoring, including cross-language translation. <em>Why:</em> Copilot suggests improved patterns and can translate code between programming languages.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/2-boost-developer-productivity">Boost developer productivity with AI</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/4-ai-software-development-lifecycle">AI in the Software Development Lifecycle (SDLC)</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-5-1-2" data-skill="accelerate-learning">
+<h3 id="o-5-1-2">5.1.2 Accelerate learning and reduce context switching</h3>
+<div class="concept"><p>Two closely related productivity gains: Copilot helps you <em>learn</em> unfamiliar languages, frameworks, and APIs faster, and it helps you <em>stay in the editor</em> so you don't lose focus hunting through documentation or web searches.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>Accelerate learning</b> through: context-aware <b>code suggestions</b> that illustrate unfamiliar functions/libraries; broad <b>language support</b> to ease transitions between languages; and <b>documentation integration</b> (inline hints on API usage and parameters).</li>
+<li>Example: in an unfamiliar language (e.g., Golang), Copilot can generate the code, then the <b>"Explain this"</b> context-menu option explains what it does.</li>
+<li><b>Reduce context switching</b> via: <b>in-editor assistance</b> (fewer online searches), <b>quick references</b> (correct method calls/parameters for APIs and libraries), and <b>code completion</b> that autocompletes repetitive patterns so you keep your train of thought.</li>
+<li>Net effect: less time on routine lookups, faster onboarding to new tech, and sustained focus across the workday.</li>
+</ul></div>
+<div class="callout key"><b>Key:</b> "Explain this" (or <code>/explain</code> in chat) is the go-to for learning — it turns generated or unfamiliar code into a plain-language walkthrough without leaving the IDE.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Accelerating learning ≈ suggestions + language support + doc integration + <b>Explain this</b>.</li>
+<li>Reducing context switching ≈ in-editor assistance + quick references + code completion — the common thread is <b>staying in the editor</b>.</li>
+<li>These are productivity/focus benefits, not governance features — don't confuse them with content exclusions or policies.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer new to Go wants to understand a function Copilot just generated, without opening a browser. What's the fastest path?</summary>
+<div class="answer"><b>Answer:</b> Use "Explain this" (or <code>/explain</code>) in the IDE. <em>Why:</em> It provides an in-editor natural-language explanation, accelerating learning while avoiding context switching.</div></details>
+<details class="q"><summary><b>Q2.</b> Which Copilot behavior most directly reduces context switching when calling an unfamiliar API?</summary>
+<div class="answer"><b>Answer:</b> Quick references — suggesting correct method calls and parameters inline. <em>Why:</em> It removes the need to leave the editor to consult external documentation.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/2-boost-developer-productivity">Boost developer productivity with AI</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-5-1-3" data-skill="sample-data-legacy">
+<h3 id="o-5-1-3">5.1.3 Generate sample data and modernize legacy code</h3>
+<div class="concept"><p>Copilot removes friction from two tedious jobs: producing realistic sample/test data, and understanding and updating older or unfamiliar code. Both fall under automating routine work and the SDLC's testing and maintenance phases.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>Sample data creation</b>: when testing, Copilot generates realistic sample data, saving manual entry; in the SDLC <em>Testing &amp; QA</em> phase it produces <b>test data sets</b>.</li>
+<li><b>Legacy understanding</b>: in <em>Maintenance &amp; support</em>, Copilot helps developers understand unfamiliar/legacy code by providing <b>explanations and modern equivalents</b>.</li>
+<li><b>Modernization</b>: it suggests refactoring to keep the codebase efficient and can perform <b>cross-language translation</b> to migrate older code.</li>
+<li><b>Scaffolding for modernization</b>: generate class structures, ORM/DB models and migrations, and environment-specific config files from short descriptions.</li>
+<li>Review generated data and modernized code before relying on it — accuracy is not guaranteed.</li>
+</ul></div>
+<div class="code"><pre><code class="lang-javascript">// Prompt Copilot: "generate 3 sample user records as JSON for tests"
+const sampleUsers = [
+  { id: 1, name: "Ada Lovelace",   email: "ada@example.com",   active: true  },
+  { id: 2, name: "Alan Turing",    email: "alan@example.com",  active: false },
+  { id: 3, name: "Grace Hopper",   email: "grace@example.com", active: true  }
+];
+// Review values (types, edge values, PII) before using in a test suite.
+</code></pre></div>
+<div class="callout warn"><b>Gotcha:</b> Sample data is illustrative — never treat Copilot-generated data as real, validated, or free of sensitive-looking values without checking it.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Sample/test data generation is listed under both "Automating the boring stuff" and SDLC <b>Testing &amp; QA</b>.</li>
+<li>For legacy work, the two headline aids are <b>explanations</b> and <b>modern equivalents</b>.</li>
+<li>Migrating between languages is a <b>refactoring / translation</b> capability — link it to modernization.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer inherits an undocumented legacy module and must update it. How can Copilot help first?</summary>
+<div class="answer"><b>Answer:</b> Ask Copilot to explain the code and suggest modern equivalents. <em>Why:</em> In maintenance, Copilot provides explanations and modern replacements to help you understand and update legacy code.</div></details>
+<details class="q"><summary><b>Q2.</b> A tester needs 50 realistic-looking records to exercise a form. What's the appropriate Copilot use — and the caveat?</summary>
+<div class="answer"><b>Answer:</b> Use Copilot to generate sample/test data, then review it. <em>Why:</em> Copilot creates realistic sample data quickly, but generated values must be validated before use.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/2-boost-developer-productivity">Boost developer productivity with AI</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/4-ai-software-development-lifecycle">AI in the Software Development Lifecycle (SDLC)</a></li>
+</ul></div>
+</section>
+</section>
+
+<section class="skillgroup" id="sg-5-2">
+<h2 id="g-5-2">5.2 Support testing and security</h2>
+
+<section class="objective" id="obj-5-2-1" data-skill="unit-integration-tests">
+<h3 id="o-5-2-1">5.2.1 Generate unit and integration tests</h3>
+<div class="concept"><p>In VS Code, the <b>Chat view</b> is the primary place to generate tests. You can set up a framework, generate tests for a file or a selection, and refine them until they match your conventions — using Ask mode to plan, Agent mode to write and run, or the Plan agent for a reviewable strategy first.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Open the Chat view with <b>Ctrl+Alt+I</b> (Win/Linux) / <b>Cmd+Alt+I</b> (macOS). Per-prompt choices: <b>Agent Target</b> (Local), <b>Agent</b> (Ask / Plan / Agent), and <b>Permission level</b> (Default Approvals / Bypass Approvals / Autopilot).</li>
+<li>Recommended start for test generation: <b>Agent</b> with <b>Default Approvals</b> (you confirm each tool call).</li>
+<li><b><code>/setupTests</code></b> recommends/configures a framework; in Agent mode it can install packages and scaffold the test project.</li>
+<li><b><code>/tests</code></b> generates tests for the active code; Copilot detects the existing framework and style and writes them into an appropriate test file (new or appended). Review the diff and choose <b>Keep</b> or <b>Undo</b>.</li>
+<li><b>Integration tests</b>: prompt naturally, e.g. "Create integration tests for the data access layer in this module." Ask the Agent to <b>run</b> the tests after writing so it catches obvious failures.</li>
+<li><b>Context</b> drives quality: Add Context, drag-and-drop, and <code>#</code> mentions (<code>#selection</code>, <code>#editor</code>, <code>#codebase</code>).</li>
+<li><b>Custom instructions</b>: a <code>*.instructions.md</code> file with an <code>applyTo</code> field (e.g., <code>applyTo: tests/**</code>) enforces framework, naming, and Arrange-Act-Assert conventions across the team.</li>
+</ul></div>
+<figure class="diagram" data-svg="test-generation-flow"><figcaption>The test workflow: pick an agent, generate tests from a prompt or <code>/tests</code>, review the diff, then run and iterate until green.</figcaption></figure>
+<div class="code"><pre><code class="lang-csharp">// Example xUnit test Copilot might generate for a Calculator.Add method.
+using Xunit;
+
+public class CalculatorTests
+{
+    [Fact]
+    public void Add_TwoPositiveNumbers_ReturnsSum()
+    {
+        var calc = new Calculator();          // Arrange
+        var result = calc.Add(2, 3);          // Act
+        Assert.Equal(5, result);              // Assert
+    }
+}
+// Always build and run the suite to confirm it compiles and passes.
+</code></pre></div>
+<div class="callout warn"><b>Gotcha:</b> Generated tests might not cover every scenario, and Agent runs can use multiple <b>premium requests</b>. Manual review and code review are still required.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li><b>Ask</b> = read-only analysis; <b>Plan</b> = reviewable step-by-step strategy; <b>Agent</b> = autonomous generate/run/iterate. Know when each fits.</li>
+<li><code>/setupTests</code> configures a framework; <code>/tests</code> generates tests — don't swap them.</li>
+<li>Integration tests come from natural-language prompts, not a dedicated slash command.</li>
+<li>Copilot matches the <b>existing</b> framework and style; steer it with custom instructions when you need a specific one (e.g., xUnit vs NUnit).</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer wants Copilot to generate xUnit tests for the open file and run them, confirming each step. Which setup?</summary>
+<div class="answer"><b>Answer:</b> Chat view, Agent mode with Default Approvals, using <code>/tests</code> (or a natural-language prompt that asks it to run the tests). <em>Why:</em> Agent can write and run tests; Default Approvals keeps you confirming each tool call.</div></details>
+<details class="q"><summary><b>Q2.</b> A team must ensure all generated tests use xUnit and Arrange-Act-Assert. What's the durable way to enforce this?</summary>
+<div class="answer"><b>Answer:</b> A <code>*.instructions.md</code> file with <code>applyTo: tests/**</code>, shared in source control. <em>Why:</em> Custom instructions scope testing conventions to test files for every developer.</div></details>
+<details class="q"><summary><b>Q3.</b> Which agent produces a reviewable plan before any test code is written?</summary>
+<div class="answer"><b>Answer:</b> The Plan agent. <em>Why:</em> Plan researches the task and proposes a step-by-step strategy you approve, then hands off to the Agent for implementation.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/3-generate-unit-tests-chat-view">Generate unit tests with the GitHub Copilot Chat view</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/4-plan-automate-tests-using-agents">Plan and automate test workflows using the Plan and Agent modes</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-5-2-2" data-skill="edge-cases-assertions">
+<h3 id="o-5-2-2">5.2.2 Identify edge cases and write assertions</h3>
+<div class="concept"><p>Good tests cover more than the happy path. Copilot helps you discover edge cases and boundary conditions — through Ask-mode exploration or explicit prompts — and proposes appropriate assertions. Ghost text then extends coverage quickly once a pattern exists.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>Explore first with Ask mode</b>: attach the code (<code>#selection</code>) and ask, e.g., "What edge cases should I cover when testing the <code>CalculateDiscount</code> method? List the scenarios and explain why each matters." Then switch to Agent to generate them.</li>
+<li><b>Prompt for edge cases directly</b>: "Include success, failure, and <b>edge cases</b>," or "…including edge cases for <b>negative values and zero</b>."</li>
+<li><b>Assertion suggestions</b>: in the SDLC Testing &amp; QA phase, Copilot proposes appropriate assertions based on the code's expected behavior, and suggests scenarios covering edge cases to improve robustness.</li>
+<li><b>Ghost text to extend coverage</b>: with 1–2 existing tests, place the cursor after the last one and type a new method or a descriptive comment (e.g., <code>// Test that ProcessOrder throws when the order total is negative</code>); Copilot completes it from existing patterns. <b>Tab</b> accepts, <b>Esc</b> dismisses.</li>
+<li>Ghost text works best when the file already shows the pattern (Arrange-Act-Assert / parameterized attribute) and the method under test is imported.</li>
+<li><b>Boundary conditions</b>: parameterized tests are ideal for boundary values; the Plan agent can include "success, failure, and boundary conditions."</li>
+</ul></div>
+<div class="code"><pre><code class="lang-python"># A comment steers ghost text toward a specific edge case:
+# Test that withdraw() raises ValueError when amount exceeds balance
+def test_withdraw_more_than_balance_raises():
+    account = Account(balance=100)
+    with pytest.raises(ValueError):
+        account.withdraw(150)
+# Confirm the assertion reflects the intended behavior before trusting it.
+</code></pre></div>
+<div class="callout tip"><b>Tip:</b> Use ghost text for quick edge-case additions to an existing test class; return to the Chat view (Ask / Plan / Agent) for larger work like a brand-new test class.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li><b>Ask mode</b> is the right tool to <em>brainstorm</em> edge cases before writing tests; <b>Agent</b> writes them.</li>
+<li>A clear scenario comment produces better ghost-text assertions than a bare method stub.</li>
+<li>Boundary conditions (zero, negatives, limits) are prime candidates for <b>parameterized</b> tests.</li>
+<li>Always verify that suggested assertions match the intended behavior — Copilot can assert the wrong thing.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> Before writing tests, a developer wants Copilot to list edge cases for a discount method and explain why each matters, without changing files. Which mode?</summary>
+<div class="answer"><b>Answer:</b> Ask mode. <em>Why:</em> Ask answers questions and analyzes code without modifying files or invoking tools — ideal for exploring edge cases first.</div></details>
+<details class="q"><summary><b>Q2.</b> A test class already has two Arrange-Act-Assert tests. What's the fastest way to add one more edge-case test?</summary>
+<div class="answer"><b>Answer:</b> Ghost text — type a descriptive comment for the new case and accept the inline completion with Tab. <em>Why:</em> Copilot completes similar test cases from existing patterns once the file shows the structure.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/3-generate-unit-tests-chat-view">Generate unit tests with the GitHub Copilot Chat view</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/5-extend-fix-tests-using-github-copilot">Extend tests with ghost text and fix failing tests</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-5-2-3" data-skill="security-performance">
+<h3 id="o-5-2-3">5.2.3 Suggest security improvements and performance optimizations</h3>
+<div class="concept"><p>Copilot can propose more efficient implementations, generate performance benchmarks, and flag potential quality and security issues before code ships. But this is exactly where Copilot's limitations bite hardest: generated code may not follow security best practices, so human review is non-negotiable.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>Performance / optimization</b>: in Design &amp; development, Copilot offers more efficient code alternatives ("code optimization"); Testing &amp; QA can generate <b>performance benchmarks and load-testing scenarios</b>.</li>
+<li><b>Security assistance</b>: use Copilot for <b>pre-submission quality checks</b> to identify potential issues before a PR; orchestrated "review agent" patterns surface <b>security vulnerabilities</b> and performance-optimization opportunities.</li>
+<li><b>Fixing failures</b>: Test Explorer's <b>Fix Test Failure</b> (sparkle icon) attaches the failing test and output and proposes a fix (to the test, the app code, or both); <b><code>/fixTestFailure</code></b> does the same from Chat; the Agent can monitor output and auto-fix and rerun until green.</li>
+<li><b>Documented limitations</b>: Copilot can suggest buggy code, may not adhere to security best practices, can misinterpret context, varies by language/framework, and can reflect training-data bias.</li>
+<li><b>Non-negotiable</b>: carefully review security- and performance-sensitive suggestions; never merge them unchecked.</li>
+</ul></div>
+<div class="callout warn"><b>Gotcha:</b> "Generated code may not always adhere to best security practices, requiring careful review." Treat every security or performance suggestion as a draft to validate — not a guarantee.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Copilot <b>suggests</b> security and performance improvements — it does not guarantee secure or optimal code.</li>
+<li>Pre-submission checks and review-agent patterns are how Copilot participates in security review.</li>
+<li>For failing tests: <b>Fix Test Failure</b> (Test Explorer) vs <b><code>/fixTestFailure</code></b> (Chat) vs an Agent that monitors and auto-fixes — match the tool to the scope.</li>
+<li>The strongest recurring exam theme in this domain: <b>always review and run generated code and tests</b>.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> True or false: because Copilot can suggest security fixes, its generated code is safe to merge without a security review.</summary>
+<div class="answer"><b>Answer:</b> False. <em>Why:</em> Generated code may not follow security best practices and can contain bugs; careful human review is required.</div></details>
+<details class="q"><summary><b>Q2.</b> A single unit test fails and the developer wants a fast, focused fix from within Test Explorer. Which feature?</summary>
+<div class="answer"><b>Answer:</b> The Fix Test Failure (sparkle) button in Test Explorer. <em>Why:</em> It attaches the failing test and its output and proposes a targeted fix for that test.</div></details>
+<details class="q"><summary><b>Q3.</b> Which Copilot capability helps a developer write performant code from the start during development?</summary>
+<div class="answer"><b>Answer:</b> Code optimization — suggesting more efficient code alternatives. <em>Why:</em> In the SDLC design/development phase Copilot proposes performant implementations, though results still need review.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/5-understand-limitations-measure-impact">Understand limitations and measure impact</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/5-extend-fix-tests-using-github-copilot">Extend tests with ghost text and fix failing tests</a></li>
+</ul></div>
+</section>
+</section>
+</section>

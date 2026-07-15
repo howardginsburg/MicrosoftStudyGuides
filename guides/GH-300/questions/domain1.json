@@ -1,0 +1,242 @@
+{
+  "domain": 1,
+  "domain_title": "Use GitHub Copilot responsibly",
+  "questions": [
+    {
+      "id": "q1-001",
+      "objective": "1.1.1",
+      "type": "single",
+      "stem": "While pairing with GitHub Copilot, a developer accepts a suggestion that calls a helper method on a popular library. The build fails because that method does not exist in any version of the library. Which limitation of generative AI does this best illustrate?",
+      "options": [
+        {"id": "a", "text": "Bias"},
+        {"id": "b", "text": "Hallucination"},
+        {"id": "c", "text": "Data minimization"},
+        {"id": "d", "text": "Envelope encryption"}
+      ],
+      "answer": "b",
+      "explanation": "Hallucination is when the model produces confident, plausible-looking output that references APIs or facts that do not actually exist. Bias is skewed patterns learned from training data, not fabricated references. Data minimization and envelope encryption are privacy/security mitigations, not model limitations.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"]
+    },
+    {
+      "id": "q1-002",
+      "objective": "1.1.1",
+      "type": "single",
+      "stem": "A team notices Copilot keeps recommending an older API pattern even though a newer, better-supported API has shipped. What is the most accurate explanation?",
+      "options": [
+        {"id": "a", "text": "The model's knowledge is limited to its training data up to a cutoff, so it may not know newer frameworks or changes."},
+        {"id": "b", "text": "The model genuinely understands the code and prefers the older pattern for safety."},
+        {"id": "c", "text": "Copilot never suggests library calls, only comments."},
+        {"id": "d", "text": "Newer APIs are automatically blocked by responsible-AI policy."}
+      ],
+      "answer": "a",
+      "explanation": "Generative models only 'know' what was in their training data up to a cutoff and do not automatically learn about changes made afterward, so they can propose stale patterns. Copilot does not have genuine understanding, does suggest code, and there is no policy that blocks newer APIs.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"]
+    },
+    {
+      "id": "q1-003",
+      "objective": "1.1.1",
+      "type": "multi",
+      "stem": "Which of the following are recognized limitations of generative AI tools like GitHub Copilot? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "It can hallucinate output that is plausible but incorrect."},
+        {"id": "b", "text": "It can reflect and amplify bias present in its training data."},
+        {"id": "c", "text": "Its knowledge can be stale relative to its training cutoff."},
+        {"id": "d", "text": "It guarantees generated code is secure and correct."}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Hallucination, bias, and stale knowledge are all documented limitations, and suggestions come from pattern prediction rather than true reasoning. Because of this, output is never guaranteed to be secure or correct, so option D is false.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"]
+    },
+    {
+      "id": "q1-004",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "How many principles make up Microsoft and GitHub's framework for responsible AI?",
+      "options": [
+        {"id": "a", "text": "Four"},
+        {"id": "b", "text": "Five"},
+        {"id": "c", "text": "Six"},
+        {"id": "d", "text": "Eight"}
+      ],
+      "answer": "c",
+      "explanation": "There are exactly six principles: fairness, reliability and safety, privacy and security, inclusiveness, transparency, and accountability. Distractors that add items such as 'explainability' or 'efficiency' as separate official principles are incorrect.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai"]
+    },
+    {
+      "id": "q1-005",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "A team wants Copilot-related tooling to work well for developers who use screen readers and who work in several different languages. Which responsible-AI principle does this goal most directly support?",
+      "options": [
+        {"id": "a", "text": "Reliability and safety"},
+        {"id": "b", "text": "Inclusiveness"},
+        {"id": "c", "text": "Accountability"},
+        {"id": "d", "text": "Privacy and security"}
+      ],
+      "answer": "b",
+      "explanation": "Inclusiveness means AI systems should empower everyone and be accessible across abilities, languages, and geographies. Reliability and safety concerns predictable behavior, accountability concerns human responsibility, and privacy and security concerns protecting data.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai"]
+    },
+    {
+      "id": "q1-006",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "Which responsible-AI principle is most directly about making an AI system understandable and being honest about its capabilities and limitations?",
+      "options": [
+        {"id": "a", "text": "Transparency"},
+        {"id": "b", "text": "Fairness"},
+        {"id": "c", "text": "Inclusiveness"},
+        {"id": "d", "text": "Reliability and safety"}
+      ],
+      "answer": "a",
+      "explanation": "Transparency requires that AI systems be interpretable and that creators be honest about capabilities and limitations. Fairness targets equal treatment, inclusiveness targets accessibility, and reliability and safety targets consistent, safe behavior.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai"]
+    },
+    {
+      "id": "q1-007",
+      "objective": "1.1.2",
+      "type": "tf",
+      "stem": "True or false: Because the AI generated the code, no person is responsible for the outcome.",
+      "options": [
+        {"id": "a", "text": "True"},
+        {"id": "b", "text": "False"}
+      ],
+      "answer": "b",
+      "explanation": "False. The accountability principle keeps people — not the software — responsible for how AI systems operate and for the code they accept. Responsibility is never transferred to the tool.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai"]
+    },
+    {
+      "id": "q1-008",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "A model consistently gives lower scores to one demographic group for otherwise similar inputs. Which set of mitigations most directly targets this harm?",
+      "options": [
+        {"id": "a", "text": "Fairness techniques such as reviewing training data, testing with balanced samples, adversarial debiasing, and controls to override unfair scores"},
+        {"id": "b", "text": "Envelope encryption and hardware security modules"},
+        {"id": "c", "text": "Rotating encryption keys and running security audits"},
+        {"id": "d", "text": "Obtaining user consent and minimizing data collection"}
+      ],
+      "answer": "a",
+      "explanation": "Unfair differential impact is a fairness harm, addressed with fairness techniques like reviewing training data, testing with balanced demographic samples, adversarial debiasing, and override controls. The other options are privacy and security mitigations that do not address bias.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"]
+    },
+    {
+      "id": "q1-009",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "Which privacy technique replaces personal details with random identifiers so that records cannot easily be tied to individuals?",
+      "options": [
+        {"id": "a", "text": "Aggregation"},
+        {"id": "b", "text": "Pseudonymization"},
+        {"id": "c", "text": "Adversarial debiasing"},
+        {"id": "d", "text": "Key rotation"}
+      ],
+      "answer": "b",
+      "explanation": "Pseudonymization swaps identifying fields for random identifiers. Aggregation summarizes data into groups to remove individual detail, adversarial debiasing is a fairness technique, and key rotation is a security control.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"]
+    },
+    {
+      "id": "q1-010",
+      "objective": "1.1.3",
+      "type": "multi",
+      "stem": "Which of the following are cross-cutting mitigations that apply across nearly every AI risk? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Robust governance frameworks"},
+        {"id": "b", "text": "Transparency in AI processes"},
+        {"id": "c", "text": "Human oversight"},
+        {"id": "d", "text": "Accepting all suggestions to maximize speed"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Governance frameworks, transparency in processes, and human oversight are the three cross-cutting mitigations that reduce risk everywhere. Accepting all suggestions without review abandons oversight and increases risk, so option D is not a mitigation.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"]
+    },
+    {
+      "id": "q1-011",
+      "objective": "1.2.1",
+      "type": "single",
+      "stem": "Why is human validation of Copilot output considered necessary rather than optional?",
+      "options": [
+        {"id": "a", "text": "Generative AI can hallucinate, encode bias, and rely on stale knowledge, so output is not guaranteed correct or secure."},
+        {"id": "b", "text": "Copilot output is always correct, so validation is only a formality."},
+        {"id": "c", "text": "Validation transfers responsibility for the code from the developer to Copilot."},
+        {"id": "d", "text": "Validation is required only for comments, not for code."}
+      ],
+      "answer": "a",
+      "explanation": "Because generative AI can hallucinate, be biased, and use outdated knowledge, a human must review and test suggestions before trusting them. Output is not always correct, validation does not offload responsibility to the tool, and it applies to code as well as comments.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"]
+    },
+    {
+      "id": "q1-012",
+      "objective": "1.2.1",
+      "type": "single",
+      "stem": "A developer accepts a Copilot suggestion that later causes a production defect. Under the responsible-AI principles, who is accountable for the defect?",
+      "options": [
+        {"id": "a", "text": "GitHub Copilot, because it generated the code"},
+        {"id": "b", "text": "No one, because AI-generated code has no owner"},
+        {"id": "c", "text": "The developer who reviewed and accepted the suggestion"},
+        {"id": "d", "text": "The training-data provider"}
+      ],
+      "answer": "c",
+      "explanation": "Accountability stays with people; once a developer accepts a suggestion, they own it. Copilot assists but does not assume responsibility for correctness, security, or licensing of committed code.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai"]
+    },
+    {
+      "id": "q1-013",
+      "objective": "1.2.1",
+      "type": "single",
+      "stem": "Which sequence best describes the validate-output loop a developer should apply to a Copilot suggestion?",
+      "options": [
+        {"id": "a", "text": "Accept the suggestion, then investigate only if a bug is reported later."},
+        {"id": "b", "text": "Read the suggestion, check correctness, security, licensing, and fit, test it, then accept, edit, or reject."},
+        {"id": "c", "text": "Reject every suggestion and write all code manually."},
+        {"id": "d", "text": "Forward the suggestion to Copilot for automatic self-approval."}
+      ],
+      "answer": "b",
+      "explanation": "The validation loop is: read the suggestion, check correctness/security/licensing/fit, test it, then decide to accept, edit, or reject — with a human in the loop. Accepting blindly, rejecting everything, or expecting the tool to self-approve are all incorrect.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"]
+    },
+    {
+      "id": "q1-014",
+      "objective": "1.2.2",
+      "type": "single",
+      "stem": "To move faster, a developer configures their workflow to accept every Copilot suggestion without reviewing it. Which responsible-use practice is being violated?",
+      "options": [
+        {"id": "a", "text": "Data minimization"},
+        {"id": "b", "text": "Human oversight and validation of output"},
+        {"id": "c", "text": "Key rotation"},
+        {"id": "d", "text": "Aggregation"}
+      ],
+      "answer": "b",
+      "explanation": "Responsible operation requires reviewing and validating suggestions; skipping review abandons human oversight and accountability. Data minimization, key rotation, and aggregation are privacy/security mitigations unrelated to reviewing suggestions.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/5-summary"]
+    },
+    {
+      "id": "q1-015",
+      "objective": "1.2.2",
+      "type": "multi",
+      "stem": "Which practices describe operating GitHub Copilot responsibly within an organization? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Keep a human reviewing and validating output"},
+        {"id": "b", "text": "Ensure generated code aligns with ethical standards and project-specific requirements"},
+        {"id": "c", "text": "Use governance frameworks and continuously monitor performance"},
+        {"id": "d", "text": "Disable code review so suggestions can be accepted faster"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Responsible operation combines productivity with human oversight, alignment to standards and requirements, governance, and ongoing monitoring. Disabling review to accept suggestions faster abandons oversight and is explicitly not responsible use.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/"]
+    },
+    {
+      "id": "q1-016",
+      "objective": "1.2.2",
+      "type": "tf",
+      "stem": "True or false: Gaining productivity from Copilot and operating it responsibly are opposing goals, so teams must sacrifice oversight to move faster.",
+      "options": [
+        {"id": "a", "text": "True"},
+        {"id": "b", "text": "False"}
+      ],
+      "answer": "b",
+      "explanation": "False. The goal is to use Copilot effectively while mitigating ethical and operational risks — the two goals go together. Productivity and responsibility are pursued together, not traded off, and oversight remains part of responsible operation.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/5-summary"]
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "domain": 5,
+  "domain_title": "Improve developer productivity with GitHub Copilot",
+  "questions": [
+    {
+      "id": "q5-001",
+      "objective": "5.1.1",
+      "type": "single",
+      "stem": "A developer inherits a module that has no README and no docstrings. They want Copilot to draft a project README, add inline comments to complex functions, and describe each function's parameters and return values. Which Copilot productivity capability best matches this request?",
+      "options": [
+        {"id": "a", "text": "Personalized code completion that adapts to coding style over time"},
+        {"id": "b", "text": "Documentation writing, including inline comments, function descriptions, and README generation"},
+        {"id": "c", "text": "Cross-language translation of the module's source code"},
+        {"id": "d", "text": "Sample data generation for the test suite"}
+      ],
+      "answer": "b",
+      "explanation": "Copilot's documentation help spans inline comments explaining complex code, function descriptions (parameters and return values), and README structure/content drawn from the codebase. Personalized completion, cross-language translation, and sample data are different capabilities.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/2-boost-developer-productivity"]
+    },
+    {
+      "id": "q5-002",
+      "objective": "5.1.1",
+      "type": "multi",
+      "stem": "Under the module's \"automating the boring stuff\" theme, which tasks does GitHub Copilot help automate so developers can focus on complex, creative work? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Generating boilerplate code such as scaffolding a REST API or class structure"},
+        {"id": "b", "text": "Writing unit tests"},
+        {"id": "c", "text": "Refactoring and translating code between programming languages"},
+        {"id": "d", "text": "Making final high-level software architecture decisions without human input"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "\"Automating the boring stuff\" covers boilerplate generation, sample data, writing unit tests, and refactoring/cross-language translation. Copilot is strongest at code-level tasks; high-level architecture and novel design decisions should stay in human hands.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/2-boost-developer-productivity"]
+    },
+    {
+      "id": "q5-003",
+      "objective": "5.1.2",
+      "type": "single",
+      "stem": "A developer new to Golang has Copilot generate a function but does not understand what it does. They want a plain-language walkthrough without leaving the IDE or opening a browser. What is the fastest path?",
+      "options": [
+        {"id": "a", "text": "Run /setupTests to configure a test framework first"},
+        {"id": "b", "text": "Use the \"Explain this\" context-menu option (or /explain) in the editor"},
+        {"id": "c", "text": "Open external documentation in a web search to learn the syntax"},
+        {"id": "d", "text": "Switch the file to a language Copilot already knows"}
+      ],
+      "answer": "b",
+      "explanation": "The \"Explain this\" option (or /explain in chat) provides an in-editor natural-language explanation of generated or unfamiliar code, accelerating learning while avoiding context switching. A web search would defeat the goal of staying in the editor.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/2-boost-developer-productivity"]
+    },
+    {
+      "id": "q5-004",
+      "objective": "5.1.2",
+      "type": "single",
+      "stem": "A team lead wants to explain how Copilot reduces context switching for developers calling unfamiliar APIs. Which Copilot behavior most directly addresses that goal?",
+      "options": [
+        {"id": "a", "text": "Providing quick references to correct method calls and parameters inline in the editor"},
+        {"id": "b", "text": "Enforcing organization content exclusion policies"},
+        {"id": "c", "text": "Generating performance benchmarks and load-testing scenarios"},
+        {"id": "d", "text": "Configuring a test framework with /setupTests"}
+      ],
+      "answer": "a",
+      "explanation": "Reducing context switching comes from in-editor assistance, quick references (correct method calls and parameters for APIs and libraries), and code completion — the common thread is staying in the editor. Content exclusions are governance, not a focus/productivity benefit.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/2-boost-developer-productivity"]
+    },
+    {
+      "id": "q5-005",
+      "objective": "5.1.3",
+      "type": "single",
+      "stem": "A tester needs 50 realistic-looking user records to exercise a registration form. What is the appropriate Copilot use, and what caveat applies?",
+      "options": [
+        {"id": "a", "text": "Use Copilot to generate the sample data, then review the values before relying on them"},
+        {"id": "b", "text": "Use Copilot to generate the data and treat it as validated production data"},
+        {"id": "c", "text": "Ask Copilot to translate the form to another language instead"},
+        {"id": "d", "text": "Avoid Copilot because it cannot create test data"}
+      ],
+      "answer": "a",
+      "explanation": "Under \"automating the boring stuff\" and the SDLC Testing & QA phase, Copilot quickly creates realistic sample/test data. However, generated data is illustrative and must be reviewed (types, edge values, sensitive-looking values) before use.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/4-ai-software-development-lifecycle"]
+    },
+    {
+      "id": "q5-006",
+      "objective": "5.1.3",
+      "type": "single",
+      "stem": "A developer must modify an undocumented legacy module they've never seen. During the SDLC Maintenance & support phase, how can Copilot help them get started?",
+      "options": [
+        {"id": "a", "text": "By automatically deploying the module to production"},
+        {"id": "b", "text": "By providing explanations of the code and suggesting modern equivalents"},
+        {"id": "c", "text": "By deleting the legacy code and rewriting the architecture on its own"},
+        {"id": "d", "text": "By enforcing a required review policy on the pull request"}
+      ],
+      "answer": "b",
+      "explanation": "In maintenance, Copilot helps developers understand unfamiliar or legacy code by providing explanations and modern equivalents, and can suggest refactoring and cross-language translation to modernize it. It does not autonomously redesign or deploy the system.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/4-ai-software-development-lifecycle"]
+    },
+    {
+      "id": "q5-007",
+      "objective": "5.2.1",
+      "type": "single",
+      "stem": "In VS Code, a developer wants Copilot to generate xUnit tests for the file open in the editor and then run them, confirming each tool call as it happens. Which Chat view configuration and command best fits?",
+      "options": [
+        {"id": "a", "text": "Ask mode with Autopilot, using /explain"},
+        {"id": "b", "text": "Agent mode with Default Approvals, using /tests (or a prompt that asks it to run the tests)"},
+        {"id": "c", "text": "Plan mode with Bypass Approvals, using /setupTests"},
+        {"id": "d", "text": "Ask mode with Default Approvals, using /fixTestFailure"}
+      ],
+      "answer": "b",
+      "explanation": "Agent mode can write and run tests, and /tests generates tests for the active code by detecting the existing framework and style. Default Approvals keeps the developer confirming each tool call. Ask is read-only; /setupTests configures a framework rather than generating tests.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/3-generate-unit-tests-chat-view"]
+    },
+    {
+      "id": "q5-008",
+      "objective": "5.2.1",
+      "type": "multi",
+      "stem": "A team wants every generated test to use xUnit and follow Arrange-Act-Assert, and they need integration tests for a data access layer. Which statements are correct about how Copilot supports these goals in VS Code? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "A *.instructions.md file with an applyTo field (e.g., applyTo: tests/**) can enforce framework and naming conventions across the team"},
+        {"id": "b", "text": "Integration tests are produced from a natural-language prompt, such as \"Create integration tests for the data access layer in this module\""},
+        {"id": "c", "text": "A dedicated /integrationTests slash command is required to create integration tests"},
+        {"id": "d", "text": "Custom instructions can be shared in source control so every developer gets the same conventions"}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Custom instructions in a *.instructions.md file (with applyTo scoping) enforce framework, naming, and Arrange-Act-Assert conventions and can be shared in source control. Integration tests come from natural-language prompts, not a dedicated slash command.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/4-plan-automate-tests-using-agents"]
+    },
+    {
+      "id": "q5-009",
+      "objective": "5.2.2",
+      "type": "single",
+      "stem": "Before writing any tests, a developer wants Copilot to list the edge cases for a CalculateDiscount method and explain why each one matters — without modifying any files. Which Chat mode should they use?",
+      "options": [
+        {"id": "a", "text": "Agent mode, so it writes and runs the tests immediately"},
+        {"id": "b", "text": "Ask mode, attaching the code with #selection to brainstorm edge cases"},
+        {"id": "c", "text": "Autopilot permission level, so it applies changes without prompting"},
+        {"id": "d", "text": "Plan mode with Bypass Approvals to edit the test file directly"}
+      ],
+      "answer": "b",
+      "explanation": "Ask mode answers questions and analyzes code without modifying files or invoking tools — ideal for exploring edge cases first. You can attach the code with #selection, then switch to Agent to generate the tests once the scenarios are clear.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/3-generate-unit-tests-chat-view"]
+    },
+    {
+      "id": "q5-010",
+      "objective": "5.2.2",
+      "type": "single",
+      "stem": "A test class already contains two Arrange-Act-Assert tests, and the method under test is imported. What is the fastest way to add one more specific edge-case test using ghost text?",
+      "options": [
+        {"id": "a", "text": "Place the cursor after the last test, type a descriptive comment for the case, and accept the inline completion with Tab"},
+        {"id": "b", "text": "Run /setupTests to reconfigure the framework before Copilot can suggest anything"},
+        {"id": "c", "text": "Open a new empty file with no existing patterns and start typing"},
+        {"id": "d", "text": "Use the Fix Test Failure sparkle button to add the new case"}
+      ],
+      "answer": "a",
+      "explanation": "Ghost text works best when the file already shows the pattern (Arrange-Act-Assert) and the method is imported. Typing a descriptive comment for the new edge case steers the inline completion; Tab accepts and Esc dismisses. A clear comment yields better assertions than a bare stub.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/5-extend-fix-tests-using-github-copilot"]
+    },
+    {
+      "id": "q5-011",
+      "objective": "5.2.3",
+      "type": "tf",
+      "stem": "True or false: Because Copilot can suggest security fixes, its generated code is safe to merge without a human security review.",
+      "options": [
+        {"id": "a", "text": "True"},
+        {"id": "b", "text": "False"}
+      ],
+      "answer": "b",
+      "explanation": "False. Generated code may not follow security best practices and can contain bugs, misread context, and reflect training-data bias. Security- and performance-sensitive suggestions are drafts to validate — careful human review is non-negotiable.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/5-understand-limitations-measure-impact"]
+    },
+    {
+      "id": "q5-012",
+      "objective": "5.2.3",
+      "type": "single",
+      "stem": "A single unit test is failing and the developer wants a fast, focused fix triggered from within Test Explorer, with the failing test and its output attached automatically. Which feature should they use?",
+      "options": [
+        {"id": "a", "text": "The Fix Test Failure (sparkle) button in Test Explorer"},
+        {"id": "b", "text": "The /setupTests command in Chat"},
+        {"id": "c", "text": "The Add Context button to attach #codebase"},
+        {"id": "d", "text": "Ghost text after the failing test"}
+      ],
+      "answer": "a",
+      "explanation": "Test Explorer's Fix Test Failure (sparkle) button attaches the failing test and its output and proposes a targeted fix — to the test, the app code, or both. The equivalent /fixTestFailure works from Chat, and an Agent can monitor output and auto-fix until green.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/5-extend-fix-tests-using-github-copilot"]
+    }
+  ]
+}

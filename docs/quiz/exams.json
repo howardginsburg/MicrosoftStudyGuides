@@ -1,6 +1,6 @@
 {
   "generated": "2026-07-15",
-  "count": 3,
+  "count": 4,
   "exams": [
     {
       "exam": "AI-103",
@@ -88,6 +88,44 @@
           "domain": 3,
           "title": "Implement and manage semantic models",
           "count": 32
+        }
+      ]
+    },
+    {
+      "exam": "GH-300",
+      "title": "GitHub Copilot",
+      "file": "GH-300.json",
+      "total": 86,
+      "domains": [
+        {
+          "domain": 1,
+          "title": "Use GitHub Copilot responsibly",
+          "count": 16
+        },
+        {
+          "domain": 2,
+          "title": "Use GitHub Copilot features",
+          "count": 24
+        },
+        {
+          "domain": 3,
+          "title": "Understand GitHub Copilot data and architecture",
+          "count": 12
+        },
+        {
+          "domain": 4,
+          "title": "Apply prompt engineering and context crafting",
+          "count": 12
+        },
+        {
+          "domain": 5,
+          "title": "Improve developer productivity with GitHub Copilot",
+          "count": 12
+        },
+        {
+          "domain": 6,
+          "title": "Configure privacy, content exclusions, and safeguards",
+          "count": 10
         }
       ]
     }

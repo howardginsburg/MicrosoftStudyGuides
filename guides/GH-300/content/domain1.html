@@ -1,0 +1,160 @@
+<section class="domain" id="domain1" data-domain="1">
+<h1 id="d1">Domain 1 — Use GitHub Copilot responsibly <span class="weight">15–20%</span></h1>
+<p class="domain-intro">GitHub Copilot is a generative AI tool for developers, and using it well means understanding its risks, applying responsible-AI principles, and keeping a human in charge of every suggestion you accept. This domain covers the six principles of responsible AI, the limitations of generative models, potential harms with their mitigations, and why validating output is non-negotiable.</p>
+
+<section class="skillgroup" id="sg-1-1">
+<h2 id="g-1-1">1.1 Understand responsible AI principles</h2>
+
+<section class="objective" id="obj-1-1-1" data-skill="genai-risks">
+<h3 id="o-1-1-1">1.1.1 Describe the risks and limitations of generative AI tools</h3>
+<div class="concept"><p>Generative AI creates real opportunities for innovation and efficiency, but it comes with significant risks that must be managed deliberately. Copilot generates code suggestions and chat answers from statistical patterns in its training data — it does not truly understand your intent, so its output can be plausible yet wrong.</p><p>A core concern is that AI decisions can be difficult to interpret, which weakens transparency and accountability. AI can also produce unintended, harmful outcomes such as biased results or privacy violations. Knowing these limits is the foundation for every other responsible-use practice.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>Hallucination:</b> the model can output confident, plausible-looking code or facts that are incorrect or reference APIs/libraries that don't exist.</li>
+<li><b>Bias:</b> models can reflect and amplify biases present in their training data.</li>
+<li><b>Stale knowledge:</b> a model only "knows" data up to its training cutoff — it won't automatically know new frameworks, recent changes, or your private codebase.</li>
+<li><b>No true reasoning:</b> suggestions come from pattern prediction, not genuine understanding, so correctness is never guaranteed.</li>
+<li>Difficult-to-interpret decisions reduce transparency and accountability; unmanaged AI can cause biased or privacy-harming outcomes.</li>
+</ul></div>
+<figure class="diagram" data-svg="genai-limitations"><figcaption>The main limitations of generative AI — hallucination, bias, stale knowledge, and lack of real reasoning — that make human review essential.</figcaption></figure>
+<div class="callout warn"><b>Gotcha:</b> "Plausible" is not "correct." Copilot output that compiles and reads well can still be wrong, insecure, or outdated — never equate fluent code with valid code.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>If an answer choice claims Copilot output is always accurate or up to date, it's wrong — hallucination and training cutoffs make that false.</li>
+<li>Distinguish <em>bias</em> (skewed patterns from data) from <em>hallucination</em> (fabricated output); the exam may test the difference.</li>
+<li>Limitations are the <em>reason</em> for the responsible-AI practices in the rest of this domain, not a separate topic.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> Copilot suggests a function that calls a library method which doesn't actually exist. What limitation does this best illustrate?</summary>
+<div class="answer"><b>Answer:</b> Hallucination. <em>Why:</em> The model produced plausible-looking output that references something nonexistent, which is the defining behavior of hallucination.</div></details>
+<details class="q"><summary><b>Q2.</b> Why can Copilot suggest an outdated approach to a task even when a newer, better API is available?</summary>
+<div class="answer"><b>Answer:</b> Its knowledge is limited to its training data up to a cutoff. <em>Why:</em> Generative models don't automatically learn about changes made after training, so they can propose stale patterns.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b><ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks">Mitigate AI risks</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/1-introduction">Responsible AI with GitHub Copilot — Introduction</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-1-1-2" data-skill="ethical-use">
+<h3 id="o-1-1-2">1.1.2 Describe ethical and responsible AI usage</h3>
+<div class="concept"><p>Responsible AI is an approach to developing, assessing, and deploying AI systems in a way that is safe, trustworthy, and ethical. Because AI systems are the product of many human decisions — from purpose to interaction design — responsible AI keeps people and their goals at the center and respects enduring values like fairness, reliability, and transparency.</p><p>Microsoft and GitHub express this through six principles that guide how AI should be built and used. Ethical use of Copilot means applying those principles in practice rather than trusting the tool blindly.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>Fairness:</b> AI systems should treat all people fairly and avoid differential impact on similar groups.</li>
+<li><b>Reliability and safety:</b> AI systems should perform reliably and safely, including under unexpected conditions.</li>
+<li><b>Privacy and security:</b> AI systems should be secure and respect user privacy.</li>
+<li><b>Inclusiveness:</b> AI systems should empower everyone and be accessible across abilities, languages, and geographies.</li>
+<li><b>Transparency:</b> AI systems should be understandable, with honesty about capabilities and limitations.</li>
+<li><b>Accountability:</b> people — not the software — should be accountable for how AI systems operate.</li>
+</ul></div>
+<figure class="diagram" data-svg="responsible-ai-principles"><figcaption>The six Microsoft/GitHub responsible-AI principles that frame ethical use of Copilot.</figcaption></figure>
+<div class="callout key"><b>Key:</b> Memorize all six principles by name — fairness, reliability &amp; safety, privacy &amp; security, inclusiveness, transparency, accountability — and one phrase for each.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>There are exactly <b>six</b> principles. Watch for distractors that add "explainability" or "efficiency" as if they were separate official principles.</li>
+<li>Match each principle to its one-line intent (e.g., inclusiveness = accessible to everyone; transparency = understandable).</li>
+<li>Responsible AI = safe, trustworthy, and ethical development and deployment — not just "accurate results."</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> Which responsible-AI principle is most directly about making an AI system understandable and honest about its limitations?</summary>
+<div class="answer"><b>Answer:</b> Transparency. <em>Why:</em> Transparency requires systems to be interpretable and for creators to be honest about capabilities and limitations.</div></details>
+<details class="q"><summary><b>Q2.</b> A team wants Copilot-related tooling to work for developers using screen readers and multiple languages. Which principle does this support?</summary>
+<div class="answer"><b>Answer:</b> Inclusiveness. <em>Why:</em> Inclusiveness means AI empowers everyone and is accessible regardless of ability, language, or infrastructure.</div></details>
+<details class="q"><summary><b>Q3.</b> True or false: because the AI generated the code, no person is responsible for the outcome.</summary>
+<div class="answer"><b>Answer:</b> False. <em>Why:</em> The accountability principle keeps people responsible for how AI systems operate and for the code they accept.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b><ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai">Microsoft and GitHub's six principles of responsible AI</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks">Mitigate AI risks</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-1-1-3" data-skill="harms-mitigation">
+<h3 id="o-1-1-3">1.1.3 Identify potential harms and mitigation strategies of AI usage</h3>
+<div class="concept"><p>The same capabilities that make AI useful can cause harm: biased decision-making, privacy violations, unintended outcomes, opaque decisions, and susceptibility to manipulation. Responsible use pairs each risk with concrete mitigations rather than accepting harm as inevitable.</p><p>Three cross-cutting mitigations apply everywhere: robust governance frameworks, transparency in AI processes, and human oversight. Specific principles add their own techniques.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>Cross-cutting mitigations:</b> governance frameworks, transparency in processes, and human oversight to reduce risk.</li>
+<li><b>Fairness techniques:</b> review training data, test with balanced demographic samples, use adversarial debiasing, monitor performance across user segments, and add controls to override unfair scores.</li>
+<li><b>Reliability &amp; safety:</b> systems should function as designed, respond safely to unexpected conditions, resist harmful manipulation, and minimize physical, emotional, and financial harm.</li>
+<li><b>Privacy mitigations:</b> obtain consent, minimize data collection, anonymize via pseudonymization and aggregation.</li>
+<li><b>Security mitigations:</b> encrypt data in transit and at rest, protect keys with HSMs/secure vaults/envelope encryption, rotate keys, control access, and run regular audits.</li>
+</ul></div>
+<div class="callout tip"><b>Tip:</b> When a scenario names a harm, pick the mitigation from the <em>matching</em> principle — biased output → fairness techniques; leaked data → privacy/security controls.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li><em>Pseudonymization</em> replaces identifying details with random identifiers; <em>aggregation</em> summarizes data to remove individual detail — know the distinction.</li>
+<li>Human oversight is a mitigation for nearly every AI risk; if unsure, "keep a human in the loop" is usually a correct action.</li>
+<li>Training on diverse, balanced data is a fairness mitigation, not a performance optimization.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A model gives lower scores to one demographic group for similar inputs. Which mitigation set applies?</summary>
+<div class="answer"><b>Answer:</b> Fairness techniques — review training data, test with balanced samples, apply adversarial debiasing, and add controls to override unfair scores. <em>Why:</em> The harm is unfair differential impact, which the fairness principle targets.</div></details>
+<details class="q"><summary><b>Q2.</b> Which privacy technique replaces personal details with random identifiers so records can't be tied to individuals?</summary>
+<div class="answer"><b>Answer:</b> Pseudonymization. <em>Why:</em> It swaps identifying fields for random identifiers, unlike aggregation, which groups data into summaries.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b><ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks">Mitigate AI risks</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai">Microsoft and GitHub's six principles of responsible AI</a></li>
+</ul></div>
+</section>
+</section>
+
+<section class="skillgroup" id="sg-1-2">
+<h2 id="g-1-2">1.2 Validate and operate AI tools</h2>
+
+<section class="objective" id="obj-1-2-1" data-skill="validate-output">
+<h3 id="o-1-2-1">1.2.1 Explain the need to validate AI output</h3>
+<div class="concept"><p>Because generative AI can hallucinate, encode bias, and rely on stale knowledge, its output must be validated before it is trusted or shipped. Validation is where human oversight meets the transparency and accountability principles: a person reviews, tests, and judges each suggestion instead of assuming it is correct.</p><p>A module learning objective is ensuring AI-generated code aligns with ethical standards and project-specific requirements — and alignment is <em>confirmed</em>, never assumed.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Validation is required precisely because of GenAI limitations (hallucination, bias, outdated knowledge).</li>
+<li><b>Human-in-the-loop:</b> a person reviews, tests, and corrects suggestions — human oversight is central to mitigating AI risk.</li>
+<li>Transparency calls for a clear validation framework and honesty about capabilities and limitations.</li>
+<li>Accountability keeps people responsible for how systems operate — including code they accept.</li>
+<li>Validation loop: read the suggestion, check correctness/security/licensing/fit, test it, then accept, edit, or reject.</li>
+</ul></div>
+<figure class="diagram" data-svg="validate-output-loop"><figcaption>The validate-output loop: review, test, and decide (accept, edit, or reject) with a human in the loop for every suggestion.</figcaption></figure>
+<div class="callout warn"><b>Gotcha:</b> Once you accept a suggestion, you own it. Copilot assists; it does not assume responsibility for correctness, security, or licensing of what you commit.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>"Trust but verify" is not enough for high-risk code — the correct answer is verify before trusting.</li>
+<li>The developer, not the tool, remains accountable for accepted output; any answer that offloads responsibility to Copilot is wrong.</li>
+<li>Validation includes testing and security review, not just reading the code.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> Why is human validation of Copilot output necessary rather than optional?</summary>
+<div class="answer"><b>Answer:</b> Generative AI can hallucinate, be biased, and use stale knowledge, so output isn't guaranteed correct or secure. <em>Why:</em> Those limitations mean a human must review and test before trusting suggestions.</div></details>
+<details class="q"><summary><b>Q2.</b> After a developer accepts a Copilot suggestion that later causes a defect, who is accountable?</summary>
+<div class="answer"><b>Answer:</b> The developer who accepted it. <em>Why:</em> Accountability stays with people; accepting output makes it the developer's responsibility.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b><ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks">Mitigate AI risks</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai">Microsoft and GitHub's six principles of responsible AI</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-1-2-2" data-skill="operate-responsibly">
+<h3 id="o-1-2-2">1.2.2 Identify how to operate GitHub Copilot responsibly</h3>
+<div class="concept"><p>Operating Copilot responsibly means using it effectively while mitigating the ethical and operational risks of AI. In practice, that is the six principles applied to daily work: keep a human reviewing output, protect privacy and secrets, be transparent about AI's role, and stay accountable for the code you accept.</p><p>Transparency and accountability build trust and maintain user confidence, so responsible operation is both an ethical stance and a way to keep AI-assisted work dependable.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Use Copilot to boost productivity <b>while mitigating ethical and operational risks</b> — the two goals go together.</li>
+<li>Apply the six principles in day-to-day use rather than trusting output blindly.</li>
+<li><b>Accountability:</b> creators and deploying organizations take responsibility, continuously monitor performance, and mitigate risks.</li>
+<li>Ensure generated code aligns with ethical standards and project-specific requirements.</li>
+<li>Use Copilot responsibly and securely across environments (IDE, chat, and beyond).</li>
+<li>Transparency and accountability build trust and maintain user confidence.</li>
+</ul></div>
+<div class="callout key"><b>Key:</b> Responsible operation = human oversight + the six principles + accountability for accepted code. Productivity and responsibility are not a trade-off.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Answers that recommend disabling review or accepting all suggestions to "move faster" are wrong — oversight is part of responsible operation.</li>
+<li>Governance frameworks and monitoring are organizational mitigations; human review is the individual-developer mitigation.</li>
+<li>Aligning output to project standards and requirements is an ongoing responsibility, not a one-time setup.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer accepts every Copilot suggestion without review to save time. Which responsible-use practice is being violated?</summary>
+<div class="answer"><b>Answer:</b> Human oversight / validation of output. <em>Why:</em> Responsible operation requires reviewing and validating suggestions; skipping review abandons oversight and accountability.</div></details>
+<details class="q"><summary><b>Q2.</b> Which statement best describes responsible operation of Copilot in an organization?</summary>
+<div class="answer"><b>Answer:</b> Combine productivity gains with governance, monitoring, human review, and accountability for accepted code. <em>Why:</em> Responsible use mitigates ethical and operational risks while gaining efficiency — the two are pursued together.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b><ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/">Responsible AI with GitHub Copilot</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/5-summary">Responsible AI with GitHub Copilot — Summary</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/paths/copilot/">GitHub Copilot Fundamentals Part 1 of 2</a></li>
+</ul></div>
+</section>
+</section>
+</section>

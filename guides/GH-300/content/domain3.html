@@ -1,0 +1,241 @@
+<section class="domain" id="domain3" data-domain="3">
+  <h1 id="d3">Domain 3 — Understand GitHub Copilot data and architecture <span class="weight">10–15%</span></h1>
+  <p class="domain-intro">This domain is about what happens <em>behind</em> a suggestion: how your prompt and editor context travel from the client through a proxy and safety filters to the model and back, what data is (and isn't) retained, the end-to-end code-suggestion lifecycle, and the inherent limits of large language models. Expect diagram-oriented and "what data leaves my machine" questions.</p>
+
+  <section class="skillgroup" id="sg-3-1">
+    <h2 id="g-3-1">3.1 Describe data handling and flow</h2>
+
+    <!-- ===================== 3.1.1 ===================== -->
+    <section class="objective" id="obj-3-1-1" data-skill="data-usage-flow">
+      <h3 id="o-3-1-1">3.1.1 Explain data usage, flow, and sharing</h3>
+
+      <div class="concept">
+        <p>GitHub Copilot exchanges data in two directions: an <b>inbound</b> flow that carries your prompt and editor context toward the model, and an <b>outbound</b> flow that carries the model's response back after filtering. Between the editor and the model sits a <b>proxy service hosted in a GitHub-owned Microsoft Azure tenant</b>.</p>
+        <p>Understanding <em>what</em> data leaves the client, <em>where</em> it goes, and <em>whether</em> it is kept is central to answering privacy questions on the exam.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li>The prompt is transmitted to Copilot's servers over <b>HTTPS</b> for secure, confidential transport.</li>
+          <li>Copilot <b>in the code editor does not retain</b> your prompts (code or other context) to train the foundational models — prompts are <b>discarded once a suggestion is returned</b>.</li>
+          <li><b>Individual</b> subscribers can <b>opt out</b> of sharing prompts that would otherwise be used to <em>fine-tune</em> GitHub's foundational model.</li>
+          <li>For Copilot <b>Chat used outside the editor</b> (and CLI, Mobile, Chat on GitHub.com), GitHub typically <b>retains prompts, suggestions, and supporting context for 28 days</b>; retention for Chat <em>inside</em> the editor may vary.</li>
+          <li><b>Business</b> and <b>Enterprise</b> plans provide enterprise-grade security, safety, and privacy (IP indemnity, public-code filtering, centralized policy); prompts and suggestions on these organizational plans are <b>not used to train the models</b>.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="data-flow"><figcaption>Data path: editor client → HTTPS → proxy (GitHub-owned Azure tenant) → LLM → post-processing filters → suggestion back to the client.</figcaption></figure>
+
+      <div class="callout key"><b>Key:</b> Editor code-completion prompts are transient — they're discarded after a suggestion is generated and are not used to train the models.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Only <b>Individual</b> plans expose an opt-out for prompt sharing/fine-tuning; organizational (Business/Enterprise) data isn't used for training in the first place.</li>
+          <li>The <b>28-day retention</b> figure applies to Chat/CLI/Mobile <em>outside</em> the editor — don't apply it to inline code completions, which are discarded.</li>
+          <li>The proxy lives in a <b>GitHub-owned Microsoft Azure tenant</b>, not on the developer's machine.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A developer worries that the code they accept as an inline completion is being stored to retrain the model. On a standard editor completion, what actually happens to that prompt?</summary>
+        <div class="answer"><b>Answer:</b> It is discarded once the suggestion is returned and is not used to train the foundational models. <em>Why:</em> Copilot in the code editor does not retain completion prompts for training.</div></details>
+        <details class="q"><summary><b>Q2.</b> Which plan lets an individual user opt out of having their prompts used to fine-tune GitHub's foundational model?</summary>
+        <div class="answer"><b>Answer:</b> GitHub Copilot Individual. <em>Why:</em> Individual subscribers can opt out of prompt sharing; organizational plans don't use that data for training.</div></details>
+        <details class="q"><summary><b>Q3.</b> Copilot Chat conducted on GitHub.com retains prompts and supporting context for roughly how long?</summary>
+        <div class="answer"><b>Answer:</b> About 28 days. <em>Why:</em> Chat outside the editor (and CLI/Mobile) is typically retained for 28 days.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/4-github-copilot-data">GitHub Copilot data</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow">GitHub Copilot user prompt process flow</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.1.2 ===================== -->
+    <section class="objective" id="obj-3-1-2" data-skill="input-processing">
+      <h3 id="o-3-1-2">3.1.2 Describe input processing and prompt building</h3>
+
+      <div class="concept">
+        <p>The prompt Copilot sends to the model is much richer than the characters you typed. Before transmission, Copilot <b>assembles a prompt</b> from the surrounding editor context so the model can turn a high-level request (a comment or chat message) into a concrete coding task.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li>Context gathered includes: <b>code before and after the cursor</b>, the <b>filename and file type</b>, <b>adjacent open tabs</b>, <b>project structure and file paths</b>, and the <b>languages and frameworks</b> in use.</li>
+          <li>Copilot applies a <b>Fill-in-the-Middle (FIM)</b> technique that considers both the preceding <em>and</em> following code, widening the model's view for more relevant suggestions.</li>
+          <li>The model reasons over not just the current file but <b>other open files and tabs</b> to produce context-aware completions.</li>
+          <li>The <b>context window is finite</b>: standard completions typically span <b>~200–500 lines / a few thousand tokens</b>; <b>Copilot Chat ≈ 4k tokens</b>.</li>
+          <li>Content that falls outside the window is invisible to the model — break big tasks into smaller, focused prompts and supply relevant snippets.</li>
+        </ul>
+      </div>
+
+      <div class="callout tip"><b>Tip:</b> Keeping the files you care about open in nearby tabs improves suggestions, because open tabs are part of the context Copilot gathers.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><b>FIM</b> = considers code <em>after</em> the cursor too, not only what precedes it — a common distractor is "only uses code above the cursor."</li>
+          <li>"Prompt" in Copilot means the <em>assembled</em> prompt (your text + gathered context), not just the literal comment you wrote.</li>
+          <li>Context-window limits are a <em>modeling</em> constraint (tokens), separate from data-retention policy.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Besides the code immediately above the cursor, name two other context signals Copilot includes when building the prompt.</summary>
+        <div class="answer"><b>Answer:</b> Any two of: code after the cursor, filename/file type, adjacent open tabs, project structure/file paths, languages/frameworks. <em>Why:</em> Copilot assembles the prompt from all of these.</div></details>
+        <details class="q"><summary><b>Q2.</b> What technique lets Copilot use both the code before and the code after the insertion point?</summary>
+        <div class="answer"><b>Answer:</b> Fill-in-the-Middle (FIM). <em>Why:</em> FIM pre-processing expands the model's understanding by considering surrounding code on both sides.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow">GitHub Copilot user prompt process flow</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/5-github-copilot-large-language-models">GitHub Copilot Large Language Models (LLMs)</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.1.3 ===================== -->
+    <section class="objective" id="obj-3-1-3" data-skill="proxy-filtering">
+      <h3 id="o-3-1-3">3.1.3 Explain proxy filtering and post-processing</h3>
+
+      <div class="concept">
+        <p>Between the client and the model, a <b>proxy service</b> and a set of <b>safety filters</b> run on both the way in and the way out. On the inbound side they protect the system and screen the request; on the outbound side they validate the generated response before it ever reaches you.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>Inbound proxy filter:</b> the built prompt passes to the proxy (GitHub-owned Azure tenant), which <b>filters traffic and blocks attempts to hack the prompt</b> or coax the system into revealing how it generates code (prompt-injection defense).</li>
+          <li><b>Inbound toxicity/PII filter:</b> before generation, content filtering blocks <b>hate speech / offensive content</b> and <b>filters out personal data</b> (names, addresses, ID numbers).</li>
+          <li><b>Generation:</b> the filtered prompt goes to the <b>LLM</b>, which produces candidate suggestions.</li>
+          <li><b>Outbound post-processing:</b> the toxicity filter removes harmful generated content, then the proxy runs final checks — <b>code quality</b> (scans for bugs/vulnerabilities such as <b>XSS</b> and <b>SQL injection</b>) and an optional <b>public-code match</b> filter.</li>
+          <li>The public-code filter (admin-enabled) <b>blocks suggestions over ~150 characters that closely resemble existing public code</b> on GitHub; failing content is <b>truncated or discarded</b>.</li>
+          <li>Only responses that <b>pass all filters</b> are delivered; Copilot then runs a <b>feedback loop</b> learning from accepted vs. modified/rejected suggestions.</li>
+        </ul>
+      </div>
+
+      <div class="callout warn"><b>Gotcha:</b> The <b>matching-public-code</b> filter is <em>optional</em> and administrator-enabled — it is not always on, and it only targets longer (~150+ char) look-alikes.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Distinguish the two filter passes: <b>inbound</b> = prompt hacking + toxicity/PII screening; <b>outbound</b> = toxicity removal + code-quality + optional public-code matching.</li>
+          <li>Code-quality checks specifically call out <b>XSS</b> and <b>SQL injection</b> as example vulnerability patterns.</li>
+          <li>The proxy blocks <b>prompt-injection / jailbreak</b> attempts before the model runs — a good answer to "what stops users from extracting the system prompt."</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> On the outbound path, which optional filter can an administrator enable to stop long suggestions that closely match public code?</summary>
+        <div class="answer"><b>Answer:</b> The matching-public-code (duplication-detection) filter. <em>Why:</em> It blocks suggestions over ~150 characters that resemble existing public code on GitHub.</div></details>
+        <details class="q"><summary><b>Q2.</b> Where is the proxy that filters Copilot traffic hosted, and what inbound threat does it defend against?</summary>
+        <div class="answer"><b>Answer:</b> In a GitHub-owned Microsoft Azure tenant; it blocks attempts to hack/manipulate the prompt (prompt injection). <em>Why:</em> The proxy filters traffic before the prompt reaches the model.</div></details>
+        <details class="q"><summary><b>Q3.</b> Name two vulnerability patterns the outbound code-quality check looks for.</summary>
+        <div class="answer"><b>Answer:</b> Cross-site scripting (XSS) and SQL injection. <em>Why:</em> These are the example checks Copilot applies during post-processing.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow">GitHub Copilot user prompt process flow</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-to-github-copilot/2-github-copilot-your-ai-pair-programmer">GitHub Copilot, your AI pair programmer</a></li>
+        </ul>
+      </div>
+    </section>
+  </section>
+
+  <section class="skillgroup" id="sg-3-2">
+    <h2 id="g-3-2">3.2 Understand lifecycle and limitations</h2>
+
+    <!-- ===================== 3.2.1 ===================== -->
+    <section class="objective" id="obj-3-2-1" data-skill="suggestion-lifecycle">
+      <h3 id="o-3-2-1">3.2.1 Visualize the code suggestion lifecycle</h3>
+
+      <div class="concept">
+        <p>A single suggestion is the product of a repeatable pipeline that stitches the inbound and outbound flows together. Copilot isn't one-shot autocomplete — each interaction feeds a <b>continuous loop</b> that refines its understanding of your intent.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>1. Capture</b> — you write a comment, code, or chat message; Copilot gathers editor context (cursor-surrounding code, filename/type, open tabs, project structure, language/framework).</li>
+          <li><b>2. Transmit</b> — the assembled prompt is sent over <b>HTTPS</b> to Copilot's servers.</li>
+          <li><b>3. Inbound filters</b> — proxy blocks prompt hacking; toxicity/PII filtering runs <em>before</em> generation.</li>
+          <li><b>4. Generate</b> — the <b>LLM</b> produces one or more candidate suggestions from prompt + context.</li>
+          <li><b>5. Post-process</b> — toxicity removal + proxy checks (code quality for XSS/SQLi; optional public-code match); failing content is truncated or discarded.</li>
+          <li><b>6. Deliver</b> — a surviving suggestion appears as inline ghost text or a chat response.</li>
+          <li><b>7. Act + feedback</b> — you <b>accept, modify, or reject</b>; that action feeds the feedback loop and the cycle repeats for the next prompt.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="suggestion-lifecycle"><figcaption>The suggestion lifecycle as a loop: capture context → transmit → inbound filters → generate → post-process → deliver → act/feedback → repeat.</figcaption></figure>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Safety filtering happens <b>twice</b> — before generation (inbound) and after generation (outbound) — not only once.</li>
+          <li>The <b>feedback loop</b> reflects accept/modify/reject actions; it's about improving intent understanding, not about retaining your code for training.</li>
+          <li>Order matters: a discarded/truncated response never reaches the developer, so "delivery" is gated on passing all filters.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Put these in lifecycle order: generate, post-process, capture context, deliver.</summary>
+        <div class="answer"><b>Answer:</b> Capture context → generate → post-process → deliver. <em>Why:</em> Context is assembled first, the LLM generates, filters validate, then the surviving suggestion is delivered.</div></details>
+        <details class="q"><summary><b>Q2.</b> Accepting, modifying, or rejecting a suggestion contributes to which part of the lifecycle?</summary>
+        <div class="answer"><b>Answer:</b> The feedback loop. <em>Why:</em> Copilot learns from accepted suggestions and from modifications/rejections to refine future intent understanding.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow">GitHub Copilot user prompt process flow</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-to-github-copilot/2-github-copilot-your-ai-pair-programmer">GitHub Copilot, your AI pair programmer</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.2.2 ===================== -->
+    <section class="objective" id="obj-3-2-2" data-skill="llm-limitations">
+      <h3 id="o-3-2-2">3.2.2 Describe the limitations of LLMs and Copilot</h3>
+
+      <div class="concept">
+        <p>Copilot is powered by <b>large language models</b> — neural networks with millions to billions of parameters trained on vast text. They <b>predict</b> likely code, which makes output <b>probabilistic</b>: often useful, never guaranteed correct. Knowing these limits is essential to using Copilot responsibly.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>Probabilistic output</b> — the model predicts the most likely continuation; it can produce plausible-looking but incorrect or insecure code (hallucination).</li>
+          <li><b>Context-window limits</b> — the model only "sees" a bounded amount of code/text (≈200–500 lines / a few thousand tokens; Chat ≈4k tokens). Anything outside the window is ignored, so large or cross-file problems may get incomplete answers.</li>
+          <li><b>Knowledge / training-data limits</b> — the model reflects its training data, so it can be <b>outdated</b> for newer APIs and can echo <b>biases</b> present in that data.</li>
+          <li><b>Reliability limits</b> — AI decisions can be <b>hard to interpret</b> (reduced transparency/accountability) and can yield <b>unintended harmful outcomes</b> such as biased decisions or privacy violations.</li>
+          <li><b>Mitigations</b> — always <b>validate output</b>, keep a <b>human in the loop</b>, apply <b>governance/transparency</b>, and use safeguards (content exclusions, public-code filter). Copilot assists; it does not replace developer judgment.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="genai-limitations"><figcaption>Core generative-AI limitations to plan around: probabilistic output/hallucination, finite context window, knowledge cutoff, and bias — countered by human validation.</figcaption></figure>
+
+      <div class="callout warn"><b>Gotcha:</b> A confident, well-formatted suggestion is not evidence of correctness — probabilistic models can be fluently wrong. Review before you commit.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Map each symptom to its cause: missing cross-file logic → <b>context window</b>; unknown new library → <b>knowledge/training cutoff</b>; skewed output → <b>bias</b>; invented API → <b>hallucination</b>.</li>
+          <li>The universal mitigation on this exam is <b>validate + human oversight</b> — not "trust the model" or "disable the model."</li>
+          <li>Breaking a large task into smaller, focused prompts directly counters the context-window limit.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Copilot suggests a function that calls a method which doesn't exist in the library. Which LLM limitation is this, and what's the fix?</summary>
+        <div class="answer"><b>Answer:</b> Hallucination from probabilistic generation; validate the output (check the API/docs, test it). <em>Why:</em> The model predicts plausible code that may not be real, so human validation is required.</div></details>
+        <details class="q"><summary><b>Q2.</b> A refactor spanning many files produces suggestions that ignore code in files that aren't open. Which limitation explains this?</summary>
+        <div class="answer"><b>Answer:</b> The context window (the model can't see beyond a bounded amount of code/tokens). <em>Why:</em> Content outside the window — including unopened files — is invisible to the model.</div></details>
+        <details class="q"><summary><b>Q3.</b> Why might Copilot suggest an outdated approach for a newly released framework?</summary>
+        <div class="answer"><b>Answer:</b> Its knowledge reflects its training data, which can lag behind new releases. <em>Why:</em> LLMs are bounded by their training data / knowledge cutoff.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/5-github-copilot-large-language-models">GitHub Copilot Large Language Models (LLMs)</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks">Mitigate AI risks</a></li>
+        </ul>
+      </div>
+    </section>
+  </section>
+</section>

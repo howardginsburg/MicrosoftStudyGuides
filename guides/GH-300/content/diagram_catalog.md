@@ -1,0 +1,22 @@
+# Diagram catalog (id — concept). Reference in HTML via <figure class="diagram" data-svg="ID">.
+
+- responsible-ai-principles
+- genai-limitations
+- validate-output-loop
+- copilot-plans
+- copilot-surfaces
+- interaction-modes
+- copilot-cli-flow
+- agent-mode-loop
+- mcp-architecture
+- data-flow
+- suggestion-lifecycle
+- prompt-structure
+- zero-few-shot
+- prompt-process-flow
+- productivity-sdlc
+- test-generation-flow
+- content-exclusion-scope
+- public-code-filter
+- org-policy-layers
+- code-review-flow

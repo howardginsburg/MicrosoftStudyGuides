@@ -1,0 +1,22 @@
+{
+  "exam": "GH-300",
+  "title": "GitHub Copilot",
+  "description": "Use GitHub Copilot responsibly and effectively — features across plans, data and architecture, prompt engineering, developer productivity, and privacy safeguards.",
+  "doc_title": "GH-300 Study Guide (Community Edition) — GitHub Copilot",
+  "brand": "GH-300",
+  "brand_sub": "GitHub Copilot — Study Guide",
+  "official_url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/gh-300",
+  "weights": {
+    "Use GitHub Copilot responsibly": "15–20%",
+    "Use GitHub Copilot features": "25–30%",
+    "Understand GitHub Copilot data and architecture": "10–15%",
+    "Apply prompt engineering and context crafting": "10–15%",
+    "Improve developer productivity with GitHub Copilot": "10–15%",
+    "Configure privacy, content exclusions, and safeguards": "10–15%"
+  },
+  "passing_note": "GH-300 passes at 700/1000. Microsoft does not publish the raw-score mapping, so the readiness estimate below is unofficial and based on percent correct only.",
+  "status": "complete",
+  "last_refreshed": "2026-07-15",
+  "fragments": ["frontmatter.html", "domain1.html", "domain2.html", "domain3.html", "domain4.html", "domain5.html", "domain6.html", "appendices.html"],
+  "output_html": "GH-300.html"
+}

@@ -1,0 +1,135 @@
+<section class="domain appendices" id="appendix" data-domain="9">
+  <h1 id="d9">Appendices — Quick Reference &amp; Cheat Sheets</h1>
+  <p class="domain-intro">Fast-recall material for the final days before the exam. Skim these until the distinctions are automatic.</p>
+
+  <section class="skillgroup" id="apx-plans">
+    <h2 id="g-9-1">A. Copilot plan comparison</h2>
+    <table class="cmp">
+      <thead><tr><th></th><th>Free</th><th>Pro / Pro+</th><th>Business</th><th>Enterprise</th></tr></thead>
+      <tbody>
+        <tr><td><b>Audience</b></td><td>Individuals trying Copilot</td><td>Individual developers</td><td>Organizations / teams</td><td>Enterprises on GitHub Enterprise Cloud</td></tr>
+        <tr><td><b>Code completion &amp; Chat</b></td><td>Limited monthly quota</td><td>Full</td><td>Full</td><td>Full</td></tr>
+        <tr><td><b>Content exclusions</b></td><td>No</td><td>No</td><td><b>Yes</b></td><td><b>Yes</b></td></tr>
+        <tr><td><b>Org policy management</b></td><td>No</td><td>No</td><td><b>Yes</b></td><td><b>Yes</b></td></tr>
+        <tr><td><b>Audit logs</b></td><td>No</td><td>No</td><td><b>Yes</b></td><td><b>Yes</b></td></tr>
+        <tr><td><b>Prompts/suggestions used to train models</b></td><td>Opt-out available</td><td>Opt-out available</td><td><b>No</b></td><td><b>No</b></td></tr>
+        <tr><td><b>Extras</b></td><td>—</td><td>Pro+: more premium requests / models</td><td>Central seat management</td><td>Knowledge bases, advanced controls</td></tr>
+      </tbody>
+    </table>
+    <div class="callout key"><b>Decider:</b> Need <b>content exclusions, policies, audit logs, or the "no training" guarantee</b>? → <b>Business or Enterprise</b>. Knowledge bases &amp; enterprise-wide controls? → <b>Enterprise</b>.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-modes">
+    <h2 id="g-9-2">B. Interaction modes — when to use which</h2>
+    <table class="cmp">
+      <thead><tr><th>Mode</th><th>What it does</th><th>Best for</th></tr></thead>
+      <tbody>
+        <tr><td><b>Inline (ghost text)</b></td><td>Autocompletes as you type; <kbd>Tab</kbd> to accept</td><td>Line/block completion while writing code</td></tr>
+        <tr><td><b>Copilot Chat</b></td><td>Conversational Q&amp;A, <code>/</code> commands, explanations</td><td>Explaining code, fixing errors, asking "how do I…"</td></tr>
+        <tr><td><b>Copilot Edits</b></td><td>Coordinated edits across multiple files you pick</td><td>A scoped change spanning a few files</td></tr>
+        <tr><td><b>Agent Mode</b></td><td>Autonomously plans, edits, runs tools, and iterates</td><td>Larger multi-step tasks; you approve the result</td></tr>
+        <tr><td><b>Copilot CLI</b></td><td>Suggests/explains shell commands in the terminal</td><td>Command-line work; scripts; git; file tasks</td></tr>
+        <tr><td><b>Copilot code review</b></td><td>Reviews a PR and suggests improvements</td><td>Catching issues early before human review</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><b>Tip:</b> Pick the <b>lightest</b> mode that fits the task and escalate to Agent Mode only when the work is genuinely multi-step. A human always approves what gets accepted or run.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-data">
+    <h2 id="g-9-3">C. Data flow &amp; retention at a glance</h2>
+    <table class="cmp">
+      <thead><tr><th>Stage</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr><td><b>1. Context capture</b></td><td>Editor gathers open files, the current selection, neighboring tabs, and comments.</td></tr>
+        <tr><td><b>2. Prompt building</b></td><td>Context is assembled and trimmed to fit the model's context window.</td></tr>
+        <tr><td><b>3. Proxy (pre-filter)</b></td><td>Request passes through the Copilot proxy; safety/toxicity/PII filtering is applied.</td></tr>
+        <tr><td><b>4. Model inference</b></td><td>The LLM generates candidate completions.</td></tr>
+        <tr><td><b>5. Post-processing</b></td><td>Output filtering, optional public-code matching, then the suggestion is returned.</td></tr>
+        <tr><td><b>Retention</b></td><td>Editor completions aren't retained after serving; <b>Business/Enterprise</b> prompts &amp; suggestions are <b>not used to train</b> the models.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><b>Gotcha:</b> The proxy filters <b>before and after</b> the model. "No training on your data" is a <b>Business/Enterprise</b> guarantee; individual plans offer an opt-out toggle.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-prompt">
+    <h2 id="g-9-4">D. Prompt-crafting cheat sheet</h2>
+    <div class="facts"><h4>Make prompts specific, contextual, and iterative</h4>
+      <ul>
+        <li><b>State the goal clearly</b> — what you want, in what language, with which constraints.</li>
+        <li><b>Give relevant context</b> — keep the right files open; select the code you're referring to; use good variable/function names and comments.</li>
+        <li><b>Break big asks into steps</b> — smaller prompts produce better, reviewable output.</li>
+        <li><b>Use examples (few-shot)</b> when you need a specific output shape or pattern; <b>zero-shot</b> is fine for simple tasks.</li>
+        <li><b>Iterate</b> — refine follow-up prompts; start a <b>new chat</b> to drop stale context.</li>
+        <li><b>Provide sample data / expected output</b> to steer format.</li>
+      </ul>
+    </div>
+    <div class="callout key"><b>Remember:</b> Copilot uses your prompt <b>plus</b> editor context <b>plus</b> chat history. Irrelevant open files or a long stale conversation can degrade suggestions.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-safeguards">
+    <h2 id="g-9-5">E. Content exclusions vs. public-code filter</h2>
+    <table class="cmp">
+      <thead><tr><th></th><th>Content exclusions</th><th>Suggestions matching public code</th></tr></thead>
+      <tbody>
+        <tr><td><b>Purpose</b></td><td>Keep specified files/repos out of Copilot's context</td><td>Block suggestions that match public code</td></tr>
+        <tr><td><b>Effect</b></td><td>No suggestions shown for excluded content; it isn't used as context</td><td>Suggestions matching ~150 characters of public code are blocked</td></tr>
+        <tr><td><b>Configured at</b></td><td>Repository and organization level (path patterns)</td><td>Organization / enterprise policy (block or allow)</td></tr>
+        <tr><td><b>Plan</b></td><td>Business / Enterprise</td><td>Business / Enterprise</td></tr>
+        <tr><td><b>Watch out</b></td><td>Changes can take time to propagate; not all clients honor every rule instantly</td><td>Blocking reduces IP-matching risk but may remove otherwise useful suggestions</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><b>Gotcha:</b> Content exclusions limit <b>context</b>; the public-code filter limits <b>output</b>. They solve different problems — an exam item may test whether you pick the right one.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-rai">
+    <h2 id="g-9-6">F. Responsible AI &amp; validation checklist</h2>
+    <div class="facts"><h4>Six responsible-AI principles</h4>
+      <ul>
+        <li><b>Fairness</b> — treat all people equitably.</li>
+        <li><b>Reliability &amp; safety</b> — perform safely and consistently.</li>
+        <li><b>Privacy &amp; security</b> — protect data and respect consent.</li>
+        <li><b>Inclusiveness</b> — empower and engage everyone.</li>
+        <li><b>Transparency</b> — be understandable and explainable.</li>
+        <li><b>Accountability</b> — people remain responsible for AI systems.</li>
+      </ul>
+    </div>
+    <div class="facts"><h4>Before you accept a suggestion</h4>
+      <ul>
+        <li><b>Read and understand it</b> — never accept code you can't explain.</li>
+        <li><b>Test and verify</b> — run it; check edge cases and security.</li>
+        <li><b>Check licensing/IP</b> — enable the public-code filter where required.</li>
+        <li><b>Own the result</b> — you are accountable for accepted code, not Copilot.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="skillgroup" id="apx-glossary">
+    <h2 id="g-9-7">G. Glossary</h2>
+    <table class="cmp">
+      <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><b>Agent Mode</b></td><td>Autonomous Copilot mode that plans, edits multiple files, runs tools/tests, and iterates toward a goal.</td></tr>
+        <tr><td><b>Copilot Edits</b></td><td>Feature for making coordinated, reviewable changes across a chosen set of files.</td></tr>
+        <tr><td><b>Content exclusion</b></td><td>Rule that keeps specified files/repositories out of Copilot's context (Business/Enterprise).</td></tr>
+        <tr><td><b>Context window</b></td><td>The maximum amount of text (prompt + context) a model can consider at once.</td></tr>
+        <tr><td><b>Few-shot prompting</b></td><td>Including one or more input/output examples in the prompt to steer format and style.</td></tr>
+        <tr><td><b>Ghost text</b></td><td>The greyed inline suggestion shown as you type; accept with <kbd>Tab</kbd>.</td></tr>
+        <tr><td><b>Hallucination</b></td><td>Output that looks plausible but is factually wrong or invented.</td></tr>
+        <tr><td><b>Instructions file</b></td><td>Repo-level file that gives Copilot persistent guidance/conventions for a project.</td></tr>
+        <tr><td><b>LLM</b></td><td>Large language model — predicts likely tokens; probabilistic, not deterministic.</td></tr>
+        <tr><td><b>MCP</b></td><td>Model Context Protocol — open standard letting Copilot call external tools and data sources.</td></tr>
+        <tr><td><b>Proxy</b></td><td>The Copilot service layer that applies filtering before and after the model.</td></tr>
+        <tr><td><b>Prompt file</b></td><td>A reusable, saved prompt you can invoke in Chat.</td></tr>
+        <tr><td><b>Public-code filter</b></td><td>Setting that blocks suggestions matching ~150 characters of public code.</td></tr>
+        <tr><td><b>Zero-shot prompting</b></td><td>An instruction-only prompt with no examples.</td></tr>
+      </tbody>
+    </table>
+    <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/gh-300">Official GH-300 study guide (Skills Measured)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/training/paths/copilot/">Learning path: GitHub Copilot fundamentals</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/">Responsible AI with GitHub Copilot</a></li>
+      </ul>
+    </div>
+  </section>
+</section>

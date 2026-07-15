@@ -1,0 +1,184 @@
+{
+  "domain": 4,
+  "domain_title": "Apply prompt engineering and context crafting",
+  "questions": [
+    {
+      "id": "q4-001",
+      "objective": "4.1.1",
+      "type": "single",
+      "stem": "A developer types the vague comment \"// do the thing\" above an empty function and receives unhelpful Copilot suggestions. According to prompt engineering guidance, which single change most improves the prompt's structure?",
+      "options": [
+        {"id": "a", "text": "Rename the file so it ends in .test.js"},
+        {"id": "b", "text": "State a clear, specific goal that names the inputs, expected types, and edge cases"},
+        {"id": "c", "text": "Delete the comment and let Copilot infer everything from the function name"},
+        {"id": "d", "text": "Paste the entire project README into the comment"}
+      ],
+      "answer": "b",
+      "explanation": "An effective prompt is built around a clear single goal plus supporting context. Making the goal explicit — inputs, types, and edge cases — is the core structural fix. A test-style filename (a) only nudges file type; removing the comment (c) reduces context; pasting an entire README (d) overloads the prompt and hurts clarity.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"]
+    },
+    {
+      "id": "q4-002",
+      "objective": "4.1.1",
+      "type": "tf",
+      "stem": "The \"prompt\" that Copilot actually reasons over is only the literal comment or Chat text the developer types, with nothing added.",
+      "options": [
+        {"id": "a", "text": "True"},
+        {"id": "b", "text": "False"}
+      ],
+      "answer": "b",
+      "explanation": "False. The prompt Copilot reasons over is the assembled combination of your natural-language text plus the surrounding context it gathers (comments, related open files, code around the cursor). It is more than the literal characters you typed.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"]
+    },
+    {
+      "id": "q4-003",
+      "objective": "4.1.2",
+      "type": "single",
+      "stem": "A developer wants Copilot to factor in code that appears both before and after the cursor when generating a suggestion in the middle of a file. Which Copilot technique makes this possible?",
+      "options": [
+        {"id": "a", "text": "Fill-in-the-Middle (FIM)"},
+        {"id": "b", "text": "Zero-shot learning"},
+        {"id": "c", "text": "Toxicity filtering"},
+        {"id": "d", "text": "Role prompting"}
+      ],
+      "answer": "a",
+      "explanation": "Fill-in-the-Middle (FIM) is the pre-processing technique that considers both the preceding and following code, widening the model's view for more relevant suggestions. Zero-shot (b) is about examples; toxicity filtering (c) is a safety stage; role prompting (d) is a best practice — none of these describe using code after the cursor.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"]
+    },
+    {
+      "id": "q4-004",
+      "objective": "4.1.2",
+      "type": "multi",
+      "stem": "Which of the following are context sources Copilot gathers from the editor session while processing a prompt? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Code before and after the cursor position"},
+        {"id": "b", "text": "The filename and file type being edited"},
+        {"id": "c", "text": "Adjacent open tabs in the editor"},
+        {"id": "d", "text": "The developer's monitor resolution and mouse speed"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Copilot collects code before/after the cursor, the filename and file type, adjacent open tabs, project structure/file paths, and the languages and frameworks in use. Monitor resolution and mouse speed (d) are not part of the context Copilot gathers.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"]
+    },
+    {
+      "id": "q4-005",
+      "objective": "4.1.3",
+      "type": "single",
+      "stem": "A developer writes a one-line comment asking Copilot to generate a standard \"reverse a string\" utility and provides no examples. Which prompting approach is this?",
+      "options": [
+        {"id": "a", "text": "Few-shot learning"},
+        {"id": "b", "text": "One-shot learning"},
+        {"id": "c", "text": "Zero-shot learning"},
+        {"id": "d", "text": "Fine-tuning"}
+      ],
+      "answer": "c",
+      "explanation": "Zero-shot learning supplies no examples — Copilot relies solely on its foundational training, which works well for common patterns and standard functionality. One-shot (b) provides exactly one example, few-shot (a) provides several, and fine-tuning (d) retrains the model, which is not what a single comment does.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"]
+    },
+    {
+      "id": "q4-006",
+      "objective": "4.1.3",
+      "type": "single",
+      "stem": "A team needs Copilot to produce objects that exactly match an existing schema used across the repository, covering several edge cases. Which prompting approach is most appropriate?",
+      "options": [
+        {"id": "a", "text": "Zero-shot — describe the schema in prose with no examples"},
+        {"id": "b", "text": "Few-shot — provide several example objects that demonstrate the pattern"},
+        {"id": "c", "text": "Toxicity filtering to enforce the schema"},
+        {"id": "d", "text": "Disable all open tabs to reduce noise"}
+      ],
+      "answer": "b",
+      "explanation": "Few-shot prompting presents several examples, steering Copilot toward a precise, consistent pattern and helping it handle multiple scenarios and edge cases — ideal for matching an existing schema. Zero-shot (a) gives no pattern to follow; toxicity filtering (c) is a safety stage; closing tabs (d) removes helpful context.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"]
+    },
+    {
+      "id": "q4-007",
+      "objective": "4.1.4",
+      "type": "single",
+      "stem": "Copilot's first suggestion is close but misses one edge case. Following the recommended best practice, what should the developer do next?",
+      "options": [
+        {"id": "a", "text": "Manually rewrite the suggestion from scratch without changing the prompt"},
+        {"id": "b", "text": "Assert and iterate — erase the suggestion, enrich the comment with the missing detail or example, and prompt again"},
+        {"id": "c", "text": "Accept the suggestion as-is and file a bug report"},
+        {"id": "d", "text": "Switch to a different programming language"}
+      ],
+      "answer": "b",
+      "explanation": "The \"assert and iterate\" best practice says the first output may not be production-ready — rather than starting over by hand, erase it, add more detail or an example to the comment, and prompt again so each turn builds on Copilot's understanding. Manual rewriting (a) discards that iterative advantage; the others don't address the missing edge case.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"]
+    },
+    {
+      "id": "q4-008",
+      "objective": "4.1.4",
+      "type": "single",
+      "stem": "A team wants security-hardened code from Copilot on the very first attempt for a sensitive module. Which prompt-crafting best practice most directly helps?",
+      "options": [
+        {"id": "a", "text": "Role prompting — instruct Copilot to \"Act as a cybersecurity expert...\""},
+        {"id": "b", "text": "Zero-shot prompting with no context"},
+        {"id": "c", "text": "Summarizing the chat history"},
+        {"id": "d", "text": "Enabling the matching-public-code filter"}
+      ],
+      "answer": "a",
+      "explanation": "Role prompting tells Copilot to \"Act as a ...\" (for example, a security expert) to get more targeted, domain-aware code on the first try. Zero-shot with no context (b) reduces specificity; summarizing chat history (c) is a performance lever; the public-code filter (d) is an outbound safety check, not a way to harden security logic.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"]
+    },
+    {
+      "id": "q4-009",
+      "objective": "4.2.1",
+      "type": "single",
+      "stem": "Within the 4 Ss of prompt engineering, which principle explains why keeping related files open in nearby tabs improves Copilot's suggestions?",
+      "options": [
+        {"id": "a", "text": "Single"},
+        {"id": "b", "text": "Specific"},
+        {"id": "c", "text": "Short"},
+        {"id": "d", "text": "Surround"}
+      ],
+      "answer": "d",
+      "explanation": "Surround means using descriptive filenames and keeping related files open so Copilot has rich context. Single (a) is about focusing on one task, Specific (b) about explicit detail, and Short (c) about conciseness — none of which describe the open-files/context behavior.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"]
+    },
+    {
+      "id": "q4-010",
+      "objective": "4.2.1",
+      "type": "multi",
+      "stem": "Which principles make up the 4 Ss of prompt engineering described in the module? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Single"},
+        {"id": "b", "text": "Specific"},
+        {"id": "c", "text": "Short"},
+        {"id": "d", "text": "Surround"}
+      ],
+      "answer": ["a", "b", "c", "d"],
+      "explanation": "The 4 Ss are Single (focus on one task), Specific (explicit, detailed instructions), Short (concise prompts), and Surround (descriptive filenames and keeping related files open). All four options are correct.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"]
+    },
+    {
+      "id": "q4-011",
+      "objective": "4.2.2",
+      "type": "single",
+      "stem": "In Copilot's inbound prompt process flow, which sequence of stages is correct?",
+      "options": [
+        {"id": "a", "text": "Secure transmission & context gathering, proxy filter, toxicity filtering, LLM generation"},
+        {"id": "b", "text": "LLM generation, toxicity filtering, proxy filter, secure transmission & context gathering"},
+        {"id": "c", "text": "Proxy filter, LLM generation, secure transmission & context gathering, toxicity filtering"},
+        {"id": "d", "text": "Toxicity filtering, secure transmission & context gathering, LLM generation, proxy filter"}
+      ],
+      "answer": "a",
+      "explanation": "On the inbound path, the prompt is first sent over HTTPS while context is gathered (with FIM), then passes through the proxy filter (in a GitHub-owned Microsoft Azure tenant), then toxicity filtering, and finally reaches the LLM for generation. The other orderings misplace one or more stages.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"]
+    },
+    {
+      "id": "q4-012",
+      "objective": "4.2.2",
+      "type": "single",
+      "stem": "A Copilot Chat session has run for 20 turns and now feels sluggish and expensive, consuming an estimated 2–3 PRUs per turn. What is the recommended way to improve performance?",
+      "options": [
+        {"id": "a", "text": "Keep appending the full history so Copilot never loses context"},
+        {"id": "b", "text": "Summarize the relevant context or start a new conversation with focused context"},
+        {"id": "c", "text": "Disable HTTPS transmission to speed up the request"},
+        {"id": "d", "text": "Turn off Fill-in-the-Middle for the session"}
+      ],
+      "answer": "b",
+      "explanation": "Long prompts carrying the full conversation history can cost 2–3 PRUs per turn; summarizing context or resetting to a new conversation with focused context can keep it closer to 1 PRU per request and keeps context clean. Appending everything (a) makes it worse, and disabling HTTPS (c) or FIM (d) are not valid or recommended actions.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"]
+    }
+  ]
+}

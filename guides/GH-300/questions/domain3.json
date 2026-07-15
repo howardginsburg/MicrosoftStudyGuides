@@ -1,0 +1,184 @@
+{
+  "domain": 3,
+  "domain_title": "Understand GitHub Copilot data and architecture",
+  "questions": [
+    {
+      "id": "q3-001",
+      "objective": "3.1.1",
+      "type": "single",
+      "stem": "A developer accepts an inline code completion in the editor and worries that the prompt used to generate it is being stored to retrain the foundational models. For a standard editor completion, what actually happens to that prompt?",
+      "options": [
+        {"id": "a", "text": "It is retained for 28 days and then deleted."},
+        {"id": "b", "text": "It is discarded once the suggestion is returned and is not used to train the foundational models."},
+        {"id": "c", "text": "It is stored permanently on the developer's machine for auditing."},
+        {"id": "d", "text": "It is always used to fine-tune the model unless the organization opts out."}
+      ],
+      "answer": "b",
+      "explanation": "Copilot in the code editor does not retain completion prompts; they are discarded once the suggestion is returned and are not used to train the foundational models. The 28-day retention applies to Chat/CLI/Mobile outside the editor, not inline completions.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/4-github-copilot-data"]
+    },
+    {
+      "id": "q3-002",
+      "objective": "3.1.1",
+      "type": "single",
+      "stem": "Which GitHub Copilot plan lets a user opt out of having their prompts used to fine-tune GitHub's foundational model?",
+      "options": [
+        {"id": "a", "text": "Copilot Business"},
+        {"id": "b", "text": "Copilot Enterprise"},
+        {"id": "c", "text": "Copilot Individual"},
+        {"id": "d", "text": "No plan allows opting out"}
+      ],
+      "answer": "c",
+      "explanation": "Individual subscribers can opt out of sharing prompts that would otherwise be used to fine-tune GitHub's foundational model. Business and Enterprise data is not used for training in the first place, so no opt-out is needed there.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/4-github-copilot-data"]
+    },
+    {
+      "id": "q3-003",
+      "objective": "3.1.1",
+      "type": "multi",
+      "stem": "Which statements about GitHub Copilot data handling and flow are accurate? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "The prompt is transmitted to Copilot's servers over HTTPS."},
+        {"id": "b", "text": "A proxy service hosted in a GitHub-owned Microsoft Azure tenant sits between the client and the model."},
+        {"id": "c", "text": "Prompts and suggestions on Business and Enterprise plans are used to train the models."},
+        {"id": "d", "text": "For Copilot Chat used outside the editor, GitHub typically retains prompts, suggestions, and supporting context for about 28 days."}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Prompts travel over HTTPS to Copilot's servers, and a proxy in a GitHub-owned Azure tenant filters traffic between client and model. Chat/CLI/Mobile outside the editor is typically retained ~28 days. Option C is false: organizational (Business/Enterprise) prompts and suggestions are not used to train the models.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/4-github-copilot-data"]
+    },
+    {
+      "id": "q3-004",
+      "objective": "3.1.2",
+      "type": "single",
+      "stem": "A developer types a short comment describing a function they want. When Copilot builds the prompt it sends to the model, which best describes what that prompt contains?",
+      "options": [
+        {"id": "a", "text": "Only the literal comment text the developer typed."},
+        {"id": "b", "text": "The entire repository, uploaded in full to the model."},
+        {"id": "c", "text": "An assembled prompt combining the developer's text with gathered editor context such as surrounding code, filename/type, open tabs, and project structure."},
+        {"id": "d", "text": "Only the code located above the cursor position."}
+      ],
+      "answer": "c",
+      "explanation": "The prompt Copilot sends is richer than what you typed. It assembles the request together with context like code before and after the cursor, filename and file type, adjacent open tabs, project structure/file paths, and the languages/frameworks in use.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"]
+    },
+    {
+      "id": "q3-005",
+      "objective": "3.1.2",
+      "type": "single",
+      "stem": "Copilot uses a pre-processing technique that considers both the code preceding the cursor and the code following it to produce more relevant suggestions. What is this technique called?",
+      "options": [
+        {"id": "a", "text": "Fill-in-the-Middle (FIM)"},
+        {"id": "b", "text": "Retrieval-augmented generation (RAG)"},
+        {"id": "c", "text": "Reinforcement learning from human feedback (RLHF)"},
+        {"id": "d", "text": "Token truncation"}
+      ],
+      "answer": "a",
+      "explanation": "Fill-in-the-Middle (FIM) considers both the preceding and the following code, widening the model's view for more accurate, relevant suggestions. A common distractor is that Copilot only uses code above the cursor.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"]
+    },
+    {
+      "id": "q3-006",
+      "objective": "3.1.3",
+      "type": "single",
+      "stem": "A security reviewer asks what defends Copilot against users trying to manipulate the system into revealing how it generates code (prompt injection). Which component provides this inbound defense?",
+      "options": [
+        {"id": "a", "text": "The optional matching-public-code filter"},
+        {"id": "b", "text": "The outbound code-quality check"},
+        {"id": "c", "text": "The proxy service in the GitHub-owned Azure tenant, which filters traffic and blocks attempts to hack the prompt"},
+        {"id": "d", "text": "The editor's local autocomplete cache"}
+      ],
+      "answer": "c",
+      "explanation": "On the inbound path the proxy (hosted in a GitHub-owned Microsoft Azure tenant) filters traffic and blocks attempts to hack the prompt or coax the system into revealing how it generates suggestions. The public-code and code-quality filters run on the outbound path.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"]
+    },
+    {
+      "id": "q3-007",
+      "objective": "3.1.3",
+      "type": "multi",
+      "stem": "During outbound post-processing, which checks does Copilot apply to the model's generated response before delivering it? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "A toxicity filter that removes harmful generated content."},
+        {"id": "b", "text": "A code-quality scan for vulnerabilities such as cross-site scripting (XSS) and SQL injection."},
+        {"id": "c", "text": "An optional, administrator-enabled filter that blocks suggestions over ~150 characters that closely resemble existing public code."},
+        {"id": "d", "text": "A mandatory 28-day retention of the suggestion for all plans."}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "On the outbound path the toxicity filter removes harmful content, the proxy runs a code-quality check for patterns like XSS and SQL injection, and an optional admin-enabled public-code filter blocks longer (~150+ character) look-alikes. Content that fails is truncated or discarded. Retention is not part of outbound validation and is not mandatory across all plans.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"]
+    },
+    {
+      "id": "q3-008",
+      "objective": "3.1.3",
+      "type": "tf",
+      "stem": "True or False: The matching-public-code filter is always on for every GitHub Copilot user and cannot be changed by an administrator.",
+      "options": [
+        {"id": "a", "text": "True"},
+        {"id": "b", "text": "False"}
+      ],
+      "answer": "b",
+      "explanation": "False. The matching-public-code (duplication-detection) filter is optional and administrator-enabled. It targets suggestions over ~150 characters that closely resemble existing public code, and it is not always on.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"]
+    },
+    {
+      "id": "q3-009",
+      "objective": "3.2.1",
+      "type": "single",
+      "stem": "Place the following stages of the code-suggestion lifecycle in the correct order: generate, post-process, capture context, deliver.",
+      "options": [
+        {"id": "a", "text": "Generate → capture context → deliver → post-process"},
+        {"id": "b", "text": "Capture context → generate → post-process → deliver"},
+        {"id": "c", "text": "Capture context → post-process → generate → deliver"},
+        {"id": "d", "text": "Deliver → capture context → generate → post-process"}
+      ],
+      "answer": "b",
+      "explanation": "Context is assembled first, the LLM generates candidate suggestions, outbound filters validate/post-process the response, and only surviving content is delivered. Delivery is gated on passing all filters.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"]
+    },
+    {
+      "id": "q3-010",
+      "objective": "3.2.1",
+      "type": "single",
+      "stem": "When a developer accepts, modifies, or rejects a Copilot suggestion, which part of the suggestion lifecycle does that action contribute to?",
+      "options": [
+        {"id": "a", "text": "The inbound toxicity filter"},
+        {"id": "b", "text": "The feedback loop that refines Copilot's intent understanding over time"},
+        {"id": "c", "text": "The HTTPS transmission step"},
+        {"id": "d", "text": "The retraining of the foundational model on the developer's code"}
+      ],
+      "answer": "b",
+      "explanation": "Accept/modify/reject actions feed Copilot's feedback loop, which refines its understanding of intent for future prompts. It is about improving intent understanding, not retaining the developer's code for model training.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-to-github-copilot/2-github-copilot-your-ai-pair-programmer"]
+    },
+    {
+      "id": "q3-011",
+      "objective": "3.2.2",
+      "type": "single",
+      "stem": "Copilot suggests a function that calls a library method that does not actually exist. Which LLM limitation does this illustrate, and what is the recommended response?",
+      "options": [
+        {"id": "a", "text": "A context-window limit; open more tabs so the model can see everything."},
+        {"id": "b", "text": "Hallucination from probabilistic generation; validate the output against the API/docs and test it."},
+        {"id": "c", "text": "A retention-policy limit; disable prompt sharing."},
+        {"id": "d", "text": "A proxy-filtering failure; re-enable the public-code filter."}
+      ],
+      "answer": "b",
+      "explanation": "LLM output is probabilistic — the model predicts plausible code that may be incorrect or reference non-existent APIs (hallucination). The mitigation is to validate the output and keep a human in the loop rather than trusting confident-looking suggestions.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/5-github-copilot-large-language-models"]
+    },
+    {
+      "id": "q3-012",
+      "objective": "3.2.2",
+      "type": "single",
+      "stem": "A large refactor spanning many files produces suggestions that ignore logic in files the developer has not opened. Which LLM limitation best explains this behavior?",
+      "options": [
+        {"id": "a", "text": "The context window — the model can only see a bounded amount of code/tokens, so content outside it (including unopened files) is invisible."},
+        {"id": "b", "text": "IP indemnity restrictions on organizational plans."},
+        {"id": "c", "text": "The 28-day retention policy expiring mid-refactor."},
+        {"id": "d", "text": "The proxy discarding valid suggestions as toxic content."}
+      ],
+      "answer": "a",
+      "explanation": "The context window is finite (standard completions ~200–500 lines / a few thousand tokens; Chat ~4k tokens). Anything outside that window, including files that aren't open, is invisible to the model, so large or cross-file problems may get incomplete answers. Breaking the task into smaller, focused prompts helps.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/5-github-copilot-large-language-models"]
+    }
+  ]
+}

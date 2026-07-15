@@ -1,6 +1,6 @@
 {
   "generated": "2026-07-15",
-  "count": 3,
+  "count": 4,
   "guides": [
     {
       "exam": "AI-103",
@@ -47,6 +47,23 @@
       "status": "complete",
       "last_refreshed": "2026-07-14",
       "file": "DP-600.html"
+    },
+    {
+      "exam": "GH-300",
+      "title": "GitHub Copilot",
+      "description": "Use GitHub Copilot responsibly and effectively — features across plans, data and architecture, prompt engineering, developer productivity, and privacy safeguards.",
+      "weights": {
+        "Use GitHub Copilot responsibly": "15–20%",
+        "Use GitHub Copilot features": "25–30%",
+        "Understand GitHub Copilot data and architecture": "10–15%",
+        "Apply prompt engineering and context crafting": "10–15%",
+        "Improve developer productivity with GitHub Copilot": "10–15%",
+        "Configure privacy, content exclusions, and safeguards": "10–15%"
+      },
+      "official_url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/gh-300",
+      "status": "complete",
+      "last_refreshed": "2026-07-15",
+      "file": "GH-300.html"
     }
   ]
 }

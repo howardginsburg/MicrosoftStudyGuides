@@ -1,0 +1,461 @@
+<section class="domain" id="domain2" data-domain="2">
+<h1 id="d2">Domain 2 — Use GitHub Copilot features <span class="weight">25–30%</span></h1>
+<p class="domain-intro">This is the largest domain. It covers using Copilot inside the IDE, the Copilot CLI in the terminal, the advanced feature surface (Agent Mode, Copilot Edits, MCP, the Cloud Agent, code review, Spaces, and Chat), and how administrators govern Copilot across an organization.</p>
+
+<section class="skillgroup" id="sg-2-1">
+<h2 id="g-2-1">2.1 Use GitHub Copilot in the IDE</h2>
+
+<section class="objective" id="obj-2-1-1" data-skill="Enable Copilot in the IDE">
+<h3 id="o-2-1-1">2.1.1 Enable Copilot in the IDE</h3>
+<div class="concept"><p>Before Copilot can suggest code, you sign in with a GitHub account that has a Copilot entitlement and install the extension for your editor. Copilot runs in several environments, so setup differs slightly per surface, and you can enable or disable it at any time.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Access Copilot from your GitHub profile under <b>Settings &rarr; Copilot</b>, in the <em>Code, planning, and automation</em> section.</li>
+<li>Supported surfaces: <b>GitHub.com</b> (no extension needed), <b>VS Code</b>, <b>Visual Studio</b>, <b>JetBrains IDEs</b>, and <b>Neovim</b>.</li>
+<li>In VS Code: install the <b>GitHub Copilot</b> extension from the Marketplace, then <b>Sign in to GitHub</b> when prompted.</li>
+<li>Toggle Copilot from the <b>status icon</b> in the bottom pane; you can disable it <b>globally</b> or <b>per language</b>.</li>
+<li>Inline completions are controlled under <b>Settings &rarr; Extensions &rarr; GitHub Copilot &rarr; Editor: Enable Auto Completions</b> (also per language).</li>
+<li>The <b>Free</b> tier includes <b>2,000 code completions and 50 chat messages per month</b>; educators, students, and select open-source maintainers can qualify for <b>Copilot Pro</b> at no cost.</li>
+</ul></div>
+<figure class="diagram" data-svg="copilot-surfaces"><figcaption>Copilot works across four surfaces: the IDE, GitHub.com, the command line (CLI), and GitHub Mobile.</figcaption></figure>
+<div class="callout tip"><b>Tip:</b> If Copilot won't connect, run <em>GitHub Copilot: Collect Diagnostics</em> and open the extension log (<em>Developer: Open Log File</em>). Network firewalls or proxies are common culprits.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>GitHub.com needs <b>no extension</b>; every other supported environment does.</li>
+<li>Disabling completions offers a choice between <b>globally</b> and <b>for the current language</b> — know both options.</li>
+<li>The Free tier's limits (2,000 completions / 50 chat messages per month) are frequently tested numbers.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer wants to use Copilot on GitHub.com to explain code in a repository. What must they install first?</summary>
+<div class="answer"><b>Answer:</b> Nothing — GitHub.com requires no extension. <em>Why:</em> Copilot is built into the web interface; extensions are only needed for IDEs like VS Code, Visual Studio, JetBrains, and Neovim.</div></details>
+<details class="q"><summary><b>Q2.</b> A user on the Free tier is surprised Copilot stopped completing code mid-month. What is the most likely cause?</summary>
+<div class="answer"><b>Answer:</b> They exhausted the monthly Free allowance (2,000 completions). <em>Why:</em> Free is usage-limited; upgrading to Pro removes those caps.</div></details>
+<details class="q"><summary><b>Q3.</b> Where in VS Code do you disable Copilot for only JavaScript files?</summary>
+<div class="answer"><b>Answer:</b> Click the Copilot status icon and choose <em>Disable completions for the language</em>, or set per-language auto completions in Settings. <em>Why:</em> Copilot supports language-scoped enable/disable, not just a global switch.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-to-github-copilot/4-setup-configure-troubleshoot">Set up, configure, and troubleshoot GitHub Copilot</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/2-code-completion-with-git-hub-copilot">Code completion with GitHub Copilot</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-2-1-2" data-skill="Trigger Copilot via inline, chat, CLI, agent mode">
+<h3 id="o-2-1-2">2.1.2 Trigger Copilot through inline suggestions, chat, CLI, and agent mode</h3>
+<div class="concept"><p>Copilot offers escalating levels of engagement. Inline suggestions autocomplete as you type; chat answers questions in natural language; the CLI helps in the terminal; and agent mode autonomously drives multi-step tasks. Choosing the right mode for a task is a core skill.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>Inline suggestions</b> appear as grey ghost text. Accept with <b>Tab</b> (or <b>&rarr;</b>); reject with <b>Esc</b> or by continuing to type.</li>
+<li><b>Multiple suggestions</b>: cycle with <b>Alt+]</b> / <b>Alt+[</b> (Option on macOS) or the light-bulb control.</li>
+<li><b>Command palette</b> (<b>Ctrl+Shift+P</b> / <b>Cmd+Shift+P</b>) exposes actions like <em>Explain This</em> and <em>Generate Unit Tests</em>.</li>
+<li><b>Copilot Chat</b> is a project-aware panel for natural-language questions; <b>inline chat</b> opens with <b>Ctrl+I</b> / <b>Cmd+I</b>.</li>
+<li><b>Comments-to-code</b>: describe intent in a comment and press Enter to have Copilot generate the implementation.</li>
+<li><b>Copilot Edits</b> applies changes across multiple files; <b>Agent Mode</b> works autonomously and can run terminal commands; the <b>Copilot CLI</b> brings the assistant into the terminal.</li>
+</ul></div>
+<figure class="diagram" data-svg="interaction-modes"><figcaption>Interaction modes range from lightweight inline completions to conversational chat and fully autonomous agent mode.</figcaption></figure>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Match the trigger to the task: ghost text for boilerplate, chat for questions, inline chat for a focused edit, agent mode for multi-file/multi-step work.</li>
+<li>Inline chat and slash commands (<code>/explain</code>, <code>/tests</code>) are distinct from the main Chat panel.</li>
+<li>Agent Mode <b>runs terminal commands and iterates</b>; static inline suggestions do not.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer highlights a function and wants a quick, in-place explanation without leaving the code. Which trigger fits best?</summary>
+<div class="answer"><b>Answer:</b> Inline chat (Ctrl+I) with <code>/explain</code>. <em>Why:</em> Inline chat gives context-specific help at the cursor without switching to the full Chat panel.</div></details>
+<details class="q"><summary><b>Q2.</b> Which mode can install dependencies and run tests on its own as part of completing a task?</summary>
+<div class="answer"><b>Answer:</b> Agent Mode. <em>Why:</em> Agent Mode autonomously determines files, executes edits, and runs terminal commands, iterating until the task succeeds.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-to-github-copilot/3-interacting-with-copilot">Interact with Copilot</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-agent-mode/2-what-is-agent-mode">What is GitHub Copilot Agent Mode?</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-2-1-3" data-skill="Configure content exclusions">
+<h3 id="o-2-1-3">2.1.3 Configure content exclusions for specific files or repositories</h3>
+<div class="concept"><p>Content exclusions tell Copilot to ignore specific files, folders, or repositories so sensitive material never informs suggestions. They are configured by repository administrators and organization owners and are a Business/Enterprise capability.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Configure at the <b>repository</b> level: repo <b>Settings &rarr; Copilot &rarr; Repositories and paths to exclude</b>.</li>
+<li>Configure at the <b>organization</b> level: org <b>Settings &rarr; Copilot &rarr; Content exclusion</b>.</li>
+<li>Effect on excluded files: <b>no code completion</b> in them; their content <b>won't inform completions in other files</b> or <b>Chat responses</b>.</li>
+<li>Available only on <b>Copilot Business</b> and <b>Copilot Enterprise</b> (not Free/Pro); settings apply to those licensed members.</li>
+<li>Limitations: exclusions are <b>not applied to the <code>@github</code> chat participant</b> in VS Code/Visual Studio; <b>semantic info</b> (types, hover definitions) can still surface from non-excluded files; the policy applies only to <b>members of the configuring organization</b>.</li>
+</ul></div>
+<div class="callout warn"><b>Gotcha:</b> Content exclusions reduce the context Copilot has, which can lower suggestion quality — exclude deliberately, balancing security against usefulness.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Only <b>organization</b> and <b>repository</b> settings define exclusions — there is no per-user IDE exclusion list.</li>
+<li>Exclusions do <b>not</b> stop the <code>@github</code> participant, and outsiders with repo access still see suggestions.</li>
+<li>This is a <b>Business/Enterprise</b>-only control — a common distractor is offering it on Pro.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A security team excludes <code>secrets/</code> from Copilot but notices Chat still references a symbol defined there. Why?</summary>
+<div class="answer"><b>Answer:</b> Copilot can still use semantic information (type/hover definitions) surfaced from a non-excluded file, and the <code>@github</code> participant ignores exclusions. <em>Why:</em> Exclusions block completions/context from the file itself but have documented IDE limitations.</div></details>
+<details class="q"><summary><b>Q2.</b> Which plans support content exclusions?</summary>
+<div class="answer"><b>Answer:</b> Copilot Business and Copilot Enterprise. <em>Why:</em> Content exclusion is a management feature not available on Free or Pro.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions">Manage content exclusions</a></li>
+</ul></div>
+</section>
+</section>
+
+<section class="skillgroup" id="sg-2-2">
+<h2 id="g-2-2">2.2 Use GitHub Copilot CLI</h2>
+
+<section class="objective" id="obj-2-2-1" data-skill="Define CLI and benefits">
+<h3 id="o-2-2-1">2.2.1 Define GitHub Copilot CLI and how it benefits developers</h3>
+<div class="concept"><p>GitHub Copilot CLI brings Copilot into the terminal. It explains shell commands, suggests commands from natural-language descriptions, and helps you work interactively and safely with your files — reducing guesswork on the command line.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Runs in the terminal; can <b>explain</b> commands and <b>suggest</b> shell commands from natural language.</li>
+<li>Uses <b>GitHub authentication</b> and runs <b>independently from the GitHub CLI (<code>gh</code>)</b>, though it reuses your existing credentials.</li>
+<li>Benefits both newcomers and experienced developers by speeding everyday workflows and reducing manual lookups.</li>
+</ul></div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Copilot CLI is <b>separate from <code>gh</code></b> but shares your GitHub sign-in — they complement each other.</li>
+<li>Its two headline capabilities are <b>explain</b> and <b>suggest</b>.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> Is Copilot CLI the same tool as the GitHub CLI (<code>gh</code>)?</summary>
+<div class="answer"><b>Answer:</b> No. <em>Why:</em> Copilot CLI runs independently but authenticates with your existing GitHub credentials; you can combine it with <code>gh</code> for repo/issue tasks.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line">GitHub Copilot for the Command Line</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-2-2-2" data-skill="Install Copilot CLI">
+<h3 id="o-2-2-2">2.2.2 Identify the steps for installing GitHub Copilot CLI</h3>
+<div class="concept"><p>Copilot CLI installs via a package manager or an official script, then launches into an interactive session. On first launch it asks whether you trust the current folder, because it may read, modify, or execute files there.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Install with Homebrew (macOS/Linux) or the official install script.</li>
+<li>Launch interactive mode with <code>copilot</code>; run a one-shot prompt with <code>copilot -i "…"</code>.</li>
+<li>On first launch Copilot asks you to <b>trust the files in the current folder</b> — only proceed in trusted locations.</li>
+</ul></div>
+<div class="code"><pre><code class="lang-bash"># Install (choose one)
+brew install copilot-cli
+curl -fsSL https://gh.io/copilot-install | bash
+
+# Launch interactive mode
+copilot
+
+# One-shot prompts (no full session)
+copilot -i "explain brew install git"
+copilot -i "suggest find large files and delete them"</code></pre></div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li><code>copilot</code> = interactive; <code>copilot -i "…"</code> = one-shot.</li>
+<li>The first-run <b>trust prompt</b> exists because Copilot may read/modify/execute files in the directory.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> You just want a single explanation without entering a full session. Which command?</summary>
+<div class="answer"><b>Answer:</b> <code>copilot -i "explain &lt;command&gt;"</code>. <em>Why:</em> The <code>-i</code> one-shot flag returns an answer without starting interactive mode.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line">GitHub Copilot for the Command Line</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-2-2-3" data-skill="CLI features and commands">
+<h3 id="o-2-2-3">2.2.3 Describe key GitHub Copilot CLI features and commands</h3>
+<div class="concept"><p>Inside an interactive session you mix natural-language prompts with explicit slash commands. Slash commands control the session and configuration and cannot be replaced by natural language.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Natural language handles <b>explain</b>, <b>suggest</b>, and <b>revise</b> requests.</li>
+<li>Common slash commands: <code>/help</code>, <code>/explain &lt;command&gt;</code>, <code>/suggest &lt;task&gt;</code>, <code>/revise</code>, <code>/feedback</code>, <code>/exit</code>.</li>
+<li>Configuration slash commands: <code>/model &lt;model&gt;</code>, <code>/theme</code>, <code>/skills</code>, <code>/mcp</code>, <code>/list-dirs</code>, <code>/reset-allowed-tools</code>, <code>/sandbox</code>.</li>
+<li>Slash commands are the <b>only</b> way to control session settings — natural language can't substitute for them.</li>
+</ul></div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Know the split: <b>NL</b> for explain/suggest/revise; <b>slash commands</b> for control/config.</li>
+<li><code>/model</code> selects the AI model; <code>/mcp</code> manages MCP servers; <code>/skills</code> manages enhanced capabilities.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer types "please switch to a different model" in the session but nothing changes. Why?</summary>
+<div class="answer"><b>Answer:</b> Model switching requires the <code>/model</code> slash command. <em>Why:</em> Session settings and configuration can only be changed with slash commands, not natural language.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line">GitHub Copilot for the Command Line</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-2-2-4" data-skill="CLI interactive and sessions">
+<h3 id="o-2-2-4">2.2.4 Use GitHub Copilot CLI interactively and in sessions</h3>
+<div class="concept"><p>Copilot CLI supports interactive sessions where you attach files as context and, for safety, run commands inside sandboxed environments. Sandboxing can be local (on your machine) or in the cloud (a GitHub-hosted, isolated Linux environment).</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Use <code>@</code> to select a file as context in an interactive session.</li>
+<li><b>Local sandboxing</b> (<code>/sandbox enable</code>) restricts filesystem, network, and OS access on your machine.</li>
+<li><b>Cloud sandboxing</b> (<code>copilot --cloud</code>) runs in a fully isolated GitHub-hosted Linux environment, built on <b>Azure Container Apps Sandboxes</b>.</li>
+<li>Cloud sessions have three states — <b>Active</b>, <b>Stopped</b>, <b>Deleted</b> — and a stopped session snapshots its state so you can <b>resume across devices</b>.</li>
+<li>Organization/enterprise admins must enable the <b>Cloud Sandbox</b> policy before members can use cloud sessions.</li>
+</ul></div>
+<figure class="diagram" data-svg="copilot-cli-flow"><figcaption>An interactive CLI session: type a prompt or slash command, review the suggestion, then optionally execute inside a local or cloud sandbox.</figcaption></figure>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Local sandbox = your machine's resources; cloud sandbox = GitHub-hosted, device-independent, parallelizable.</li>
+<li>Only cloud sessions can be <b>resumed on another device</b>; they require an admin-enabled policy.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer wants to start work on one laptop and continue on another without moving files. Which option supports this?</summary>
+<div class="answer"><b>Answer:</b> Cloud sandboxing (<code>copilot --cloud</code>). <em>Why:</em> Cloud sessions run in GitHub-hosted infrastructure and preserve state so they can be resumed from any device.</div></details>
+<details class="q"><summary><b>Q2.</b> Members can't start a cloud sandbox session. What's the most likely governance cause?</summary>
+<div class="answer"><b>Answer:</b> The org/enterprise Cloud Sandbox access policy isn't enabled. <em>Why:</em> Admins must enable that policy before members can use cloud sandboxes.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line">GitHub Copilot for the Command Line</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-2-2-5" data-skill="CLI scripts and file management">
+<h3 id="o-2-2-5">2.2.5 Generate scripts and manage files with GitHub Copilot CLI</h3>
+<div class="concept"><p>Copilot CLI can turn natural language into shell commands and scripts and act on files, but you stay in control through permissions. Access is governed by trusted directories, tool permissions, path permissions, and URL permissions, and you should always review a suggested command before running it.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Configuration comes from <b>permission prompts</b>, <b>command-line flags</b>, and <b>local config files</b>.</li>
+<li>Controls include <b>trusted directories</b>, <b>tool permissions</b> (<code>--allow-tool</code> / <code>--deny-tool</code>), <b>path permissions</b>, and <b>URL permissions</b>.</li>
+<li>Suggest a command from natural language, then <b>revise</b> it with follow-up prompts.</li>
+<li>Combine Copilot CLI with the <b>gh</b> CLI for repo and issue management; <b>always review commands before execution</b>.</li>
+</ul></div>
+<div class="callout key"><b>Key:</b> Copilot CLI never runs destructive commands unattended by design — it proposes, you review, then it executes with your permission.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Permissions are scoped by <b>directory</b>, <b>tool</b>, <b>path</b>, and <b>URL</b> — know these four axes.</li>
+<li>Sandboxing plus review-before-execute is the recommended pattern for unfamiliar or destructive operations.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> How do you stop Copilot CLI from being able to run a particular tool during a session?</summary>
+<div class="answer"><b>Answer:</b> Use the <code>--deny-tool</code> flag (tool permissions). <em>Why:</em> Tool permissions explicitly allow or restrict what Copilot can execute on your behalf.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line">GitHub Copilot for the Command Line</a></li>
+</ul></div>
+</section>
+</section>
+
+<section class="skillgroup" id="sg-2-3">
+<h2 id="g-2-3">2.3 Use GitHub Copilot features and capabilities</h2>
+
+<section class="objective" id="obj-2-3-1" data-skill="Agent Mode, Copilot Edits, MCP, Agent Sessions, Sub-Agents">
+<h3 id="o-2-3-1">2.3.1 Use Agent Mode, Copilot Edits, and MCP; manage Agent Sessions and delegate to Sub-Agents</h3>
+<div class="concept"><p>Beyond completions and chat, Copilot offers autonomous capabilities. <b>Copilot Edits</b> applies coordinated multi-file changes; <b>Agent Mode</b> plans and iterates on complex tasks in your IDE; the <b>Model Context Protocol (MCP)</b> connects Copilot to external tools and data; and the <b>Copilot Cloud Agent</b> works as a background teammate inside GitHub, running agent sessions you can track and steer.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Engagement ladder: inline suggestions &rarr; Chat &rarr; <b>Copilot Edits</b> (multi-file) &rarr; <b>Agent Mode</b> (autonomous, iterative).</li>
+<li>Agent Mode analyzes the whole workspace, determines relevant files and dependencies, runs terminal commands (build/install/test), and <b>self-heals</b> — detecting failures, correcting, and re-running until tests pass, while keeping you in control.</li>
+<li><b>MCP</b> is an open standard ("USB-C for AI tools") that connects models to tools/data. The <b>GitHub MCP Server</b> is hosted at <code>https://api.githubcopilot.com/mcp/</code>; add it via <b>MCP: Add server &rarr; HTTP</b>, then authorize with <b>OAuth</b> (or use a PAT, or a local Docker image). It exposes 30+ tools.</li>
+<li>The <b>Cloud Agent</b> (Pro/Pro+/Business/Enterprise) runs in a GitHub Actions environment. Assign it an issue and it adds an <b>👀</b> reaction, creates a <code>copilot/</code> branch, opens a <b>draft PR</b>, runs an <b>agent session</b>, pushes commits, then posts <b>"Copilot finished work"</b> and requests review.</li>
+<li>Iterate by mentioning <b>@copilot</b> in a PR comment (write permission required). Draft PRs need <b>human approval</b>; the requester <b>can't approve their own</b>; Actions run only after <b>Approve and run workflows</b>; sessions time out after <b>1 hour</b>.</li>
+<li>The Cloud Agent uses <b>Actions minutes + PRUs</b>; customize its environment with <code>.github/workflows/copilot-setup-steps.yml</code> and extend it with <b>MCP tools</b> (tools only; remote OAuth servers aren't supported). Defaults include the <b>GitHub</b> and <b>Playwright</b> MCP servers.</li>
+</ul></div>
+<figure class="diagram" data-svg="agent-mode-loop"><figcaption>Agent Mode iterates: plan, edit files, run commands, detect and fix failures, and repeat until the task succeeds — with the developer reviewing every change.</figcaption></figure>
+<figure class="diagram" data-svg="mcp-architecture"><figcaption>MCP connects a client (IDE/Copilot) to MCP servers that bridge to local data or remote services, extending what the agent can do.</figcaption></figure>
+<div class="code"><pre><code class="lang-json">// VS Code: connect the hosted GitHub MCP Server over HTTP + OAuth
+{
+  "servers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
+    }
+  }
+}</code></pre></div>
+<div class="callout key"><b>Key:</b> The <b>Cloud Agent</b> runs autonomously inside GitHub (Actions-powered), while <b>Agent Mode / Copilot Edits</b> makes autonomous edits locally in your IDE. Don't confuse the two.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Cloud Agent PRs are always <b>draft</b>, need independent approval, and the <b>requester cannot approve their own</b> — this preserves required-reviews rules.</li>
+<li>MCP for the Cloud Agent supports <b>tools only</b> (not resources/prompts) and <b>no remote OAuth</b> servers.</li>
+<li>Comments made on the original <b>issue</b> after assignment aren't seen by the agent — add new info as comments on its <b>PR</b>.</li>
+<li>Premium reasoning roughly <b>doubles PRU</b> consumption versus the standard model.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer assigns an issue to Copilot, then adds clarifying details as a comment on the issue, but the agent ignores them. Why?</summary>
+<div class="answer"><b>Answer:</b> The agent only receives the issue content at assignment time; later issue comments aren't seen. <em>Why:</em> To guide it after it starts, mention <code>@copilot</code> on the agent's pull request instead.</div></details>
+<details class="q"><summary><b>Q2.</b> Why can't the developer who asked Copilot to open a PR approve that PR themselves?</summary>
+<div class="answer"><b>Answer:</b> The requester is blocked from approving to preserve the repository's required-review rules. <em>Why:</em> An independent human reviewer must approve before merge.</div></details>
+<details class="q"><summary><b>Q3.</b> Which protocol lets Copilot reach external APIs and enterprise tools in a standardized way?</summary>
+<div class="answer"><b>Answer:</b> The Model Context Protocol (MCP). <em>Why:</em> MCP is an open standard that connects models to external tools and data, strengthening agent mode with agentic loops.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-agent-mode/3-explore-the-power">Explore the power of autonomous development assistance</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/mcp-server/3-configure-connect">Configure, connect, and use GitHub MCP Server in VS Code</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-code-agent/3-assign-track-troubleshoot-copilot-code-agent-tasks">Assigning, tracking, and troubleshooting Copilot Cloud Agent tasks</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-2-3-2" data-skill="Copilot code review and coding assistance">
+<h3 id="o-2-3-2">2.3.2 Use Copilot for code review and coding assistance</h3>
+<div class="concept"><p>Copilot acts as a collaborative reviewer: it drafts PR summaries, flags security and style issues, explains unfamiliar code, and suggests fixes — in your IDE before a PR and on GitHub.com as an assigned reviewer. Its role is advisory; humans still make the final call.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Review features: <b>PR summaries</b>, <b>security fixes</b> (integrated with <b>Code Scanning</b>), line-by-line <b>explanations</b>, drafted <b>review comments</b>, and reviews <b>inside the IDE</b> before opening a PR.</li>
+<li>On GitHub.com: add <b>Copilot</b> from the <b>Reviewers</b> menu; reviews typically finish in <b>under 30 seconds</b> and land as line comments.</li>
+<li>Copilot's review is <b>advisory</b>: it does <b>not approve or reject</b> a PR and its comments <b>don't count toward required approvals</b>.</li>
+<li>Guide it with <b>.github/copilot-instructions.md</b> (repo-wide) and path-specific <b>.github/instructions/*.instructions.md</b> files using an <code>applyTo</code> glob.</li>
+<li>Automate at scale via <b>rulesets</b> (<em>Request pull request review from Copilot</em>) at repo/org level, paired with <b>status checks</b>; individuals on <b>Pro/Pro+</b> can enable <b>Automatic Copilot code review</b>.</li>
+<li><b>PRUs</b> unlock deeper, context-rich analysis of large diffs.</li>
+</ul></div>
+<figure class="diagram" data-svg="code-review-flow"><figcaption>Open a PR, assign Copilot as reviewer, receive line comments and a summary, apply or discuss suggestions — then a human approves.</figcaption></figure>
+<div class="code"><pre><code class="lang-yaml"># .github/instructions/security.instructions.md (frontmatter)
+applyTo: "**/*.ts,**/*.tsx"
+# Below the frontmatter, plain-language guidance, e.g.:
+# Flag unsafe string interpolation and require input validation.</code></pre></div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Copilot review is <b>advisory only</b> — it never blocks a merge or satisfies a required approval.</li>
+<li>Repo-wide guidance lives in <b>copilot-instructions.md</b>; path-scoped guidance uses <b>*.instructions.md</b> with <code>applyTo</code>.</li>
+<li>To require Copilot on every PR to a protected branch, use a <b>ruleset</b>, not a personal setting.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A team wants Copilot to automatically review all PRs targeting <code>main</code> in a production repo. What should an admin configure?</summary>
+<div class="answer"><b>Answer:</b> A branch ruleset with <em>Require a pull request before merging</em> and <em>Request pull request review from Copilot</em>. <em>Why:</em> Rulesets enforce automatic Copilot review at the repo/org level; the personal auto-review toggle only covers one user's PRs.</div></details>
+<details class="q"><summary><b>Q2.</b> Does a Copilot review count toward a branch's required approvals?</summary>
+<div class="answer"><b>Answer:</b> No. <em>Why:</em> Copilot's comments are advisory; a human reviewer must still approve.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/code-reviews-pull-requests-github-copilot/3-copilot-reviewer-github">Using Copilot as a reviewer in GitHub.com</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/code-reviews-pull-requests-github-copilot/4-issues-early-automated-reviews-copilot">Catching issues early and automating reviews with Copilot</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-2-3-3" data-skill="Spaces, Spark, PR summaries, instructions files">
+<h3 id="o-2-3-3">2.3.3 Utilize Spaces, Spark, pull request summaries, and instructions files</h3>
+<div class="concept"><p>These features let you ground and customize Copilot. <b>Copilot Spaces</b> package curated context into a reusable, scoped workspace; <b>PR summaries</b> auto-draft descriptions; <b>instructions files</b> encode team conventions; and <b>GitHub Spark</b> builds apps from natural-language descriptions.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>Copilot Spaces</b>: create at <b>github.com/copilot/spaces</b>; owned by <b>you or an organization</b>. Add <b>Instructions</b> (free text) and <b>Attachments</b> — repo files/folders, linked issues/PRs, uploads, or free text.</li>
+<li>Spaces always reference the <b>latest version of the main branch</b> and <b>inherit GitHub permissions</b> — a Space grants <b>no new access</b>; viewers only see content they're already entitled to.</li>
+<li>Governance: keep <b>one job per Space</b>, assign an owner, use clear naming conventions, and set a review cadence.</li>
+<li><b>PR summaries</b>: from the PR description editor, use the Copilot icon to generate a summary/outline; this consumes <b>PRUs</b>.</li>
+<li><b>Instructions files</b>: repo-wide <b>.github/copilot-instructions.md</b>; path-specific <b>*.instructions.md</b> with an <code>applyTo</code> glob.</li>
+<li><b>GitHub Spark</b>: build and deploy applications from natural-language descriptions.</li>
+</ul></div>
+<div class="callout tip"><b>Tip:</b> Don't paste secrets into a Space's free-text notes — link version-controlled files instead so normal review and permissions apply.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Spaces <b>inherit</b> existing repo/issue/PR permissions and grant <b>no new access</b> — a key governance point.</li>
+<li>Spaces track the <b>main branch's latest version</b>; keep scope narrow ("one job per Space").</li>
+<li>Instructions files come in two forms: repo-wide <b>copilot-instructions.md</b> and path-scoped <b>*.instructions.md</b>.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A manager worries that sharing a Space will expose private repos to people who lack access. Is that a risk?</summary>
+<div class="answer"><b>Answer:</b> No. <em>Why:</em> Spaces inherit GitHub permissions and grant no new access — only users already entitled to the linked content see it reflected in answers.</div></details>
+<details class="q"><summary><b>Q2.</b> Which file makes Copilot apply security review rules only to TypeScript files?</summary>
+<div class="answer"><b>Answer:</b> A path-specific <code>*.instructions.md</code> file with <code>applyTo: "**/*.ts,**/*.tsx"</code>. <em>Why:</em> The <code>applyTo</code> glob scopes instructions to matching paths; <code>copilot-instructions.md</code> would apply repo-wide.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-copilot-spaces/2-create-first-space">Creating your first Space</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-copilot-spaces/3-share-discover-govern">Sharing, discoverability, and governance</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-2-3-4" data-skill="Copilot Chat limits, options, feedback, commands, prompt files">
+<h3 id="o-2-3-4">2.3.4 Understand Copilot Chat limits, options, feedback, commands, and prompt files</h3>
+<div class="concept"><p>Copilot Chat becomes far more effective when you scope questions, use slash commands, pick the right model, and give feedback. Prompt/instruction files keep its behavior consistent, and usage limits and model costs are worth knowing.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>Scope references</b>: point at a file with <code>#file:name</code>; use participants <b>@terminal</b>, <b>@vscode</b>, and <b>@github</b>.</li>
+<li><b>Slash commands</b>: <code>/doc</code>, <code>/explain</code>, <code>/fix</code>, <code>/generate</code>, <code>/optimize</code>, <code>/tests</code>, and <code>/new</code> (scaffold a project).</li>
+<li><b>Model selection</b>: standard models (e.g., GPT-4o) cost ~<b>1 PRU</b> per request; premium reasoning models (e.g., o1-preview/o1-mini) cost ~<b>2 PRUs</b>.</li>
+<li><b>Feedback</b>: rate responses with <b>thumbs up / thumbs down</b>.</li>
+<li><b>Limits</b>: the Free tier includes <b>50 chat messages per month</b>; content exclusions are <b>not applied</b> to the <b>@github</b> participant.</li>
+<li><b>Prompt files / instructions</b>: custom prompt files keep Copilot's behavior consistent, including when working with specific MCP servers.</li>
+</ul></div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Premium models roughly <b>double</b> PRU cost — reserve them for complex reasoning.</li>
+<li>The <b>@github</b> participant bypasses content exclusions — a security caveat.</li>
+<li><code>#file:</code> scopes to a file; <b>@participants</b> scope to a tool/context.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer needs deep reasoning on a complex multi-threaded bug and is watching PRU usage. What's the trade-off of choosing a premium model?</summary>
+<div class="answer"><b>Answer:</b> Better reasoning, but roughly double the PRU cost (~2 vs ~1). <em>Why:</em> Premium models consume more PRUs, so reserve them for genuinely complex tasks.</div></details>
+<details class="q"><summary><b>Q2.</b> How do you focus a chat question on a single file named <code>controller.js</code>?</summary>
+<div class="answer"><b>Answer:</b> Reference it with <code>#file:controller.js</code>. <em>Why:</em> The <code>#file:</code> scope tells Chat to focus on that file's contents.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/3-git-hub-copilot-chat">GitHub Copilot Chat</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/advanced-github-copilot/">Using advanced GitHub Copilot features</a></li>
+</ul></div>
+</section>
+</section>
+
+<section class="skillgroup" id="sg-2-4">
+<h2 id="g-2-4">2.4 Manage organization-wide settings and policies</h2>
+
+<section class="objective" id="obj-2-4-1" data-skill="Org policy management and Code Review policies">
+<h3 id="o-2-4-1">2.4.1 Configure organization-wide policy management and Copilot Code Review policies</h3>
+<div class="concept"><p>Administrators govern Copilot through plan-tier features, privacy controls, and rulesets. The plan you choose determines which management capabilities you get, and policies cascade from the enterprise down through organizations and repositories.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li>Plans: <b>Free</b>, <b>Pro/Pro+</b>, <b>Business</b>, <b>Enterprise</b>. Business/Enterprise add <b>user management</b>, <b>data excluded from training by default</b>, <b>enterprise-grade security</b>, <b>IP indemnity</b>, <b>content exclusions</b>, <b>SAML SSO</b>, and <b>usage metrics</b>. <b>Require GitHub Enterprise Cloud</b> is Enterprise-only.</li>
+<li><b>Suggestions matching public code</b>: org admins (Business/Enterprise) set it at <b>Settings &rarr; Copilot &rarr; Features &rarr; Privacy</b> and choose <b>Block</b> — which is <b>required for IP indemnity</b>. Personal (Free/Pro/Pro+) users can toggle Allow/Block, but an org-provided seat may be <b>locked</b> to the org policy.</li>
+<li><b>Code Review policies</b>: create <b>rulesets</b> that <em>Require a pull request before merging</em> and <em>Request pull request review from Copilot</em>, applied to target branches/repos; optionally <em>Require conversation resolution before merging</em>.</li>
+<li>The public code filter is available on <b>all</b> plans; content exclusions are <b>Business/Enterprise</b> only.</li>
+</ul></div>
+<figure class="diagram" data-svg="org-policy-layers"><figcaption>Copilot policies cascade: enterprise settings flow to organizations, then repositories, then individual seats.</figcaption></figure>
+<figure class="diagram" data-svg="copilot-plans"><figcaption>Feature availability by plan — Free and Pro/Pro+ for individuals; Business and Enterprise add management, security, and indemnity controls.</figcaption></figure>
+<div class="callout warn"><b>Gotcha:</b> IP indemnity applies only when the <b>Matching public code</b> setting is set to <b>Block</b>. Allowing matching suggestions forfeits indemnity coverage.</div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li><b>IP indemnity</b> and <b>content exclusions</b> are <b>Business/Enterprise</b> features; the <b>public code filter</b> exists on every plan.</li>
+<li>Blocking matching public code is a <b>precondition</b> for IP indemnity.</li>
+<li>An org-provided seat can have its privacy toggle <b>locked</b> by org policy.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> An enterprise legal team requires IP indemnity coverage for all Copilot suggestions. What setting is mandatory?</summary>
+<div class="answer"><b>Answer:</b> Set <em>Suggestions matching public code</em> to <b>Block</b> for the organization. <em>Why:</em> IP indemnity applies only when matching public code is blocked.</div></details>
+<details class="q"><summary><b>Q2.</b> A Pro user wants organization-level usage metrics and content exclusions. Can they get them?</summary>
+<div class="answer"><b>Answer:</b> No — those require Business or Enterprise. <em>Why:</em> Usage metrics and content exclusions are management features not available on Free or Pro.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/2-explore-github-copilot-plans-associated-management-customization-features">Explore GitHub Copilot plans and management features</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/3-github-copilot-contractual-protections-disabling-matching-public-code">Contractual protections and disabling matching public code</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-2-4-2" data-skill="Audit log events">
+<h3 id="o-2-4-2">2.4.2 Utilize audit log events</h3>
+<div class="concept"><p>Governance requires visibility into how Copilot is used and how policies change. Business and Enterprise plans provide usage metrics and audit visibility, and the Cloud Agent leaves a durable trail of its actions, so administrators can monitor activity for compliance and oversight.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>Usage metrics</b> are a <b>Business/Enterprise</b> capability, giving admins insight into Copilot adoption and activity.</li>
+<li>Auditability supports compliance: administrators can review who is using Copilot and how policies are applied across the organization.</li>
+<li>Cloud Agent work is inherently traceable — <b>session logs</b> and <b>pull request history</b> record every commit and action for later review.</li>
+<li>Because all Cloud Agent work happens as commits on GitHub, teammates can see each step, unlike private local IDE sessions.</li>
+</ul></div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li><b>Usage metrics / audit visibility</b> are tied to <b>Business/Enterprise</b> plans, not Free/Pro.</li>
+<li>Cloud Agent traceability (session logs + PR history) is a governance advantage over local-only agent sessions.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A compliance officer wants an auditable record of every change an autonomous agent made. Which Copilot capability provides it?</summary>
+<div class="answer"><b>Answer:</b> The Cloud Agent's session logs and pull request history. <em>Why:</em> All Cloud Agent work is committed to GitHub with visible session logs and PR timelines, providing traceability.</div></details>
+<details class="q"><summary><b>Q2.</b> Which plans give administrators Copilot usage metrics for oversight?</summary>
+<div class="answer"><b>Answer:</b> Business and Enterprise. <em>Why:</em> Usage metrics are a management feature reserved for those plans.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/2-explore-github-copilot-plans-associated-management-customization-features">Explore GitHub Copilot plans and management features</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-code-agent/3-assign-track-troubleshoot-copilot-code-agent-tasks">Assigning, tracking, and troubleshooting Copilot Cloud Agent tasks</a></li>
+</ul></div>
+</section>
+
+<section class="objective" id="obj-2-4-3" data-skill="Manage subscriptions using the REST API">
+<h3 id="o-2-4-3">2.4.3 Manage subscriptions using the REST API</h3>
+<div class="concept"><p>Copilot seat and subscription management is an administrator function on Business and Enterprise plans, handled through organization settings and, for automation, through GitHub's API and CLI. The same programmatic approach that assigns work to Copilot also supports scripting Copilot administration into your workflows.</p></div>
+<div class="facts"><h4>Key facts</h4><ul>
+<li><b>User (seat) management</b> is a <b>Business/Enterprise</b> capability, administered from the organization's Copilot settings.</li>
+<li>Copilot workflows can be driven programmatically via the GitHub <b>API</b> and <b>CLI</b> for automation and integration.</li>
+<li>Example of API-driven Copilot control: assigning issues to Copilot via <b>GraphQL</b> — check availability with <code>suggestedActors</code> (capability <code>CAN_BE_ASSIGNED</code>), then <code>createIssue</code> or <code>replaceActorsForAssignable</code>; or use <code>gh issue edit</code> from the CLI.</li>
+<li>Programmatic access lets teams embed Copilot into automated pipelines rather than relying only on the web UI.</li>
+</ul></div>
+<div class="code"><pre><code class="lang-bash"># CLI: assign an issue to Copilot (automation-friendly)
+gh issue edit 42 --add-assignee "@copilot"</code></pre></div>
+<div class="tips"><h4>Exam tips &amp; gotchas</h4><ul>
+<li>Seat/subscription administration is a <b>Business/Enterprise</b> (user management) function.</li>
+<li>The API/CLI enable <b>automation</b> — the same pattern used to delegate issues to Copilot can script administrative workflows.</li>
+</ul></div>
+<div class="practice"><h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A platform team wants to integrate Copilot task delegation into an automated pipeline instead of clicking through GitHub.com. What should they use?</summary>
+<div class="answer"><b>Answer:</b> The GitHub API (GraphQL) or the <code>gh</code> CLI. <em>Why:</em> Copilot workflows can be driven programmatically — for example, assigning issues via <code>suggestedActors</code>/<code>replaceActorsForAssignable</code> or <code>gh issue edit</code>.</div></details>
+<details class="q"><summary><b>Q2.</b> On which plans is centralized Copilot user/seat management available?</summary>
+<div class="answer"><b>Answer:</b> Business and Enterprise. <em>Why:</em> User management is a management feature limited to those plans.</div></details>
+</div>
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-code-agent/3-assign-track-troubleshoot-copilot-code-agent-tasks">Assigning, tracking, and troubleshooting Copilot Cloud Agent tasks</a></li>
+<li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/2-explore-github-copilot-plans-associated-management-customization-features">Explore GitHub Copilot plans and management features</a></li>
+</ul></div>
+</section>
+</section>
+</section>

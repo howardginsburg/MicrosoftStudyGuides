@@ -1,0 +1,300 @@
+<section class="domain" id="domain4" data-domain="4">
+  <h1 id="d4">Domain 4 — Apply prompt engineering and context crafting <span class="weight">10–15%</span></h1>
+  <p class="domain-intro">This domain is about talking to Copilot effectively: how a prompt is structured, what context Copilot pulls in automatically, when to give it examples (zero-shot vs few-shot), the best-practice principles behind good prompting (the 4 Ss), and the inbound/outbound process flow a prompt travels through — including how to keep long Chat conversations efficient. Expect "which principle applies," "how does Copilot get context," and process-order questions.</p>
+
+  <section class="skillgroup" id="sg-4-1">
+    <h2 id="g-4-1">4.1 Craft effective prompts</h2>
+
+    <!-- ===================== 4.1.1 ===================== -->
+    <section class="objective" id="obj-4-1-1" data-skill="prompt-structure">
+      <h3 id="o-4-1-1">4.1.1 Describe prompt structure and context</h3>
+
+      <div class="concept">
+        <p><b>Prompt engineering</b> is the practice of crafting clear instructions that guide GitHub Copilot to produce code tailored to your project. The aim is output that is <b>syntactically, functionally, and contextually correct</b> — not just code that compiles, but code that fits <em>your</em> problem.</p>
+        <p>A good prompt has a discernible <b>structure</b>: a clear <b>goal</b> (the single thing you want), supporting <b>context/details</b> (comments, related open files, constraints), and — when helpful — <b>examples</b> Copilot can pattern-match against. The "prompt" Copilot actually reasons over is the <em>assembled</em> combination of your text plus the surrounding context it gathers.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li>Effective prompts combine a <b>goal</b>, <b>context</b>, and optional <b>examples</b>.</li>
+          <li>Be explicit: <em>"Write a Python function to filter and return even numbers from a given list"</em> is single-focused and specific.</li>
+          <li>Adding <b>comments at the top of a file</b> supplies context and improves the quality of suggestions.</li>
+          <li>Keep the detail useful but concise — richer context helps, but overloading the prompt hurts clarity.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="prompt-structure"><figcaption>Anatomy of an effective prompt: a single clear goal, supporting context/details, and optional examples combine into the assembled prompt Copilot reasons over.</figcaption></figure>
+
+      <div class="code"><pre><code class="lang-python"># Goal: parse an ISO-8601 timestamp string and return a timezone-aware datetime.
+# Context: use only the standard library; raise ValueError on malformed input.
+# Example input: "2026-07-15T09:30:00+00:00"
+def parse_timestamp(value: str):
+    ...
+</code></pre></div>
+
+      <div class="callout tip"><b>Tip:</b> Think "goal + context + example." A one-line comment that names the inputs, the constraint, and a sample value usually beats a long, vague sentence.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>The "prompt" is the <em>assembled</em> prompt (your text + gathered context), not only the literal comment you typed.</li>
+          <li>"Contextually correct" is a distinct goal from "syntactically correct" — Copilot aims for code that fits your project, not just valid code.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A developer writes a vague comment <code>// do the thing</code> and gets poor suggestions. What single change most improves the prompt structure?</summary>
+        <div class="answer"><b>Answer:</b> State a clear, specific goal with the relevant inputs/constraints (e.g., what to compute, expected types, edge cases). <em>Why:</em> a clear single goal plus context is the core of an effective prompt.</div></details>
+        <details class="q"><summary><b>Q2.</b> Which three elements make up the structure of an effective Copilot prompt?</summary>
+        <div class="answer"><b>Answer:</b> A goal, supporting context/details, and optional examples. <em>Why:</em> Learn frames good prompting as clarity of goal plus context, optionally reinforced with examples.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices">Prompt engineering foundations and best practices</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/">Introduction to prompt engineering with GitHub Copilot</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 4.1.2 ===================== -->
+    <section class="objective" id="obj-4-1-2" data-skill="context-determined">
+      <h3 id="o-4-1-2">4.1.2 Understand how context is determined</h3>
+
+      <div class="concept">
+        <p>Copilot doesn't just read the comment under your cursor — while it processes a prompt it <b>gathers context</b> from your editor session so it can turn a high-level request into a concrete coding task. Knowing <em>what</em> it collects tells you how to steer it: open the right files, name things well, and put helpful comments nearby.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li>Context Copilot collects includes: <b>code before and after the cursor</b>, the <b>filename and file type</b>, <b>adjacent open tabs</b>, <b>project structure and file paths</b>, and the <b>languages and frameworks</b> in use.</li>
+          <li>Copilot uses a <b>Fill-in-the-Middle (FIM)</b> technique — it considers both the <em>preceding and following</em> code, widening the model's view.</li>
+          <li>Copilot also draws on <b>parallel open tabs</b> in the editor to learn more about your code's requirements.</li>
+          <li><b>Comments</b> (especially at the top of the file) and a <b>descriptive filename</b> are direct levers you control to enrich context.</li>
+        </ul>
+      </div>
+
+      <div class="callout key"><b>Key:</b> Keeping relevant files open in nearby tabs is a real technique — open tabs are part of the context Copilot gathers, so closing distracting/irrelevant files can sharpen suggestions.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><b>FIM</b> = code <em>after</em> the cursor counts too. A classic distractor is "Copilot only uses code above the cursor."</li>
+          <li>Adjacent <b>open tabs</b> influence suggestions — this maps to the "Surround" principle.</li>
+          <li>Descriptive <b>filenames/file types</b> shape suggestions (e.g., a <code>*.test.js</code> file nudges Copilot toward test code).</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A developer wants Copilot to follow the conventions in a helper module. What's the simplest way to feed that context?</summary>
+        <div class="answer"><b>Answer:</b> Keep the helper file open in an adjacent tab. <em>Why:</em> Copilot uses parallel open tabs as context when generating suggestions.</div></details>
+        <details class="q"><summary><b>Q2.</b> Which technique lets Copilot factor in the code that comes <em>after</em> the cursor, not just before it?</summary>
+        <div class="answer"><b>Answer:</b> Fill-in-the-Middle (FIM). <em>Why:</em> FIM considers preceding and following code to expand context.</div></details>
+        <details class="q"><summary><b>Q3.</b> Name three context sources Copilot gathers besides the current line.</summary>
+        <div class="answer"><b>Answer:</b> Any three of: code before/after the cursor, filename/type, adjacent open tabs, project structure/file paths, languages/frameworks. <em>Why:</em> these are the context details Copilot collects during input processing.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow">GitHub Copilot user prompt process flow</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices">Prompt engineering foundations and best practices</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 4.1.3 ===================== -->
+    <section class="objective" id="obj-4-1-3" data-skill="shot-prompting">
+      <h3 id="o-4-1-3">4.1.3 Use zero-shot and few-shot prompting</h3>
+
+      <div class="concept">
+        <p>How many <b>examples</b> you give Copilot changes the kind of help you get. With none, Copilot leans entirely on its training; with a few, it learns your specific pattern. Learn describes a spectrum: <b>zero-shot</b>, <b>one-shot</b>, and <b>few-shot</b>.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>Zero-shot:</b> no examples — Copilot relies solely on its foundational training. Best for common patterns / standard functionality (e.g., a Celsius↔Fahrenheit converter from just a comment).</li>
+          <li><b>One-shot:</b> a <b>single</b> example — helps Copilot follow your specific patterns and conventions for consistent implementations.</li>
+          <li><b>Few-shot:</b> <b>several</b> examples — balances zero-shot unpredictability against the precision of fine-tuning; good for sophisticated code covering multiple scenarios and edge cases.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="zero-few-shot"><figcaption>From zero examples (rely on training) to one and several examples (steer Copilot toward your patterns and edge cases).</figcaption></figure>
+
+      <div class="code"><pre><code class="lang-javascript">// Few-shot: show the pattern with examples, then ask for the next case.
+// greet(6)  => "Good morning"
+// greet(14) => "Good afternoon"
+// greet(20) => "Good evening"
+// Now implement greet(hour) covering all times of day:
+function greet(hour) {
+  // Copilot follows the demonstrated pattern
+}
+</code></pre></div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><b>Zero-shot</b> = zero examples; <b>few-shot</b> = several examples. One-shot sits between (exactly one).</li>
+          <li>Reach for <b>few-shot</b> when output must follow a precise pattern or handle edge cases; use <b>zero-shot</b> for boilerplate/standard tasks.</li>
+          <li>Few-shot is described as a middle ground between zero-shot unpredictability and full fine-tuning — it does <em>not</em> retrain the model.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You need Copilot to output objects that exactly match an existing schema used across your repo. Which approach fits best?</summary>
+        <div class="answer"><b>Answer:</b> Few-shot (provide several example objects). <em>Why:</em> multiple examples steer Copilot toward a precise, consistent pattern and edge cases.</div></details>
+        <details class="q"><summary><b>Q2.</b> Generating a standard "reverse a string" utility from a one-line comment with no examples is what kind of prompting?</summary>
+        <div class="answer"><b>Answer:</b> Zero-shot. <em>Why:</em> no examples are supplied; Copilot relies on its foundational training for a common pattern.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices">Prompt engineering foundations and best practices</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 4.1.4 ===================== -->
+    <section class="objective" id="obj-4-1-4" data-skill="prompt-best-practices">
+      <h3 id="o-4-1-4">4.1.4 Apply best practices for prompt crafting</h3>
+
+      <div class="concept">
+        <p>Beyond the core principles, Learn calls out a handful of <b>advanced best practices</b> that make each interaction with Copilot more productive. They build directly on the 4 Ss and turn prompting into an efficient dialogue rather than a one-shot guess.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>Provide enough clarity</b> — be explicit (builds on Single + Specific).</li>
+          <li><b>Provide enough context with details</b> — add descriptive comments, keep related files open (the "Surround" principle); more context = more fitting suggestions.</li>
+          <li><b>Provide examples for learning</b> — examples clarify expectations and help Copilot learn patterns quickly, cutting revision cycles; great for boilerplate, test templates, and repetitive code.</li>
+          <li><b>Assert and iterate</b> — if the first output isn't right, don't restart; erase it, enrich the comment with detail/examples, and prompt again so each turn builds on Copilot's understanding.</li>
+          <li><b>Role prompting</b> — tell Copilot to "<em>Act as a …</em>" (security expert, performance-optimization expert, testing specialist) to get targeted, domain-aware code on the first try.</li>
+          <li>Keep good, representative <b>sample code open</b> so Copilot can mirror your conventions.</li>
+        </ul>
+      </div>
+
+      <div class="callout tip"><b>Tip:</b> Treat prompting as a conversation. Iterating on an enriched comment usually reaches production-ready code faster than hand-editing a mediocre first suggestion.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>"Assert and iterate" means <em>refine the prompt</em>, not manually rewrite the output from scratch.</li>
+          <li><b>Role prompting</b> ("Act as a security expert…") is an explicit Learn technique for specialized tasks.</li>
+          <li>Breaking a large task into smaller, focused prompts pairs with the "Single" principle.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Copilot's first suggestion is close but misses an edge case. What's the recommended next step?</summary>
+        <div class="answer"><b>Answer:</b> Assert and iterate — remove the suggestion, add the missing detail/example to your comment, and prompt again. <em>Why:</em> iterating on an enriched prompt is faster than manual refinement and builds on prior context.</div></details>
+        <details class="q"><summary><b>Q2.</b> A team wants security-hardened code from the first attempt. Which best practice helps most?</summary>
+        <div class="answer"><b>Answer:</b> Role prompting — "Act as a cybersecurity expert…". <em>Why:</em> assigning an expert role produces more targeted, domain-aware suggestions.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices">Prompt engineering foundations and best practices</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/">Introduction to prompt engineering with GitHub Copilot</a></li>
+        </ul>
+      </div>
+    </section>
+  </section>
+
+  <section class="skillgroup" id="sg-4-2">
+    <h2 id="g-4-2">4.2 Engineer prompts for performance</h2>
+
+    <!-- ===================== 4.2.1 ===================== -->
+    <section class="objective" id="obj-4-2-1" data-skill="prompt-principles">
+      <h3 id="o-4-2-1">4.2.1 Explain prompt engineering principles</h3>
+
+      <div class="concept">
+        <p>Learn distills prompt engineering into four memorable principles — the <b>4 Ss</b>. They are the foundation the advanced best practices are built on, so knowing each one and what it targets is high-yield.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts (the 4 Ss)</h4>
+        <ul>
+          <li><b>Single</b> — focus each prompt on a single, well-defined task or question; clarity yields accurate responses.</li>
+          <li><b>Specific</b> — make instructions explicit and detailed; specificity leads to more precise code.</li>
+          <li><b>Short</b> — keep prompts concise; balance detail without overloading Copilot.</li>
+          <li><b>Surround</b> — use descriptive filenames and keep related files open to supply rich context.</li>
+        </ul>
+      </div>
+
+      <div class="callout key"><b>Key:</b> "Specific" and "Short" pull in opposite directions on purpose — be detailed enough to be unambiguous, but trim anything that doesn't help.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Memorize the mapping: <b>Single</b>→one task, <b>Specific</b>→explicit detail, <b>Short</b>→concise, <b>Surround</b>→filenames + open files.</li>
+          <li>"Surround" is the principle behind open-tabs/context behavior — a common answer to "why do open files matter?"</li>
+          <li>The advanced best practices (clarity, context, examples, iterate) are extensions of the 4 Ss, not separate principles.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Which of the 4 Ss explains why keeping related files open improves suggestions?</summary>
+        <div class="answer"><b>Answer:</b> Surround. <em>Why:</em> Surround = descriptive filenames and keeping related files open for richer context.</div></details>
+        <details class="q"><summary><b>Q2.</b> A prompt asks Copilot to "build the whole billing system" in one comment. Which principle is violated?</summary>
+        <div class="answer"><b>Answer:</b> Single (and arguably Short). <em>Why:</em> a prompt should focus on one well-defined task, not a broad multi-part goal.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices">Prompt engineering foundations and best practices</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 4.2.2 ===================== -->
+    <section class="objective" id="obj-4-2-2" data-skill="prompt-process-flow">
+      <h3 id="o-4-2-2">4.2.2 Describe prompt process flow and chat history usage</h3>
+
+      <div class="concept">
+        <p>A prompt travels through an <b>inbound</b> path (your request + context → filters → model) and an <b>outbound</b> path (model response → validation → delivery). Understanding the ordered stages explains where safety filtering happens and why some suggestions are truncated or withheld.</p>
+        <p>In Chat, each turn builds on prior turns, so the <b>conversation history</b> becomes part of the context — powerful, but it grows and gets more expensive, so managing it matters for performance.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts — process flow</h4>
+        <ul>
+          <li><b>Inbound 1 — Transmission &amp; context:</b> prompt sent over <b>HTTPS</b>; Copilot gathers context and applies <b>FIM</b>.</li>
+          <li><b>Inbound 2 — Proxy filter:</b> a <b>proxy in a GitHub-owned Microsoft Azure tenant</b> blocks prompt-hacking / manipulation.</li>
+          <li><b>Inbound 3 — Toxicity filtering:</b> removes hate speech/inappropriate content and personal data before intent extraction.</li>
+          <li><b>Inbound 4 — LLM generation:</b> the filtered prompt goes to the model, which produces suggestions.</li>
+          <li><b>Outbound 5 — Post-processing/validation:</b> checks for code quality (e.g., XSS, SQL injection) and an <b>optional matching-public-code filter</b> (blocks suggestions over ~150 characters that closely match public code); failing content is truncated or discarded.</li>
+          <li><b>Outbound 6 — Delivery &amp; feedback loop:</b> only responses passing all filters are delivered; acceptances/edits/rejections feed improvement.</li>
+          <li><b>Outbound 7 — Repeat</b> for subsequent prompts.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="prompt-process-flow"><figcaption>Inbound: HTTPS transmission + context/FIM → proxy filter → toxicity filter → LLM. Outbound: post-processing/validation (incl. optional public-code match) → delivery + feedback → repeat.</figcaption></figure>
+
+      <div class="facts"><h4>Key facts — chat history</h4>
+        <ul>
+          <li>Each Chat turn builds on previous context (e.g., create function → add error handling → add tests → add docs → optimize); full history keeps growing.</li>
+          <li><b>Cost:</b> long prompts carrying full history can consume <b>2–3 PRUs per turn</b>; summarizing or resetting can keep it closer to <b>1 PRU per request</b>.</li>
+          <li>Manage it: <b>summarize context</b> when conversations get long; <b>reset / start a new conversation</b> with focused context for a new feature; use <b>concise references</b> to prior work instead of repeating full implementations.</li>
+        </ul>
+      </div>
+
+      <div class="callout warn"><b>Gotcha:</b> Carrying a huge conversation forward doesn't just cost more — irrelevant history can dilute context. Start a fresh conversation when you switch tasks.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Know the order: <b>transmission → proxy → toxicity → LLM</b> (inbound), then <b>post-processing → delivery → repeat</b> (outbound).</li>
+          <li>The <b>matching-public-code</b> check is <em>optional</em> and admin-enabled, applies to responses over ~150 characters, and happens on the <b>outbound</b> path.</li>
+          <li>Managing chat history (summarize/reset) is a <b>performance</b> lever — fewer PRUs per turn and cleaner context.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Put these inbound stages in order: LLM generation, proxy filter, secure transmission &amp; context, toxicity filtering.</summary>
+        <div class="answer"><b>Answer:</b> Secure transmission &amp; context → proxy filter → toxicity filtering → LLM generation. <em>Why:</em> context is gathered first, then filtered through proxy and toxicity checks before reaching the model.</div></details>
+        <details class="q"><summary><b>Q2.</b> A Chat session has run for 20 turns and feels sluggish and pricey. What's the recommended fix?</summary>
+        <div class="answer"><b>Answer:</b> Summarize the relevant context or start a new conversation with focused context. <em>Why:</em> this reduces PRU cost per turn and keeps context clean.</div></details>
+        <details class="q"><summary><b>Q3.</b> On which path (inbound or outbound) does the optional public-code matching filter run?</summary>
+        <div class="answer"><b>Answer:</b> Outbound, during post-processing/response validation. <em>Why:</em> it inspects the model's generated response before delivery.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow">GitHub Copilot user prompt process flow</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices">Prompt engineering foundations and best practices</a></li>
+        </ul>
+      </div>
+    </section>
+  </section>
+</section>

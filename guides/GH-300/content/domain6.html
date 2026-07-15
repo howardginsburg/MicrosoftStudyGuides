@@ -1,0 +1,215 @@
+<section class="domain" id="domain6" data-domain="6">
+  <h1 id="d6">Domain 6 — Configure privacy, content exclusions, and safeguards <span class="weight">10–15%</span></h1>
+  <p class="domain-intro">This domain covers the administrative controls that keep sensitive code private and steer Copilot's output: <b>content exclusions</b> (repo- and org-level), <b>editor settings</b>, who <b>owns and is responsible for</b> accepted suggestions, the <b>suggestions-matching-public-code</b> duplication filter, and how to <b>troubleshoot</b> missing suggestions or exclusions that seem not to apply. Expect "where do I configure this," "which plan has it," and "why isn't it working" questions.</p>
+
+  <section class="skillgroup" id="sg-6-1">
+    <h2 id="g-6-1">6.1 Manage privacy settings and exclusions</h2>
+
+    <!-- ===================== 6.1.1 ===================== -->
+    <section class="objective" id="obj-6-1-1" data-skill="exclusions-settings">
+      <h3 id="o-6-1-1">6.1.1 Configure content exclusions and editor settings</h3>
+
+      <div class="concept">
+        <p><b>Content exclusions</b> let repository administrators and organization owners stop specific files, directories, or repositories from being used to inform Copilot's code-completion suggestions. The goal is to protect sensitive material (secrets, proprietary logic) from being surfaced or used as context.</p>
+        <p>Exclusions are configured in <b>organization or repository settings</b> — not toggled per-user inside the editor. They are a <b>Business/Enterprise</b> capability and apply to members licensed under those plans.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>Repository level:</b> repo main page → <b>Settings</b> → (Code &amp; automation) <b>Copilot</b> → <b>Repositories and paths to exclude</b> → list the files/directories.</li>
+          <li><b>Organization level:</b> profile photo → <b>Your organizations</b> → org <b>Settings</b> → <b>Copilot &gt; Content exclusion</b> → enter files or repositories to exclude.</li>
+          <li>You can specify content exclusions <b>only</b> in org or repository settings; there is no editor-side field to add them.</li>
+          <li>Exclusions set on an org/repo within an enterprise apply to <b>all members licensed as GitHub Copilot Business or Enterprise</b>.</li>
+          <li><b>What exclusion does:</b> code completion is <b>disabled in the affected files</b>; those files <b>won't inform completions in other files</b>; and they <b>won't inform Copilot Chat responses</b>.</li>
+          <li>Trade-off: excluding files can yield more secure/compliant output but <b>reduces available context</b>, which can lower suggestion accuracy (e.g., excluding a key config file removes context dependent code needs).</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="content-exclusion-scope"><figcaption>Content-exclusion scope: an org/repo rule marks files/paths as excluded, so Copilot skips them for completions in that file, as context for other files, and in Chat — but only for members of the configuring org.</figcaption></figure>
+
+      <div class="code"><pre><code class="lang-yaml"># Illustrative path patterns (configured in org/repo Copilot settings).
+# "*" applies to all repos; a "owner/repo" key scopes rules to one repo.
+"*":
+  - "/**/secrets/**"        # any secrets directory, anywhere
+  - "/**/*.env"             # environment files
+"my-org/payments-service":
+  - "/config/keys/*.pem"    # certs/keys in this repo
+  - "/src/legacy/**"        # keep a sensitive area out of context</code></pre></div>
+
+      <div class="callout warn"><b>Gotcha:</b> Content exclusions are <b>Business/Enterprise only</b> — Free, Pro, and Pro+ have no content-exclusion feature. A distractor is "any user can exclude files from the editor."</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Two configuration scopes: <b>repository</b> (Repositories and paths to exclude) and <b>organization</b> (Content exclusion). Both live in <b>Settings → Copilot</b>, not in the IDE.</li>
+          <li>Exclusion has <b>three effects</b>: no completion in the file, file not used as <b>context</b> elsewhere, and file not used in <b>Chat</b>. If asked "what does it stop," name all three.</li>
+          <li><b>Limitations:</b> the <code>@github</code> chat participant in VS Code/Visual Studio is <b>not</b> covered; semantic info (types, hover definitions) can still leak via a non-excluded file; scope is limited to the <b>configuring org's members</b>.</li>
+          <li>Excluding content <b>reduces context</b> — it can make suggestions worse, which is an intentional privacy/quality trade-off.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A team lead on Copilot <b>Pro</b> wants to exclude a <code>/secrets</code> folder from Copilot. Can they, and where?</summary>
+        <div class="answer"><b>Answer:</b> No — content exclusions require Copilot <b>Business or Enterprise</b>; they are configured in organization or repository <b>Settings → Copilot</b>, not on a personal Pro plan. <em>Why:</em> Content exclusions are a Business/Enterprise policy feature set in org/repo settings.</div></details>
+        <details class="q"><summary><b>Q2.</b> After excluding a file, name the three things Copilot stops doing with it.</summary>
+        <div class="answer"><b>Answer:</b> (1) No code completion in that file, (2) it won't inform completions in other files, (3) it won't inform Copilot Chat responses. <em>Why:</em> Exclusion removes the file from completion and from context/Chat.</div></details>
+        <details class="q"><summary><b>Q3.</b> Why might excluding a critical configuration file <em>reduce</em> the quality of Copilot suggestions elsewhere?</summary>
+        <div class="answer"><b>Answer:</b> Excluded files no longer provide context, so dependent code loses the information Copilot would have used, lowering accuracy. <em>Why:</em> Exclusion trades context for privacy/security.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions">Manage content exclusions</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/">Management and customization considerations with GitHub Copilot</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 6.1.2 ===================== -->
+    <section class="objective" id="obj-6-1-2" data-skill="ownership-outputs">
+      <h3 id="o-6-1-2">6.1.2 Describe ownership and limitations of outputs</h3>
+
+      <div class="concept">
+        <p>Copilot is a generative-AI assistant, so its output can be wrong, biased, or resemble existing code. The developer keeps <b>ownership of and responsibility for</b> the code they accept and commit — human oversight, review, and validation remain essential regardless of plan.</p>
+        <p>Organizational plans add <b>contractual protections</b> on top of that responsibility, most notably <b>IP indemnity</b>, but those protections come with conditions rather than removing the need to validate.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li>AI systems can make hard-to-interpret decisions and unintended/harmful outputs (bias, privacy issues); mitigation relies on <b>governance, transparency, and human oversight</b> — you validate before accepting.</li>
+          <li><b>IP indemnity</b> is included with <b>Business</b> and <b>Enterprise</b>. If a Copilot suggestion is challenged as infringing third-party IP, GitHub assumes legal responsibility.</li>
+          <li><b>Condition:</b> for GitHub to assume that responsibility, the <b>Matching public code</b> setting must be set to <b>Block</b>.</li>
+          <li>A <b>Data Protection Agreement (DPA)</b> and the <b>GitHub Copilot Trust Center</b> document data-protection measures and security/privacy/compliance/IP safeguards.</li>
+          <li>Plan tiers: the <b>public code filter</b> exists on Free, Pro/Pro+, Business, Enterprise; <b>IP indemnity, content exclusions, enterprise-grade security, data excluded from training by default, user management, and usage metrics</b> are <b>Business/Enterprise</b>.</li>
+          <li><b>Individual</b> subscribers can choose whether GitHub collects and retains their prompts and suggestions.</li>
+        </ul>
+      </div>
+
+      <div class="callout key"><b>Key:</b> You own and are responsible for the code you accept. Business/Enterprise <b>IP indemnity</b> only applies when <b>Matching public code = Block</b> — indemnity and the public-code filter are linked.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>IP indemnity is <b>not</b> on Free/Pro/Pro+ — it's a <b>Business/Enterprise</b> contractual protection.</li>
+          <li>Remember the dependency: <b>indemnity requires blocking matching public code</b>. If a question says an org wants indemnity, the correct action includes setting the filter to Block.</li>
+          <li>Contractual protection ≠ correctness guarantee — you still must <b>review, test, and validate</b> outputs.</li>
+          <li>Only <b>Individual</b> plans expose the choice to collect/retain prompts; org plans exclude data from training by default.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An enterprise wants GitHub to stand behind Copilot suggestions against third-party IP claims. What must be true?</summary>
+        <div class="answer"><b>Answer:</b> They must be on <b>Business/Enterprise</b> (which include IP indemnity) <b>and</b> have <b>Matching public code set to Block</b>. <em>Why:</em> Indemnity requires the public-code filter to be blocked.</div></details>
+        <details class="q"><summary><b>Q2.</b> Who is responsible for a security bug in code a developer accepted from Copilot?</summary>
+        <div class="answer"><b>Answer:</b> The developer/organization — you own and are accountable for accepted code and must validate it. <em>Why:</em> Copilot is an assistant; human oversight and review remain required.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/3-github-copilot-contractual-protections-disabling-matching-public-code">Contractual protections and disabling matching public code</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/2-explore-github-copilot-plans-associated-management-customization-features">Explore GitHub Copilot plans and management/customization features</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks">Mitigate AI risks</a></li>
+        </ul>
+      </div>
+    </section>
+  </section>
+
+  <section class="skillgroup" id="sg-6-2">
+    <h2 id="g-6-2">6.2 Apply safeguards and troubleshoot</h2>
+
+    <!-- ===================== 6.2.1 ===================== -->
+    <section class="objective" id="obj-6-2-1" data-skill="public-code-filter">
+      <h3 id="o-6-2-1">6.2.1 Enable suggestions matching public code filtering</h3>
+
+      <div class="concept">
+        <p>The <b>suggestions matching public code</b> filter (duplication detection) identifies code suggestions that closely match publicly available code on GitHub and can <b>Allow</b> or <b>Block</b> them. Blocking helps keep a codebase original and reduces the risk of importing nonsecure or noncompliant look-alike code.</p>
+        <p>Where the setting lives and who controls it depends on the plan and whether the seat is personal or organization-provided.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li>Two choices: <b>Allow</b> or <b>Block</b> suggestions matching public code.</li>
+          <li>The duplication filter targets longer matches — roughly <b>150+ characters</b> that closely resemble public code are blocked/truncated.</li>
+          <li><b>Organization (Business/Enterprise):</b> admins can <b>Block</b> for all members. Blocking is <b>required to activate IP indemnity</b>.</li>
+          <li><b>Personal, individually paid (Free/Pro/Pro+):</b> the user fully controls the Allow/Block toggle under <b>Copilot → Features → Privacy</b>.</li>
+          <li><b>Personal, org-provided seat:</b> the toggle may be <b>locked</b> and reflects the organization's policy.</li>
+          <li><b>Org admin path:</b> profile → <b>Your enterprises/Your organizations</b> → <b>Settings</b> → <b>Copilot</b> → <b>Features</b> → <b>Privacy</b> → <b>Suggestions matching public code</b> → <b>Block</b> → <b>Save</b>.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="public-code-filter"><figcaption>Public-code filter: generated candidates are compared against public code; on Block, ~150+ character matches are withheld while original suggestions pass through.</figcaption></figure>
+
+      <div class="callout tip"><b>Tip:</b> The public-code filter is available on <b>all</b> plans (Free, Pro/Pro+, Business, Enterprise) — but only <b>org admins</b> can enforce Block for everyone, which is what unlocks <b>IP indemnity</b>.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Setting location to memorize: <b>Copilot → Features → Privacy → Suggestions matching public code</b>.</li>
+          <li>Personal-paid users control their own toggle; an <b>org-provided</b> seat may have it <b>locked</b> to org policy.</li>
+          <li>The filter targets <b>~150+ character</b> matches — short snippets aren't the target.</li>
+          <li>Block is the value that <b>enables IP indemnity</b> at Business/Enterprise (ties back to 6.1.2).</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A Pro user with a seat provided by their organization can't change the "Suggestions matching public code" toggle. Why?</summary>
+        <div class="answer"><b>Answer:</b> For an org-provided seat the toggle may be <b>locked</b> and reflects the organization's policy. <em>Why:</em> Only individually paid personal users fully control it; org policy governs org-assigned seats.</div></details>
+        <details class="q"><summary><b>Q2.</b> Where does an org admin enable blocking of public-code matches for all members?</summary>
+        <div class="answer"><b>Answer:</b> Org/enterprise <b>Settings → Copilot → Features → Privacy → Suggestions matching public code → Block → Save</b>. <em>Why:</em> That's the organizational path, and Block enables IP indemnity.</div></details>
+        <details class="q"><summary><b>Q3.</b> Roughly what size of matching snippet does the filter act on?</summary>
+        <div class="answer"><b>Answer:</b> About <b>150 characters</b> or more that closely match public code. <em>Why:</em> Duplication detection targets longer look-alikes.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/3-github-copilot-contractual-protections-disabling-matching-public-code">Disabling matching public code (Allow vs Block)</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/2-explore-github-copilot-plans-associated-management-customization-features">Copilot plans and management features</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 6.2.2 ===================== -->
+    <section class="objective" id="obj-6-2-2" data-skill="troubleshoot">
+      <h3 id="o-6-2-2">6.2.2 Resolve issues with suggestions and content exclusions</h3>
+
+      <div class="concept">
+        <p>Two common support scenarios: Copilot shows <b>no suggestions</b>, or a <b>content exclusion doesn't seem to apply</b>. Most causes are environmental (connection, extension version, IDE support, sign-in) or timing/scope-related (propagation delay, org membership). Knowing the checklist and the status-bar signal resolves the majority of cases.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>No suggestions — checklist:</b> verify a stable <b>internet connection</b>; <b>update the Copilot extension</b>; <b>confirm IDE compatibility</b>; and <b>review content exclusions</b> (an excluded file won't show suggestions).</li>
+          <li><b>Exclusions not applying — propagation:</b> changes can take <b>up to 30 minutes</b> to take effect in IDEs that already loaded the settings; <b>reload the content-exclusion settings</b> in the IDE to apply immediately.</li>
+          <li><b>Exclusions not applying — scope:</b> exclusions cover only members of the <b>org where they were configured</b>; make sure affected teammates are in scope.</li>
+          <li><b>Status-bar signal:</b> if an exclusion applies to the current file, the <b>Copilot icon has a diagonal line</b> through it; <b>hover</b> to see whether an org or the parent repository disabled Copilot for that file.</li>
+          <li><b>IDE-specific limits:</b> in some IDEs, exclusions don't apply to certain features such as Copilot <b>Chat</b> (e.g., the <code>@github</code> participant).</li>
+          <li><b>Poor-quality suggestions:</b> add clear context (descriptive comments, meaningful names), use Copilot commands (e.g., <b>Ctrl+Enter</b> in VS Code), and adjust prompt length/detail.</li>
+        </ul>
+      </div>
+
+      <div class="callout tip"><b>Tip:</b> When an exclusion "isn't working," check the <b>status-bar icon</b> (diagonal line = excluded) and remember the <b>up-to-30-minute</b> propagation window — reload settings to apply changes immediately.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Missing-suggestion checklist keywords: <b>connection, extension version, IDE compatibility, content exclusions</b> (and being signed in).</li>
+          <li>The <b>30-minute</b> delay applies to <b>already-loaded</b> IDE sessions; a reload forces immediate application.</li>
+          <li>Scope gotcha: exclusions only protect the <b>configuring org's</b> members — outsiders with file access still get suggestions.</li>
+          <li>The <b>diagonal-line status icon</b> is the fastest way to confirm a file is excluded; hover reveals org vs. parent-repo cause.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An admin added a content exclusion, but a developer with the IDE already open still gets suggestions in the excluded file. What's the likely cause and fix?</summary>
+        <div class="answer"><b>Answer:</b> Propagation delay — changes can take up to 30 minutes in an already-loaded IDE; <b>reload the content-exclusion settings</b> in the IDE to apply immediately. <em>Why:</em> Exclusion changes aren't instant in loaded sessions.</div></details>
+        <details class="q"><summary><b>Q2.</b> Copilot shows no inline suggestions at all. List two first checks.</summary>
+        <div class="answer"><b>Answer:</b> Any two of: internet connection, Copilot extension is up to date, IDE compatibility, content exclusions applying to the file (and being signed in). <em>Why:</em> These are the standard missing-suggestion causes.</div></details>
+        <details class="q"><summary><b>Q3.</b> How can a developer quickly tell a file is under a content exclusion?</summary>
+        <div class="answer"><b>Answer:</b> The Copilot status-bar icon shows a <b>diagonal line</b>; hovering says whether an org or the parent repo disabled Copilot for the file. <em>Why:</em> The status bar surfaces exclusion state per file.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/5-troubleshoot-common-issues-with-github-copilot">Troubleshoot common problems with GitHub Copilot</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions">Manage content exclusions</a></li>
+        </ul>
+      </div>
+    </section>
+  </section>
+</section>

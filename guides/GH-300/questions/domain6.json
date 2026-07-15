@@ -1,0 +1,154 @@
+{
+  "domain": 6,
+  "domain_title": "Configure privacy, content exclusions, and safeguards",
+  "questions": [
+    {
+      "id": "q6-001",
+      "objective": "6.1.1",
+      "type": "single",
+      "stem": "A repository administrator at a company on GitHub Copilot Business wants to stop a folder of proprietary configuration files from ever informing Copilot code-completion suggestions. Where must this be configured?",
+      "options": [
+        {"id": "a", "text": "Each developer enables a per-file exclusion from the Copilot menu in their IDE."},
+        {"id": "b", "text": "In the repository's Settings under Copilot, in 'Repositories and paths to exclude'."},
+        {"id": "c", "text": "In a .copilotignore file committed to the root of the repository."},
+        {"id": "d", "text": "In the personal account settings of the repository owner under Copilot > Features."}
+      ],
+      "answer": "b",
+      "explanation": "Content exclusions are configured only in organization or repository settings. At the repository level the path is Settings > Copilot > 'Repositories and paths to exclude'. There is no editor-side field for exclusions, no .copilotignore mechanism, and personal-account settings do not define content exclusions.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions"]
+    },
+    {
+      "id": "q6-002",
+      "objective": "6.1.1",
+      "type": "multi",
+      "stem": "After an administrator excludes a file with a content exclusion, what does Copilot stop doing with that file? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "It stops offering code completion inside the excluded file."},
+        {"id": "b", "text": "It stops using the file's content to inform code-completion suggestions in other files."},
+        {"id": "c", "text": "It stops using the file's content to inform Copilot Chat responses."},
+        {"id": "d", "text": "It deletes the excluded file from the repository."}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Excluding content has three effects: code completion is disabled in the affected file, that file no longer informs completions in other files, and it no longer informs Copilot Chat responses. Exclusion only limits how Copilot uses the file as context; it never deletes or modifies the file.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions"]
+    },
+    {
+      "id": "q6-003",
+      "objective": "6.1.1",
+      "type": "single",
+      "stem": "A team lead on a Copilot Pro plan asks to exclude a /secrets directory from Copilot. What should you tell them?",
+      "options": [
+        {"id": "a", "text": "They can add the exclusion in their editor settings on any plan."},
+        {"id": "b", "text": "Content exclusions require Copilot Business or Enterprise and are set in org/repository settings, so Pro cannot do this."},
+        {"id": "c", "text": "They should switch the public-code filter to Block, which excludes the folder."},
+        {"id": "d", "text": "They can exclude it by adding the folder to their personal Copilot Privacy settings."}
+      ],
+      "answer": "b",
+      "explanation": "Content exclusions are a Business/Enterprise capability configured in organization or repository settings; Free, Pro, and Pro+ have no content-exclusion feature. The public-code filter limits output matching public code and is unrelated to excluding a folder from context.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions"]
+    },
+    {
+      "id": "q6-004",
+      "objective": "6.1.2",
+      "type": "single",
+      "stem": "An enterprise on GitHub Copilot Enterprise wants GitHub to assume legal responsibility if a Copilot suggestion is challenged as infringing third-party IP. Besides being on Business/Enterprise, what must be true?",
+      "options": [
+        {"id": "a", "text": "The 'Suggestions matching public code' setting must be set to Block."},
+        {"id": "b", "text": "Every developer must sign a Data Protection Agreement individually."},
+        {"id": "c", "text": "Content exclusions must be configured for all repositories."},
+        {"id": "d", "text": "The 'Suggestions matching public code' setting must be set to Allow."}
+      ],
+      "answer": "a",
+      "explanation": "IP indemnity is included with Business and Enterprise, but GitHub only assumes that responsibility when the Matching public code setting is set to Block. Allow does not activate indemnity, and neither the DPA signing nor content exclusions are the condition for indemnity.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/3-github-copilot-contractual-protections-disabling-matching-public-code"]
+    },
+    {
+      "id": "q6-005",
+      "objective": "6.1.2",
+      "type": "tf",
+      "stem": "True or False: Because Copilot Business includes IP indemnity, developers no longer need to review, test, or validate the suggestions they accept.",
+      "options": [
+        {"id": "a", "text": "True"},
+        {"id": "b", "text": "False"}
+      ],
+      "answer": "b",
+      "explanation": "False. Copilot is a generative-AI assistant whose output can be wrong or biased; the developer owns and is responsible for accepted code. Contractual protections like IP indemnity add legal coverage but do not remove the need for human oversight, review, and validation.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"]
+    },
+    {
+      "id": "q6-006",
+      "objective": "6.2.1",
+      "type": "single",
+      "stem": "Roughly what kind of suggestion does the 'suggestions matching public code' duplication filter act on when set to Block?",
+      "options": [
+        {"id": "a", "text": "Any suggestion containing a URL to a public repository."},
+        {"id": "b", "text": "Suggestions of roughly 150 or more characters that closely match publicly available code on GitHub."},
+        {"id": "c", "text": "Every suggestion, regardless of length, that references an open-source license."},
+        {"id": "d", "text": "Short one-line snippets under 20 characters that appear in many repositories."}
+      ],
+      "answer": "b",
+      "explanation": "The duplication-detection filter targets longer look-alikes — suggestions of about 150+ characters that closely match public code — and blocks or truncates them. Short snippets are not the target, and the filter is about code matches, not URLs or license references.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/3-github-copilot-contractual-protections-disabling-matching-public-code"]
+    },
+    {
+      "id": "q6-007",
+      "objective": "6.2.1",
+      "type": "single",
+      "stem": "A developer on a Pro plan whose seat is provided by their organization finds the 'Suggestions matching public code' toggle greyed out and cannot change it. Why?",
+      "options": [
+        {"id": "a", "text": "The filter is only available on Business and Enterprise plans."},
+        {"id": "b", "text": "For an organization-provided seat the toggle may be locked and reflects the organization's policy."},
+        {"id": "c", "text": "The toggle is disabled until the developer enables content exclusions."},
+        {"id": "d", "text": "The setting was moved and no longer exists for personal accounts."}
+      ],
+      "answer": "b",
+      "explanation": "Individually paid personal users fully control the Allow/Block toggle under Copilot > Features > Privacy, but for an organization-provided seat the toggle may be locked to the org's policy. The public-code filter is available on all plans, so plan availability is not the cause.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/3-github-copilot-contractual-protections-disabling-matching-public-code"]
+    },
+    {
+      "id": "q6-008",
+      "objective": "6.2.1",
+      "type": "multi",
+      "stem": "Which statements correctly distinguish content exclusions from the suggestions-matching-public-code filter? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Content exclusions limit which files Copilot uses as context; the public-code filter limits output that matches public code."},
+        {"id": "b", "text": "Content exclusions are Business/Enterprise only, while the public-code filter is available on all plans."},
+        {"id": "c", "text": "Both features are configured per file inside the editor by individual developers."},
+        {"id": "d", "text": "Setting the public-code filter to Block is what activates IP indemnity at Business/Enterprise."}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Content exclusions restrict the context Copilot draws from (Business/Enterprise only, set in org/repo settings), whereas the public-code filter restricts output that matches public code and is available on all plans, with Block enabling IP indemnity. Neither is configured per file inside the editor, so option C is false.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/2-explore-github-copilot-plans-associated-management-customization-features"]
+    },
+    {
+      "id": "q6-009",
+      "objective": "6.2.2",
+      "type": "single",
+      "stem": "An admin adds a content exclusion, but a developer who already had the IDE open still receives suggestions in the excluded file. What is the most likely cause and fix?",
+      "options": [
+        {"id": "a", "text": "The exclusion failed to save; re-enter it in personal Copilot settings."},
+        {"id": "b", "text": "Propagation delay — changes can take up to 30 minutes in an already-loaded IDE; reload the content-exclusion settings to apply immediately."},
+        {"id": "c", "text": "The developer must set the public-code filter to Block for exclusions to work."},
+        {"id": "d", "text": "Content exclusions never apply to files that are already open and require closing the repository."}
+      ],
+      "answer": "b",
+      "explanation": "Exclusion changes can take up to 30 minutes to take effect in an IDE that already loaded the settings; reloading the content-exclusion settings applies them immediately. The public-code filter is unrelated, and exclusions are not defined in personal settings.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/5-troubleshoot-common-issues-with-github-copilot"]
+    },
+    {
+      "id": "q6-010",
+      "objective": "6.2.2",
+      "type": "single",
+      "stem": "A developer wants to quickly confirm whether the file they are editing is currently under a content exclusion. What is the fastest signal to check?",
+      "options": [
+        {"id": "a", "text": "Run a full repository scan from the GitHub web UI."},
+        {"id": "b", "text": "The Copilot status-bar icon shows a diagonal line when an exclusion applies; hovering reveals whether an org or the parent repository disabled Copilot for that file."},
+        {"id": "c", "text": "Open the file's Git blame to see the exclusion author."},
+        {"id": "d", "text": "Check the developer's internet connection status."}
+      ],
+      "answer": "b",
+      "explanation": "When an exclusion applies to the current file, the Copilot status-bar icon has a diagonal line through it, and hovering shows whether an org or the parent repository disabled Copilot for that file. Git blame, a repo scan, and connection status do not indicate per-file exclusion state.",
+      "refs": ["https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/5-troubleshoot-common-issues-with-github-copilot"]
+    }
+  ]
+}
