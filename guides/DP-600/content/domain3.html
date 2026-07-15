@@ -1,0 +1,676 @@
+<section class="domain" id="domain3" data-domain="3">
+  <h1 id="d3">Domain 3 — Implement and manage semantic models <span class="weight">25–30%</span></h1>
+  <p class="domain-intro">This domain covers designing and building semantic models (storage modes, star schema, relationships, DAX, calculation groups, large model format, composite models) and optimizing enterprise-scale models (visual/query performance, DAX tuning, Direct Lake, incremental refresh). It is the most technically nuanced domain — pay close attention to Direct Lake framing/fallback and DAX evaluation context.</p>
+
+  <section class="skillgroup" id="sg-3-1">
+    <h2 id="g-3-1">3.1 Design and build semantic models</h2>
+
+    <!-- ===================== 3.1.1 ===================== -->
+    <section class="objective" id="obj-3-1-1" data-skill="Choose a storage mode">
+      <h3 id="o-3-1-1">3.1.1 Choose a storage mode</h3>
+
+      <div class="concept">
+        <p>The storage mode of a table determines whether its data is cached in memory, queried live from the source, or read on demand from OneLake. The right choice balances query speed, data freshness, model size, and licensing.</p>
+        <p>A single model can mix modes (a composite model), and Fabric adds Direct Lake, which aims to combine Import-class speed with near-real-time freshness.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>Import</b> — data is loaded into the in-memory VertiPaq columnar store (typically ~10× compression). Supports the full DAX surface, calculated tables/columns, Q&amp;A. Requires refresh. Desktop upload limit is <b>10 GB</b>; can grow past that in the service only when Large semantic model storage format is on.</li>
+          <li><b>DirectQuery</b> — no data cached (metadata only); every visual sends native SQL/KQL to the source. No calculated tables; DAX limited to translatable functions. Real-time freshness. Refresh caps: 8×/day shared, 48×/day Premium.</li>
+          <li><b>Direct Lake</b> — Fabric-only. VertiPaq processes queries (Import-comparable speed) but reads columns directly from Delta/Parquet in OneLake on demand (<em>transcoding</em>). Refresh = <b>framing</b> (metadata-only, seconds). Requires a Fabric capacity license.</li>
+          <li><b>Dual</b> — a table is simultaneously Import and DirectQuery; the engine picks the cheaper path per query. Primary use: dimension tables paired with DirectQuery fact tables for efficient native joins.</li>
+          <li><b>Composite</b> — one model mixing storage modes (or DirectQuery from multiple sources).</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="storage-modes"><figcaption>Storage modes contrasted: Import caches in VertiPaq, DirectQuery queries the source live, Direct Lake reads Delta columns from OneLake on demand.</figcaption></figure>
+
+      <div class="callout key"><b>Key:</b> Direct Lake refresh is <em>framing</em> — a metadata-only operation that completes in seconds, not a data reload.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Only Direct Lake <em>requires</em> a Fabric capacity; Import and DirectQuery do not.</li>
+          <li>Need fastest queries + can tolerate scheduled refresh → Import. Need real-time from a relational source without Fabric → DirectQuery. On Fabric with Delta tables and want both speed and freshness → Direct Lake.</li>
+          <li>Dual is the recommended mode for dimensions in a DirectQuery composite model — it lets Power BI fold a single join to the source.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A model must show sub-second visuals over a 40 GB Fabric lakehouse Delta table with data that changes hourly, with minimal refresh cost. Which storage mode?</summary>
+        <div class="answer"><b>Answer:</b> Direct Lake. <em>Why:</em> VertiPaq-speed queries with metadata-only framing keeps the model current in seconds without an expensive Import reload, and it reads directly from the lakehouse Delta files.</div></details>
+        <details class="q"><summary><b>Q2.</b> In a DirectQuery composite model, which storage mode should the dimension tables use to minimize the number of source queries?</summary>
+        <div class="answer"><b>Answer:</b> Dual. <em>Why:</em> Dual dimensions can join the DirectQuery facts in a single native query while still serving cached results when queried alone.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand">Semantic model modes in the Power BI service</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview">Direct Lake overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-composite-models">Use composite models in Power BI Desktop</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.1.2 ===================== -->
+    <section class="objective" id="obj-3-1-2" data-skill="Implement a star schema for a semantic model">
+      <h3 id="o-3-1-2">3.1.2 Implement a star schema for a semantic model</h3>
+
+      <div class="concept">
+        <p>A star schema separates <b>dimension</b> tables (business entities used to filter and group) from <b>fact</b> tables (numeric observations to summarize). It is the recommended modeling pattern in Power BI because it produces simple relationships, smaller models, and faster DAX.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>Dimension tables</b> hold a unique key (surrogate key) plus descriptive attributes; they are the "one" side of one-to-many relationships and are optimized for filtering/grouping.</li>
+          <li><b>Fact tables</b> hold foreign keys + numeric measures; they are the "many" side and are optimized for summarization. Load facts at a single, consistent <b>grain</b>.</li>
+          <li><b>Surrogate keys</b>: add numeric keys to dimensions (Power Query → Add Index Column) and merge back to the fact.</li>
+          <li>Prefer <b>explicit measures</b> (calculator icon) over implicit auto-aggregations (∑ icon).</li>
+          <li>Relationships rely on a <b>single unique column</b> on the one side.</li>
+          <li>Patterns to know: <em>snowflake</em> (normalized sub-tables — usually denormalize into one dimension), <em>role-playing</em> (one date table reused via inactive relationships), <em>factless fact / bridge</em> (keys only, resolves many-to-many), <em>degenerate dimension</em> (a key attribute like invoice number stored in the fact).</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="star-schema"><figcaption>A central fact table surrounded by dimension tables, each joined one-to-many on a surrogate key.</figcaption></figure>
+
+      <div class="callout tip"><b>Tip:</b> Denormalize snowflaked dimensions into a single flat dimension table for better compression and simpler DAX.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Dimensions filter; facts summarize — don't mix both purposes in one table.</li>
+          <li>Role-playing dates (OrderDate/ShipDate/DueDate) reuse one date table via inactive relationships activated with <code>USERELATIONSHIP()</code>.</li>
+          <li>Implicit measures are discouraged in enterprise models and are blocked once a calculation group exists.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A Product table is split into Product → Subcategory → Category. What should you do for a performant Power BI model?</summary>
+        <div class="answer"><b>Answer:</b> Denormalize the three tables into a single Product dimension. <em>Why:</em> A flat (star) dimension avoids snowflake joins, compresses better, and simplifies filtering.</div></details>
+        <details class="q"><summary><b>Q2.</b> Sales has OrderDate, ShipDate, and DueDate all referencing one Date table. How do you support all three without duplicating the Date table?</summary>
+        <div class="answer"><b>Answer:</b> Create one active and two inactive relationships (role-playing), then use <code>USERELATIONSHIP()</code> in measures to activate the needed one. <em>Why:</em> A model allows only one active relationship between two tables.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/guidance/star-schema">Understand star schema and its importance for Power BI</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-relationships-understand">Model relationships in Power BI Desktop</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.1.3 ===================== -->
+    <section class="objective" id="obj-3-1-3" data-skill="Implement relationships, bridge tables and many-to-many">
+      <h3 id="o-3-1-3">3.1.3 Implement relationships, such as bridge tables and many-to-many relationships</h3>
+
+      <div class="concept">
+        <p>Relationships propagate filters between tables. Cardinality and cross-filter direction control how filters flow. Many-to-many needs between two dimensions are best resolved with a bridge (factless fact) table rather than a native many-to-many relationship.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>Cardinality / cross-filter</b>: one-to-many → Single or Both; one-to-one → Both only; many-to-many → Single (either direction) or Both.</li>
+          <li>Filters always propagate automatically from the "one" side.</li>
+          <li><b>Bi-directional (Both)</b> filtering flows both ways — use sparingly; it can hurt performance and create ambiguity.</li>
+          <li><b>Bridge-table pattern</b>: create two entity tables + a bridge with one row per association, then two one-to-many relationships into the bridge; set <b>one</b> of them bi-directional so filters reach the fact.</li>
+          <li>Performance order (fast → slow): one-to-many intra-source &gt; many-to-many via bridge + bi-di &gt; native many-to-many cardinality &gt; cross-source relationships.</li>
+          <li><b>Assume referential integrity</b> (DirectQuery): switches LEFT OUTER to INNER JOIN for speed — only safe when all FKs exist in the PK table.</li>
+          <li><b>Direct Lake</b>: one-side columns must be unique or queries fail.</li>
+        </ul>
+      </div>
+
+      <div class="code"><pre><code class="lang-dax">-- USERELATIONSHIP: activate an inactive relationship inside CALCULATE
+Sales by Ship Date =
+CALCULATE (
+    SUM ( Sales[SalesAmount] ),
+    USERELATIONSHIP ( Sales[ShipDate], 'Date'[Date] )
+)
+
+-- CROSSFILTER: change cross-filter direction for this evaluation only
+Distinct Countries Sold =
+CALCULATE (
+    DISTINCTCOUNT ( Customer[CountryRegion] ),
+    CROSSFILTER ( Customer[CustomerCode], Sales[CustomerCode], BOTH )
+)</code></pre></div>
+
+      <div class="callout warn"><b>Gotcha:</b> Bi-directional filtering can introduce ambiguous filter paths in models with multiple relationships. Prefer measure-level <code>CROSSFILTER</code>/<code>USERELATIONSHIP</code> over global Both where possible.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>To let a dimension filter through a bridge to the fact, exactly one bridge relationship must be bi-directional.</li>
+          <li><code>USERELATIONSHIP</code> only works inside <code>CALCULATE</code> and cannot be used where the base relationship is already active in the same expression.</li>
+          <li>Native many-to-many cardinality is available but slower than a well-designed bridge.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Accounts and Customers have a many-to-many association and each filters a Transactions fact. What is the recommended model?</summary>
+        <div class="answer"><b>Answer:</b> Add an AccountCustomer bridge (factless fact) with two one-to-many relationships, and set one to bi-directional. <em>Why:</em> A bridge resolves the M:M cleanly and outperforms native many-to-many cardinality.</div></details>
+        <details class="q"><summary><b>Q2.</b> A measure must count distinct customer countries filtering from Sales even though the relationship is single-direction. Which function?</summary>
+        <div class="answer"><b>Answer:</b> <code>CROSSFILTER(..., BOTH)</code> inside <code>CALCULATE</code>. <em>Why:</em> It temporarily enables bidirectional filtering for that expression without making the model relationship globally bi-directional.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/guidance/relationships-many-to-many">Many-to-many relationships guidance</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/guidance/relationships-bidirectional-filtering">Bi-directional relationship guidance</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/dax/userelationship-function-dax">USERELATIONSHIP (DAX)</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/dax/crossfilter-function-dax">CROSSFILTER (DAX)</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.1.4 ===================== -->
+    <section class="objective" id="obj-3-1-4" data-skill="DAX variables and functions">
+      <h3 id="o-3-1-4">3.1.4 Write calculations that use DAX variables and functions</h3>
+
+      <div class="concept">
+        <p>Robust DAX combines variables (VAR/RETURN), iterators (SUMX), context transition and filtering (CALCULATE/FILTER/ALL/ALLEXCEPT), time-intelligence and windowing (DATESYTD/WINDOW/OFFSET), and information functions (USERPRINCIPALNAME/HASONEVALUE/SELECTEDVALUE). Understanding filter context is the key to correctness.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>VAR/RETURN</b>: a variable is evaluated once (improving performance and readability) in the <em>outer</em> filter context where it's defined — not where it's used.</li>
+          <li><b>Iterators</b> (<code>SUMX</code>, <code>AVERAGEX</code>): evaluate an expression per row then aggregate — needed for row-level arithmetic across columns.</li>
+          <li><b>CALCULATE</b> modifies filter context; prefer <b>Boolean</b> filter arguments (SE-optimized) over <code>FILTER(table, ...)</code>. Use <code>FILTER</code> only for multi-column/measure/OR logic.</li>
+          <li><code>ALL</code> removes filters; <code>ALLEXCEPT</code> removes all filters except the listed columns (percent-of-total, running totals). <code>KEEPFILTERS</code> preserves existing filters instead of overwriting.</li>
+          <li><b>Time intelligence</b>: <code>DATESYTD('Date'[Date])</code>; add a year-end (e.g. <code>"6-30"</code>) for fiscal years. Not supported in DirectQuery calculated columns / RLS.</li>
+          <li><b>Windowing</b>: <code>WINDOW</code> returns multiple rows (a window); <code>OFFSET</code> returns a single row at a relative position; <code>INDEX</code> returns a single row at an absolute position — usable in measures now, not just visual calculations.</li>
+          <li><b>Information functions</b>: <code>USERPRINCIPALNAME()</code> (RLS/personalization), <code>HASONEVALUE()</code>, <code>SELECTEDVALUE(col[,alt])</code> (preferred over IF+HASONEVALUE+VALUES).</li>
+          <li>Use <code>DIVIDE()</code> for safe division (BLANK on divide-by-zero); use <code>/</code> only with a constant denominator.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="eval-context"><figcaption>Filter and row context flowing through CALCULATE and iterators — the foundation of correct DAX.</figcaption></figure>
+
+      <div class="code"><pre><code class="lang-dax">-- VAR/RETURN + time intelligence (evaluate the prior year once)
+Sales YoY % =
+VAR CurrentSales  = SUM ( Sales[Amount] )
+VAR PriorYear     = CALCULATE ( SUM ( Sales[Amount] ), DATESYTD ( 'Date'[Date] ) )
+RETURN
+    DIVIDE ( CurrentSales - PriorYear, PriorYear )
+
+-- Iterator: per-row arithmetic then aggregate
+Revenue = SUMX ( Sales, Sales[Qty] * Sales[UnitPrice] )
+
+-- CALCULATE + Boolean filter, and ALLEXCEPT for % of category
+Red Sales     = CALCULATE ( [Revenue], KEEPFILTERS ( 'Product'[Color] = "Red" ) )
+Pct of Category =
+    DIVIDE ( [Revenue], CALCULATE ( [Revenue], ALLEXCEPT ( 'Product', 'Product'[Category] ) ) )
+
+-- FILTER + ALL when Boolean won't do (measure comparison)
+High Value Sales =
+CALCULATE ( [Revenue], FILTER ( ALL ( Sales ), Sales[Amount] &gt; 1000 ) )
+
+-- Windowing: 3-period moving total using OFFSET
+Sales vs Prev Period =
+VAR Prev = CALCULATE ( [Revenue], OFFSET ( -1, ORDERBY ( 'Date'[Date] ) ) )
+RETURN [Revenue] - Prev
+
+-- Information function: personalize by signed-in user (RLS pattern)
+Current User = USERPRINCIPALNAME ()
+
+-- SELECTEDVALUE guard
+Australian Tax =
+IF ( SELECTEDVALUE ( Customer[Country] ) = "Australia", [Revenue] * 0.10 )</code></pre></div>
+
+      <div class="callout tip"><b>Tip:</b> <code>SELECTEDVALUE(col, alt)</code> replaces the verbose <code>IF(HASONEVALUE(col), VALUES(col))</code> pattern and returns <code>alt</code> when 0 or 2+ values are visible.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>A VAR captures the context at definition time; referencing it later does not re-evaluate it.</li>
+          <li>Boolean filter args are faster than <code>FILTER()</code>; reach for <code>FILTER</code> only when the condition needs multiple columns, a measure, or OR logic.</li>
+          <li><code>OFFSET</code>/<code>INDEX</code> return one row; <code>WINDOW</code> returns a set — wrap them in an aggregator like <code>SUMX</code>/<code>AVERAGEX</code>.</li>
+          <li><code>USERPRINCIPALNAME()</code> is the standard RLS identity function.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A "Revenue" measure returns the sum of Qty times UnitPrice per row. Why does <code>SUM(Sales[Qty]) * SUM(Sales[UnitPrice])</code> give the wrong answer?</summary>
+        <div class="answer"><b>Answer:</b> It multiplies the two column totals instead of multiplying per row. <em>Why:</em> Use an iterator — <code>SUMX(Sales, Sales[Qty]*Sales[UnitPrice])</code> — to compute row by row, then sum.</div></details>
+        <details class="q"><summary><b>Q2.</b> Which function returns the current signed-in user's UPN for a row-level security rule?</summary>
+        <div class="answer"><b>Answer:</b> <code>USERPRINCIPALNAME()</code>. <em>Why:</em> It resolves to the querying user's UPN (e.g. joe@contoso.com), used to filter rows in RLS.</div></details>
+        <details class="q"><summary><b>Q3.</b> You need a % of category total that ignores the current product filter but keeps the category filter. Which function?</summary>
+        <div class="answer"><b>Answer:</b> <code>ALLEXCEPT('Product','Product'[Category])</code> inside CALCULATE. <em>Why:</em> It removes all Product filters except Category, giving the category denominator.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables">Use variables to improve your DAX formulas</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/guidance/dax-avoid-avoid-filter-as-filter-argument">Avoid using FILTER as a filter argument</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/dax/window-function-dax">WINDOW (DAX)</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/dax/offset-function-dax">OFFSET (DAX)</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/dax/datesytd-function-dax">DATESYTD (DAX)</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/dax/userprincipalname-function-dax">USERPRINCIPALNAME (DAX)</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.1.5 ===================== -->
+    <section class="objective" id="obj-3-1-5" data-skill="Calculation groups, dynamic format strings, field parameters">
+      <h3 id="o-3-1-5">3.1.5 Implement calculation groups, dynamic format strings, and field parameters</h3>
+
+      <div class="concept">
+        <p>Calculation groups apply reusable logic (YTD, PY, YoY%) to any measure via <code>SELECTEDMEASURE()</code>, eliminating dozens of near-duplicate measures. Dynamic format strings adjust display formatting while keeping numeric types. Field parameters let report readers swap the dimensions or measures shown in a visual.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>Calculation groups</b> contain <em>calculation items</em> that rewrite how a selected measure is evaluated; the placeholder is <code>SELECTEDMEASURE()</code>.</li>
+          <li>Adding a calculation group <b>forces "Discourage implicit measures"</b> — items only apply to explicit measures.</li>
+          <li>A <b>precedence</b> integer orders application when multiple calculation groups exist. Helpers: <code>SELECTEDMEASURENAME()</code>, <code>ISSELECTEDMEASURE()</code>.</li>
+          <li><b>Dynamic format strings</b> can be set per calculation item, or per measure (Measure tools → Format → Dynamic). Unlike <code>FORMAT()</code>, the measure keeps its numeric data type so charts still plot correctly.</li>
+          <li><b>Field parameters</b> (Modeling → New parameter → Fields) build a calculated table with (display name, <code>NAMEOF()</code> reference, order) per entry; can mix measures and dimensions.</li>
+          <li>Field parameter limits: no implicit measures, no Q&amp;A/AI visuals, can't be drill-through target fields, not with live connection unless a local model is added.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="calc-groups"><figcaption>One calculation group applies time-intelligence items (Current, PY, YoY%) to whichever measure the visual selects.</figcaption></figure>
+
+      <div class="code"><pre><code class="lang-dax">-- Calculation item using SELECTEDMEASURE()
+YoY % =
+VAR PY = CALCULATE ( SELECTEDMEASURE (), SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+RETURN
+    DIVIDE ( SELECTEDMEASURE () - PY, PY )
+-- Dynamic format string for this item:  "#,##0.0%;-#,##0.0%"
+
+-- Standalone dynamic format string for a measure (returns a format string)
+Measure Format = SELECTEDVALUE ( 'Currency Formats'[Format], "#,##0.00" )
+
+-- Field parameter table
+Analyze By = {
+    ( "Customer", NAMEOF ( 'Customer'[Customer] ), 0 ),
+    ( "Category", NAMEOF ( 'Product'[Category] ), 1 ),
+    ( "Color",    NAMEOF ( 'Product'[Color] ),    2 )
+}</code></pre></div>
+
+      <div class="callout key"><b>Key:</b> <code>SELECTEDMEASURE()</code> is the placeholder for whatever measure is in context — it's what makes one calculation item work across all measures.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Once any calculation group exists, implicit (drag-to-aggregate) measures are discouraged model-wide.</li>
+          <li>Prefer dynamic format strings over <code>FORMAT()</code>, which returns text and breaks numeric visuals/sorting.</li>
+          <li>Field parameters don't support Q&amp;A, AI visuals, or being drill-through link fields.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You have 12 base measures and need YTD, PY, and YoY% versions of each without authoring 36 more measures. What do you build?</summary>
+        <div class="answer"><b>Answer:</b> A calculation group with three calculation items using <code>SELECTEDMEASURE()</code>. <em>Why:</em> The items apply dynamically to any selected measure, avoiding measure explosion.</div></details>
+        <details class="q"><summary><b>Q2.</b> A YoY% calculation item should display as a percentage while the base measure stays currency. How?</summary>
+        <div class="answer"><b>Answer:</b> Enable a dynamic format string on the calculation item (e.g. "#,##0.0%"). <em>Why:</em> Per-item format strings override display for that item while other items keep the underlying measure format and numeric type.</div></details>
+        <details class="q"><summary><b>Q3.</b> Readers want to switch a chart's axis between Customer, Category, and Color at runtime. What feature?</summary>
+        <div class="answer"><b>Answer:</b> A field parameter added to a slicer. <em>Why:</em> Field parameters let users pick which dimension/measure a visual uses without editing the report.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/transform-model/calculation-groups">Calculation groups in Power BI</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-dynamic-format-strings">Dynamic format strings</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/create-reports/power-bi-field-parameters">Create and use field parameters</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.1.6 ===================== -->
+    <section class="objective" id="obj-3-1-6" data-skill="Large semantic model storage format">
+      <h3 id="o-3-1-6">3.1.6 Identify use cases for and configure large semantic model storage format</h3>
+
+      <div class="concept">
+        <p>Large semantic model storage format lets Import models exceed the default service size limit, scaling up to the capacity's per-model memory. It's also a prerequisite for XMLA write operations and semantic model scale-out.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li>Default service size limit is ~<b>1 GB</b> (Pro/shared). Desktop upload cap stays at <b>10 GB</b> regardless of the setting.</li>
+          <li>With Large model format on, the limit becomes the capacity size (e.g., F64 allows up to ~25 GB per model) and models <b>can grow beyond 10 GB on refresh</b>.</li>
+          <li>Available on Fabric F SKUs, Premium P SKUs, Embedded A SKUs, PPU, and Pro workspaces on Reserved Capacity — not standard Pro/Free.</li>
+          <li><b>Required</b> to enable <b>XMLA write</b> even for small models. Storage format on disk changes from ABF to PremiumFiles; default segment size becomes <b>8 million rows</b>.</li>
+          <li>Enable per model (Settings slider) or set the workspace default (Premium → Default storage format). PowerShell: <code>Set-PowerBIDataset -TargetStorageMode PremiumFiles</code>.</li>
+          <li><b>Scale-out</b> creates read-only replicas for query load; requires Large model format + Premium/Fabric capacity. Disabling Large format also disables scale-out.</li>
+        </ul>
+      </div>
+
+      <div class="code"><pre><code class="lang-powershell">Set-PowerBIDataset -Id &lt;SemanticModelId&gt; -TargetStorageMode PremiumFiles</code></pre></div>
+
+      <div class="callout warn"><b>Gotcha:</b> Refresh can spike to roughly 2× model size in memory — models near half the capacity limit may fail to refresh.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Enabling large format does not raise the 10 GB Desktop upload limit — it only lets the model grow in the service after refresh.</li>
+          <li>XMLA read-write (deploy/partition management) requires large model format.</li>
+          <li>Scale-out serves reports/live connections from read-only replicas; XMLA clients hit the read-write model.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An Import model must grow to 18 GB in an F64 workspace and be deployed via the XMLA endpoint. What must you enable?</summary>
+        <div class="answer"><b>Answer:</b> Large semantic model storage format. <em>Why:</em> It raises the per-model limit to the capacity size and is required for XMLA write operations.</div></details>
+        <details class="q"><summary><b>Q2.</b> A team wants read-only replicas to distribute heavy query load. What is a prerequisite?</summary>
+        <div class="answer"><b>Answer:</b> Large semantic model storage format on a Premium/Fabric capacity. <em>Why:</em> Scale-out depends on the large format; disabling it disables scale-out.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-large-models">Large semantic models in Power BI Premium</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-scale-out">Semantic model scale-out</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.1.7 ===================== -->
+    <section class="objective" id="obj-3-1-7" data-skill="Composite models">
+      <h3 id="o-3-1-7">3.1.7 Design and build composite models</h3>
+
+      <div class="concept">
+        <p>A composite model mixes storage modes (Import, DirectQuery, Dual, Direct Lake) or combines DirectQuery from multiple sources in one model. It aims to deliver Import-class performance for stable data plus DirectQuery freshness for volatile data, and can be layered on top of an existing published semantic model.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li>Composite = tables in more than one storage mode, or DirectQuery from different sources.</li>
+          <li>Supported combos vary by tooling: Import+DQ and DQ-from-different-sources in Desktop; <b>Import + Direct Lake</b> in web modeling only; <b>DQ + Direct Lake</b> via XMLA only.</li>
+          <li><b>Direct Lake on SQL is single-source and cannot join a composite model</b>; Direct Lake on OneLake can combine with Import tables in web modeling.</li>
+          <li><b>Chaining</b>: live-connect to a published model → "Make changes to this model" converts it to a DirectQuery connection → add local tables on top.</li>
+          <li><b>Dual</b> tables are both Import and DirectQuery; use Dual for dimensions paired with DirectQuery facts so Power BI folds a single native join.</li>
+          <li>Cross-source relationships default to <b>many-to-many</b> and are slower than same-source; you can't pull one-side values across sources with DAX.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="composite-model"><figcaption>A composite model combining Import dimensions, DirectQuery facts, and a chained published semantic model.</figcaption></figure>
+
+      <div class="callout key"><b>Key:</b> Dual is the enabler for efficient composite joins — it lets a dimension serve cached queries yet still fold into DirectQuery fact queries.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Direct Lake on OneLake supports composite (with Import) via web modeling; Direct Lake on SQL does not.</li>
+          <li>Chaining a published model converts the live connection to DirectQuery so you can extend it locally.</li>
+          <li>Set dimensions to Dual (not Import) when facts are DirectQuery to avoid extra source round-trips.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You must extend a certified published semantic model with a few local Excel tables. What action turns the connection into a composite model?</summary>
+        <div class="answer"><b>Answer:</b> Choose "Make changes to this model," which converts the live connection to DirectQuery, then add local tables. <em>Why:</em> Chaining allows local extensions on top of the published model.</div></details>
+        <details class="q"><summary><b>Q2.</b> Which Direct Lake variant cannot participate in a composite model?</summary>
+        <div class="answer"><b>Answer:</b> Direct Lake on SQL analytics endpoint. <em>Why:</em> It is single-source and cannot mix with DQ/Dual/Import; only Direct Lake on OneLake supports composite (with Import).</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-composite-models">Use composite models in Power BI Desktop</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand">Semantic model modes</a></li>
+        </ul>
+      </div>
+    </section>
+  </section>
+
+  <section class="skillgroup" id="sg-3-2">
+    <h2 id="g-3-2">3.2 Optimize enterprise-scale semantic models</h2>
+
+    <!-- ===================== 3.2.1 ===================== -->
+    <section class="objective" id="obj-3-2-1" data-skill="Query and visual performance">
+      <h3 id="o-3-2-1">3.2.1 Implement performance improvements in queries and report visuals</h3>
+
+      <div class="concept">
+        <p>Performance Analyzer measures how long each visual takes and breaks the time into DAX query, DirectQuery, visual display, and other categories. It is the primary tool for locating slow visuals and capturing the exact DAX a visual runs.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li>Open it from the <b>Optimize</b> ribbon in Desktop (or View menu when editing in the service). Start recording, then interact.</li>
+          <li>Per-visual breakdown: <b>DAX query</b> (semantic-model query time), <b>Direct query</b> (external source time), <b>Visual display</b> (render), <b>Other</b> (prep/wait), <b>Evaluated parameters</b> (field parameters).</li>
+          <li><b>Copy query</b> exports the visual's exact DAX; <b>Run in DAX query view</b> opens it for tuning; <b>Export</b> saves a JSON timing log.</li>
+          <li>Optimization: fewer visuals per page (each fires ≥1 DAX query), remove unused columns/fields, pre-filter in Power Query/at source, use Import/Dual for hot dimensions, add aggregation tables for large DirectQuery, clear the cache before baseline tests.</li>
+        </ul>
+      </div>
+
+      <div class="callout tip"><b>Tip:</b> Use <b>Copy query</b> to lift the visual's DAX into DAX query view (or DAX Studio) and iterate on the slowest measure in isolation.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>High <b>DAX query</b> time → tune the measure/model; high <b>Visual display</b> → reduce visual complexity/data points.</li>
+          <li>Every visual issues at least one DAX query, so reducing visual count is a direct win.</li>
+          <li>Clear the data cache before comparing timings to avoid warm-cache bias.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A page is slow and you need the exact DAX one card visual runs so you can optimize it. What do you use?</summary>
+        <div class="answer"><b>Answer:</b> Performance Analyzer → record → Copy query (or Run in DAX query view). <em>Why:</em> It captures the precise DAX and its timing so you can tune the offending measure.</div></details>
+        <details class="q"><summary><b>Q2.</b> Performance Analyzer shows most time under "Visual display," not "DAX query." What is the fix direction?</summary>
+        <div class="answer"><b>Answer:</b> Simplify the visual (fewer data points/elements), not the DAX. <em>Why:</em> The bottleneck is rendering, so reducing visual complexity helps more than measure tuning.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-performance-analyzer">Use Performance Analyzer</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/guidance/report-performance-troubleshoot">Troubleshoot report performance</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.2.2 ===================== -->
+    <section class="objective" id="obj-3-2-2" data-skill="Improve DAX performance">
+      <h3 id="o-3-2-2">3.2.2 Improve DAX performance</h3>
+
+      <div class="concept">
+        <p>DAX runs across two engines: the fast, multi-threaded, columnar <b>storage engine (SE)</b> and the single-threaded <b>formula engine (FE)</b>. Efficient DAX maximizes SE work and minimizes FE overhead. Performance Analyzer / DAX Studio reveal where time is spent.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li>Push work to the SE with Boolean column filters; avoid <code>FILTER(table, ...)</code> as a filter argument for simple conditions (it iterates the table in the FE).</li>
+          <li>Use variables so repeated sub-expressions (e.g., prior-period CALCULATE) evaluate once.</li>
+          <li>Use <code>KEEPFILTERS</code> to add a Boolean filter without discarding existing ones.</li>
+          <li>Prefer <code>DIVIDE()</code> over manual zero-checks; <code>SELECTEDVALUE</code> over IF+HASONEVALUE+VALUES; <code>COUNTROWS</code> over <code>COUNT</code> (ignores blanks, self-documenting).</li>
+          <li>Avoid complex calculated columns evaluated at query time; prefer measures. Avoid scanning large fact tables with <code>FILTER</code>.</li>
+        </ul>
+      </div>
+
+      <div class="code"><pre><code class="lang-dax">-- Slow: prior-period expression evaluated twice
+Growth Pct Slow =
+DIVIDE (
+    [Sales] - CALCULATE ( [Sales], PARALLELPERIOD ( 'Date'[Date], -12, MONTH ) ),
+    CALCULATE ( [Sales], PARALLELPERIOD ( 'Date'[Date], -12, MONTH ) )
+)
+
+-- Fast: evaluated once via a variable, Boolean filter with KEEPFILTERS
+Growth Pct Fast =
+VAR Prior = CALCULATE ( [Sales], PARALLELPERIOD ( 'Date'[Date], -12, MONTH ) )
+RETURN DIVIDE ( [Sales] - Prior, Prior )
+
+Sales Red = CALCULATE ( [Sales], KEEPFILTERS ( 'Product'[Color] = "Red" ) )</code></pre></div>
+
+      <div class="callout tip"><b>Tip:</b> A high formula-engine time in Performance Analyzer / DAX Studio is a signal to convert table iteration into SE-friendly column filters.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Boolean filter arguments fold to the storage engine; <code>FILTER()</code> over a table pushes work to the slower formula engine.</li>
+          <li>Variables both speed up and clarify DAX — evaluate once, reuse.</li>
+          <li><code>COUNTROWS(table)</code> beats <code>COUNT(column)</code> for row counts.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A measure computes a prior-year value twice inside DIVIDE and is slow. What is the simplest optimization?</summary>
+        <div class="answer"><b>Answer:</b> Store the prior-year value in a VAR and reuse it. <em>Why:</em> The expensive CALCULATE evaluates once instead of twice, cutting engine work.</div></details>
+        <details class="q"><summary><b>Q2.</b> Which is faster for "red products": <code>CALCULATE([Sales], 'Product'[Color]="Red")</code> or <code>CALCULATE([Sales], FILTER('Product','Product'[Color]="Red"))</code>?</summary>
+        <div class="answer"><b>Answer:</b> The Boolean version. <em>Why:</em> It uses the storage engine directly, while FILTER iterates the table in the formula engine.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables">Use variables to improve DAX</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/guidance/dax-avoid-avoid-filter-as-filter-argument">Avoid FILTER as a filter argument</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/guidance/dax-countrows">COUNTROWS instead of COUNT</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.2.3 ===================== -->
+    <section class="objective" id="obj-3-2-3" data-skill="Configure Direct Lake, fallback and refresh">
+      <h3 id="o-3-2-3">3.2.3 Configure Direct Lake, including default fallback and refresh behavior</h3>
+
+      <div class="concept">
+        <p>Direct Lake reads Delta/Parquet columns directly from OneLake, transcoding them into VertiPaq structures on demand. Its "refresh" is <b>framing</b> — a metadata-only operation. On the SQL analytics endpoint variant, queries can fall back to DirectQuery under certain conditions, governed by the DirectLakeBehavior property.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>Framing</b>: reads each table's Delta log, points the model at the newest Parquet files, and sets a new baseline; takes seconds. Queries see data as of the last framing point (important for ETL consistency). Dictionaries are usually kept (incremental framing).</li>
+          <li><b>Transcoding</b>: needed columns load from OneLake on demand and stay resident until evicted.</li>
+          <li><b>Automatic updates</b> (on by default) re-frame the model when source Delta tables change; disable for controlled framing during long ETL writes.</li>
+          <li><b>DirectQuery fallback (Direct Lake on SQL only)</b> triggers on: SQL RLS/OLS/DDM, tables over an unmaterialized SQL view, a single table exceeding capacity guardrails, or a not-yet-framed model.</li>
+          <li><b>DirectLakeBehavior</b> property: <code>Automatic</code> (default, silent fallback), <code>DirectLakeOnly</code> (query fails instead of falling back — good for dev), <code>DirectQueryOnly</code> (always DQ — baseline testing).</li>
+          <li><b>Direct Lake on OneLake always runs DirectLakeOnly</b> — it never falls back.</li>
+          <li>Diagnose with <code>EVALUATE TABLETRAITS()</code>; a fallback value of <code>None</code> means Direct Lake is active.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="direct-lake-arch"><figcaption>Direct Lake: VertiPaq transcodes Delta columns from OneLake on demand; framing updates metadata pointers in seconds.</figcaption></figure>
+
+      <div class="code"><pre><code class="lang-dax">-- Check each table's Direct Lake status / fallback reason
+EVALUATE TABLETRAITS ()</code></pre></div>
+
+      <div class="callout key"><b>Key:</b> Framing is metadata-only and near-instant. It does not copy data — it just repoints the model at the latest Delta files.</div>
+      <div class="callout warn"><b>Gotcha:</b> Only Direct Lake on SQL falls back to DirectQuery. Enforcing SQL RLS/OLS or querying an unmaterialized view triggers it, silently degrading performance.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Set <code>DirectLakeBehavior = DirectLakeOnly</code> during development so fallback conditions surface as errors instead of hiding.</li>
+          <li>Disable automatic updates when you need a stable snapshot during long ETL loads.</li>
+          <li>Fixing fallback usually means materializing views to Delta, moving security to model-level RLS/OLS, or OPTIMIZE/VACUUM to meet guardrails.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A Direct Lake on SQL model intermittently runs slowly. You discover SQL RLS is enforced on the endpoint. What is happening?</summary>
+        <div class="answer"><b>Answer:</b> Queries fall back to DirectQuery because SQL RLS is detected. <em>Why:</em> Move security to semantic-model RLS or accept fallback; the DirectLakeBehavior property controls fallback.</div></details>
+        <details class="q"><summary><b>Q2.</b> During development you want any fallback condition to fail loudly rather than silently degrade. Which setting?</summary>
+        <div class="answer"><b>Answer:</b> Set DirectLakeBehavior to DirectLakeOnly. <em>Why:</em> Queries error when Direct Lake can't be used, exposing the root cause instead of hiding it behind DirectQuery.</div></details>
+        <details class="q"><summary><b>Q3.</b> How long does a Direct Lake refresh (framing) typically take, and what does it do?</summary>
+        <div class="answer"><b>Answer:</b> Seconds — it's metadata-only, updating pointers to the newest Delta Parquet files. <em>Why:</em> No data reload occurs; transcoding happens on demand at query time.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works">Direct Lake — how it works</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview">Direct Lake overview</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.2.4 ===================== -->
+    <section class="objective" id="obj-3-2-4" data-skill="Direct Lake on OneLake vs SQL analytics endpoint">
+      <h3 id="o-3-2-4">3.2.4 Choose between Direct Lake on OneLake and Direct Lake on SQL analytics endpoint</h3>
+
+      <div class="concept">
+        <p>Both variants use the Direct Lake engine, but they differ in data source scope, fallback behavior, composite-model support, and security semantics. Direct Lake on OneLake is the recommended default for new models.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li><b>Data source</b> — OneLake: any Fabric item backed by Delta (lakehouse, warehouse, mirrored DB), and can read from multiple items. SQL endpoint: a single lakehouse/warehouse via its SQL analytics endpoint.</li>
+          <li><b>Fallback</b> — OneLake: <b>never</b> falls back (always DirectLakeOnly). SQL: <b>falls back to DirectQuery</b> when SQL security/views/guardrails trigger it (controlled by DirectLakeBehavior).</li>
+          <li><b>Composite models</b> — OneLake: <b>supported</b> (with Import) via web modeling. SQL: <b>not supported</b> (single source; can't mix DQ/Dual).</li>
+          <li><b>Security</b> — OneLake uses OneLake security (file-level ACLs); SQL-based RLS is <b>not</b> applied, so model-level RLS is recommended. SQL endpoint honors its RLS/OLS/DDM but that triggers DirectQuery fallback.</li>
+          <li><b>Permissions/discovery</b> — OneLake: OneLake-API permissions. SQL: SQL analytics endpoint for discovery + permissions.</li>
+          <li>Both require a Fabric capacity (F or P SKU). A Fabric fixed-identity cloud connection is recommended when model-level RLS is defined.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="direct-lake-onelake-vs-sql"><figcaption>Direct Lake on OneLake (multi-source, no fallback, composite-capable) versus on the SQL analytics endpoint (single source, DirectQuery fallback, SQL security).</figcaption></figure>
+
+      <div class="facts"><h4>Comparison at a glance</h4>
+        <ul>
+          <li><b>Data source:</b> OneLake = multiple Fabric Delta items · SQL = single source.</li>
+          <li><b>DirectQuery fallback:</b> OneLake = never · SQL = yes (property-controlled).</li>
+          <li><b>Composite support:</b> OneLake = yes (with Import) · SQL = no.</li>
+          <li><b>Security semantics:</b> OneLake = OneLake ACLs (apply model RLS) · SQL = endpoint RLS/OLS/DDM (causes fallback).</li>
+          <li><b>Recommendation:</b> OneLake = default for new models · SQL = legacy option.</li>
+        </ul>
+      </div>
+
+      <div class="callout key"><b>Key:</b> Direct Lake on OneLake never falls back and supports composite models; Direct Lake on SQL can fall back and cannot be composite.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Need multi-source or Import+Direct Lake composite → choose OneLake.</li>
+          <li>Need SQL-endpoint RLS/OLS honored → SQL variant (accepting DirectQuery fallback).</li>
+          <li>OneLake exceeding a guardrail causes refresh to <em>fail</em>; SQL silently falls back to DirectQuery with a warning.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A new model must read Delta tables from two different lakehouses and add a small Import table. Which Direct Lake variant?</summary>
+        <div class="answer"><b>Answer:</b> Direct Lake on OneLake. <em>Why:</em> It supports multiple Fabric sources and composite models with Import tables (via web modeling); the SQL variant is single-source and non-composite.</div></details>
+        <details class="q"><summary><b>Q2.</b> Which variant guarantees the model never silently degrades to DirectQuery?</summary>
+        <div class="answer"><b>Answer:</b> Direct Lake on OneLake. <em>Why:</em> It always runs in DirectLakeOnly mode and never falls back; the SQL endpoint variant can fall back.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview">Direct Lake overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works">Direct Lake — how it works</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 3.2.5 ===================== -->
+    <section class="objective" id="obj-3-2-5" data-skill="Incremental refresh">
+      <h3 id="o-3-2-5">3.2.5 Implement incremental refresh for semantic models</h3>
+
+      <div class="concept">
+        <p>Incremental refresh partitions a table and refreshes only the most recent data, cutting refresh time and resource use and enabling very large models. It relies on two reserved Power Query parameters, a parameterized folding filter, and a refresh policy.</p>
+      </div>
+
+      <div class="facts"><h4>Key facts</h4>
+        <ul>
+          <li>Create two reserved <b>DateTime</b> parameters, case-sensitive names <b>RangeStart</b> and <b>RangeEnd</b>.</li>
+          <li>Filter the source with them (must be a folding step): <code>&gt;= RangeStart and &lt; RangeEnd</code>.</li>
+          <li>In Desktop → right-click the table → <b>Incremental refresh and real-time data</b> → set the <b>Archive</b> (store rows starting) and <b>Refresh</b> (refresh rows in the last) periods.</li>
+          <li>Optional: <b>Detect data changes</b> (a Last-Modified column skips unchanged partitions) and <b>Get the latest data in real time with DirectQuery</b> (Premium — creates a hybrid table).</li>
+          <li><b>Query folding is required</b> — the RangeStart/RangeEnd filter must translate to a native source predicate; non-folding steps after the source break it.</li>
+          <li>The service creates partitions on first publish/refresh; the rolling window drops partitions past the archive period. First refresh loads all history (slow); later refreshes are fast.</li>
+          <li>Refresh limits: Pro 2 hours, Premium 5 hours, XMLA endpoint no limit. Real-time DQ partition requires Premium/PPU/Embedded (not Pro).</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="incremental-refresh"><figcaption>A rolling window: historical partitions are stored per the archive period while only the recent refresh window is reloaded.</figcaption></figure>
+
+      <div class="code"><pre><code class="lang-m">// Parameterized, foldable filter in Power Query
+#"Filtered Rows" =
+    Table.SelectRows(
+        Source,
+        each [OrderDate] &gt;= RangeStart and [OrderDate] &lt; RangeEnd
+    )</code></pre></div>
+
+      <div class="callout warn"><b>Gotcha:</b> If the RangeStart/RangeEnd filter doesn't fold to the source, Desktop warns you — incremental refresh will scan everything and lose its benefit.</div>
+
+      <div class="tips"><h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Parameter names must be exactly <b>RangeStart</b> and <b>RangeEnd</b>, typed DateTime — spelling/case matters.</li>
+          <li>Query folding is mandatory; SQL/Synapse/Oracle/Teradata sources fold reliably.</li>
+          <li><b>Detect data changes</b> further reduces refresh by skipping partitions with no newer Last-Modified timestamp.</li>
+          <li>Enabling real-time DirectQuery makes a hybrid table (history = Import, latest = DirectQuery); set dimensions to Dual for best performance.</li>
+        </ul>
+      </div>
+
+      <div class="practice"><h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> After configuring incremental refresh, Desktop warns that the query can't fold. What is the impact and cause?</summary>
+        <div class="answer"><b>Answer:</b> Folding is broken (likely a non-foldable step after the source), so the filter can't push to the source and the whole table is scanned. <em>Why:</em> Incremental refresh requires the RangeStart/RangeEnd filter to fold to a native predicate.</div></details>
+        <details class="q"><summary><b>Q2.</b> What are the exact names and types of the two required parameters?</summary>
+        <div class="answer"><b>Answer:</b> RangeStart and RangeEnd, both DateTime (case-sensitive). <em>Why:</em> Power BI reserves these specific names to drive partition boundaries.</div></details>
+        <details class="q"><summary><b>Q3.</b> You want unchanged historical partitions to be skipped during refresh. Which option?</summary>
+        <div class="answer"><b>Answer:</b> Detect data changes, using a Last-Modified DateTime column. <em>Why:</em> Partitions without newer timestamps skip the data reload, shortening refresh.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-overview">Incremental refresh overview</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-configure">Configure incremental refresh</a></li>
+        </ul>
+      </div>
+    </section>
+  </section>
+</section>

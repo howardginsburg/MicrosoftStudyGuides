@@ -1,0 +1,18 @@
+{
+  "exam": "DP-600",
+  "title": "Implementing Analytics Solutions Using Microsoft Fabric",
+  "description": "Design, create, and manage analytics solutions in Microsoft Fabric — governance, data prep, and semantic models.",
+  "doc_title": "DP-600 Study Guide (Community Edition) — Microsoft Fabric Analytics",
+  "brand": "DP-600",
+  "brand_sub": "Fabric Analytics — Study Guide",
+  "official_url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-600",
+  "weights": {
+    "Maintain a data analytics solution": "25–30%",
+    "Prepare data": "45–50%",
+    "Implement and manage semantic models": "25–30%"
+  },
+  "status": "complete",
+  "last_refreshed": "2026-07-14",
+  "fragments": ["frontmatter.html", "domain1.html", "domain2.html", "domain3.html", "appendices.html"],
+  "output_html": "DP-600.html"
+}

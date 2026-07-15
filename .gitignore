@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+
+# Per-guide build scratch (built site lives in /docs, which IS committed)
+guides/*/dist/
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Local QA artifacts
+*.screenshot.png
+qa-*.png

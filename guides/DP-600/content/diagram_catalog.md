@@ -1,0 +1,27 @@
+# Diagram catalog (id — concept). Reference in HTML via <figure class="diagram" data-svg="ID">.
+
+- fabric-onelake-overview
+- medallion
+- store-comparison
+- star-schema
+- scd-types
+- storage-modes
+- direct-lake-arch
+- direct-lake-onelake-vs-sql
+- security-layers
+- workspace-roles
+- rls-flow
+- label-propagation
+- endorsement-tiers
+- git-flow
+- deployment-pipelines
+- reusable-assets
+- eval-context
+- calc-groups
+- incremental-refresh
+- query-folding
+- composite-model
+- xmla-endpoint
+- impact-analysis
+- ingest-paths
+- persistent-objects

@@ -1,0 +1,107 @@
+{
+  "_comment": "Shared syntax-highlighting language pack for engine/build_public.py. Add a language by adding an entry here \u2014 never edit the engine code. Every field is optional: 'keywords' may be omitted and the tokenizer still highlights strings, numbers, comments, and function calls. 'line_comment' = list of line-comment markers; 'block_comment' = true enables /* ... */; 'quotes' = string delimiter characters; 'case_insensitive' = match keywords case-insensitively. Languages not listed here fall back to a generic C-style profile.",
+
+  "sql": {
+    "case_insensitive": true,
+    "line_comment": ["--"],
+    "block_comment": true,
+    "quotes": ["'"],
+    "keywords": ["SELECT","FROM","WHERE","JOIN","INNER","LEFT","RIGHT","FULL","OUTER","CROSS","ON","GROUP","BY","ORDER","HAVING","INSERT","INTO","UPDATE","DELETE","MERGE","VALUES","SET","AS","AND","OR","NOT","NULL","IS","IN","EXISTS","CASE","WHEN","THEN","ELSE","END","CREATE","TABLE","VIEW","PROCEDURE","PROC","FUNCTION","RETURNS","BEGIN","RETURN","WITH","DISTINCT","TOP","UNION","ALL","EXCEPT","INTERSECT","CAST","CONVERT","TRY_CAST","TRY_CONVERT","OVER","PARTITION","DROP","ALTER","ADD","PRIMARY","KEY","FOREIGN","REFERENCES","DECLARE","EXEC","EXECUTE","LIKE","BETWEEN","DESC","ASC","SCHEMA","GRANT","DENY","REVOKE","SECURITY","POLICY","MATCHED","SOURCE","TARGET","USING","OPTION","ISNULL","COALESCE","COPY"]
+  },
+
+  "dax": {
+    "case_insensitive": true,
+    "line_comment": ["--","//"],
+    "block_comment": true,
+    "quotes": ["\"","'"],
+    "keywords": ["VAR","RETURN","CALCULATE","SUM","SUMX","AVERAGE","AVERAGEX","MIN","MINX","MAX","MAXX","COUNT","COUNTROWS","COUNTA","DIVIDE","FILTER","ALL","ALLEXCEPT","ALLSELECTED","VALUES","DISTINCT","RELATED","RELATEDTABLE","IF","SWITCH","AND","OR","NOT","TRUE","FALSE","BLANK","ISBLANK","ISFILTERED","HASONEVALUE","HASONEFILTER","SELECTEDVALUE","USERPRINCIPALNAME","USERNAME","LOOKUPVALUE","TOTALYTD","TOTALQTD","TOTALMTD","DATESYTD","DATESMTD","DATESQTD","SAMEPERIODLASTYEAR","DATEADD","PARALLELPERIOD","PREVIOUSMONTH","OFFSET","WINDOW","ORDERBY","PARTITIONBY","INDEX","RANKX","RANK","TOPN","EARLIER","CONCATENATEX","PRODUCTX","FORMAT","SELECTEDMEASURE","SELECTEDMEASURENAME","TREATAS","CROSSFILTER","KEEPFILTERS","REMOVEFILTERS","ISINSCOPE","USERELATIONSHIP","SUMMARIZE","SUMMARIZECOLUMNS","ADDCOLUMNS","GENERATE","ROW","NATURALINNERJOIN","CALCULATETABLE"]
+  },
+
+  "kql": {
+    "case_insensitive": false,
+    "line_comment": ["//"],
+    "block_comment": false,
+    "quotes": ["\"","'"],
+    "keywords": ["where","summarize","project","extend","count","dcount","distinct","join","kind","union","order","sort","by","asc","desc","take","limit","top","let","make-series","make_series","bin","ago","sum","avg","min","max","range","parse","contains","startswith","endswith","has","render","mv-expand","mvexpand","between","on","evaluate","datatable","print","series_decompose","todatetime","toreal","tostring"]
+  },
+
+  "python": {
+    "case_insensitive": false,
+    "line_comment": ["#"],
+    "block_comment": false,
+    "quotes": ["\"","'"],
+    "keywords": ["import","from","as","def","return","for","in","if","elif","else","while","with","try","except","finally","class","None","True","False","and","or","not","is","lambda","pass","break","continue","yield","global","nonlocal","raise","assert","del","async","await"]
+  },
+
+  "m": {
+    "case_insensitive": false,
+    "line_comment": ["//"],
+    "block_comment": true,
+    "quotes": ["\""],
+    "keywords": ["let","in","each","type","meta","and","or","not","if","then","else","true","false","null","error","try","otherwise"]
+  },
+
+  "json": {
+    "case_insensitive": false,
+    "line_comment": [],
+    "block_comment": false,
+    "quotes": ["\""],
+    "keywords": ["true","false","null"]
+  },
+
+  "powershell": {
+    "case_insensitive": false,
+    "line_comment": ["#"],
+    "block_comment": true,
+    "quotes": ["\"","'"],
+    "keywords": ["param","if","else","elseif","foreach","for","while","switch","function","return","try","catch","finally","throw","begin","process","end"]
+  },
+
+  "bash": {
+    "case_insensitive": false,
+    "line_comment": ["#"],
+    "block_comment": false,
+    "quotes": ["\"","'"],
+    "keywords": ["if","then","else","elif","fi","for","in","do","done","while","case","esac","function","return","export","local","echo"]
+  },
+
+  "csharp": {
+    "case_insensitive": false,
+    "line_comment": ["//"],
+    "block_comment": true,
+    "quotes": ["\"","'"],
+    "keywords": ["using","namespace","class","struct","interface","enum","record","public","private","protected","internal","static","readonly","const","void","var","new","return","if","else","for","foreach","while","do","switch","case","default","break","continue","try","catch","finally","throw","this","base","null","true","false","async","await","get","set","in","out","ref","typeof","nameof","is","as","override","virtual","abstract","sealed","partial","string","int","long","bool","double","decimal","object","Task","string?"]
+  },
+
+  "javascript": {
+    "case_insensitive": false,
+    "line_comment": ["//"],
+    "block_comment": true,
+    "quotes": ["\"","'","`"],
+    "keywords": ["const","let","var","function","return","if","else","for","while","do","switch","case","default","break","continue","try","catch","finally","throw","new","class","extends","super","this","null","true","false","undefined","async","await","import","from","export","typeof","instanceof","in","of","yield","delete","void"]
+  },
+
+  "typescript": {
+    "case_insensitive": false,
+    "line_comment": ["//"],
+    "block_comment": true,
+    "quotes": ["\"","'","`"],
+    "keywords": ["const","let","var","function","return","if","else","for","while","do","switch","case","default","break","continue","try","catch","finally","throw","new","class","extends","implements","interface","type","enum","namespace","super","this","null","true","false","undefined","async","await","import","from","export","typeof","instanceof","in","of","keyof","as","public","private","protected","readonly","abstract","static","void","any","unknown","never","string","number","boolean"]
+  },
+
+  "yaml": {
+    "case_insensitive": false,
+    "line_comment": ["#"],
+    "block_comment": false,
+    "quotes": ["\"","'"],
+    "keywords": ["true","false","null","yes","no","on","off"]
+  },
+
+  "bicep": {
+    "case_insensitive": false,
+    "line_comment": ["//"],
+    "block_comment": true,
+    "quotes": ["'"],
+    "keywords": ["param","var","resource","module","output","targetScope","existing","if","for","in","true","false","null","func","type","import","metadata","assert"]
+  }
+}

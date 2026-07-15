@@ -1,0 +1,1576 @@
+<section class="domain" id="domain2" data-domain="2">
+  <h1 id="d2">Domain 2 — Prepare Data <span class="weight">45–50%</span></h1>
+  <p class="domain-intro">Domain 2 is the largest section of the DP-600 exam, covering the full data preparation lifecycle: connecting to sources, ingesting and storing data across Fabric's unified OneLake, transforming and cleaning it with T-SQL, PySpark, and Power Query, and querying the result with SQL, KQL, and DAX. Mastery of these skills — especially the distinctions among Fabric data stores, star-schema design patterns, and the three query languages — is essential for the exam.</p>
+
+  <!-- ===== 2.1 Get data ===== -->
+  <section class="skillgroup" id="sg-2-1">
+    <h2 id="g-2-1">2.1 Get data</h2>
+
+    <!-- 2.1.1 -->
+    <section class="objective" id="obj-2-1-1" data-skill="create-connection">
+      <h3 id="o-2-1-1">2.1.1 Create a data connection</h3>
+
+      <div class="concept">
+        <p>Before any Fabric item (Dataflow Gen2, pipeline, or semantic model) can pull from an external source, a <strong>connection</strong> must exist that stores the endpoint URL and credentials. Fabric centralises connection management at <strong>Settings → Manage connections and gateways</strong>, where administrators create, edit, share, and delete both cloud and on-premises connections.</p>
+        <p>Cloud sources that are publicly reachable (Azure SQL, ADLS Gen2, SharePoint Online, REST APIs) use a <strong>cloud connection</strong> with no additional software. Private or on-premises sources require a <strong>gateway</strong> installed on a machine that can reach the source.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>On-premises data gateway (standard mode)</strong> — multi-user; supports scheduled refresh, DirectQuery, and live connection. Requires gateway software on a customer-managed machine.</li>
+          <li><strong>On-premises data gateway (personal mode)</strong> — single user only; scheduled refresh only; no DirectQuery or live connection support.</li>
+          <li><strong>Virtual network (VNet) data gateway</strong> — Microsoft-managed SaaS; multi-user; requires Premium capacity or PPU; no on-premises software to install.</li>
+          <li><strong>Cloud connections</strong> are created in the Connections tab (New → Cloud) for publicly accessible sources such as Azure SQL, ADLS Gen2, and SharePoint Online.</li>
+          <li><strong>Authentication options:</strong> Basic, OAuth2, Service Principal (Entra app registration). OAuth2 caveat: long-running queries may fail when the access token expires; cross-tenant Entra accounts are not supported.</li>
+          <li>A connection can be made <strong>shareable</strong>: other workspace members can use it in their items without seeing the stored credentials.</li>
+          <li>Gateway version ≥ 3000.214.2 is required to support Fabric <strong>pipelines</strong> against on-premises sources; older versions support only Dataflows and semantic-model refresh.</li>
+          <li>Fabric Data Factory supports 26+ on-premises connectors via gateway (SQL Server, Oracle, SAP HANA, PostgreSQL, MySQL, Salesforce, SharePoint, ODBC, and more).</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-json">// Create a shareable cloud connection (Fabric REST API)
+// POST https://api.fabric.microsoft.com/v1/connections
+{
+  "displayName": "Azure SQL – SalesDB (shared)",
+  "connectivityType": "ShareableCloud",
+  "connectionDetails": {
+    "type": "AzureSqlDatabase",
+    "parameters": [
+      { "name": "server",   "value": "myserver.database.windows.net" },
+      { "name": "database", "value": "SalesDB" }
+    ]
+  },
+  "credentialDetails": {
+    "credentialType": "ServicePrincipal",
+    "singleSignOn": false,
+    "skipTestConnection": false
+  }
+}</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> Use <em>standard-mode</em> gateway (not personal) whenever DirectQuery or multi-user scheduled refresh is required. Personal mode is a single-user development convenience and must not be used for shared production reports.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Personal-mode gateway = single user + scheduled refresh only; no DirectQuery or live connection.</li>
+          <li>VNet gateway = Microsoft-managed, no software install, but <em>requires</em> Premium P or Fabric F capacity — it is not free.</li>
+          <li>OAuth2 tokens expire: long-running ETL jobs may fail mid-run when the token lifetime is exceeded.</li>
+          <li>Shareable connections hide credentials — members can <em>use</em> the connection but cannot view the password or SPN secret.</li>
+          <li>Fabric pipeline activities against on-premises sources require gateway ≥ 3000.214.2; older gateways block pipeline execution even when Dataflows work fine.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A team needs multiple analysts to refresh reports via DirectQuery against an on-premises SQL Server. Which gateway type is required?</summary>
+        <div class="answer"><b>Answer:</b> <em>On-premises data gateway (standard mode)</em>. <em>Why:</em> Standard mode supports DirectQuery and live connections for multiple simultaneous users. Personal mode supports only scheduled refresh for a single user and cannot be shared.</div></details>
+        <details class="q"><summary><b>Q2.</b> A new analyst needs to use an existing Azure SQL connection in their Dataflow without seeing the stored password. What feature enables this?</summary>
+        <div class="answer"><b>Answer:</b> Marking the connection as <em>shareable</em>. <em>Why:</em> A shareable connection lets workspace members reference the connection by its ID in their Dataflows and pipelines without exposing the underlying credentials (password or SPN secret).</div></details>
+        <details class="q"><summary><b>Q3.</b> A data engineer installs an on-premises gateway running version 3000.200.0 and tries to use it in a Fabric pipeline Copy activity targeting an on-premises Oracle source. The activity fails. What is the most likely cause?</summary>
+        <div class="answer"><b>Answer:</b> The gateway version is below the required minimum (3000.214.2). <em>Why:</em> Older gateway versions support only Dataflows and semantic model scheduled refresh — not pipeline activities. Upgrading the gateway software resolves the issue.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/fabric/data-factory/data-source-management">Manage connections and gateways — Microsoft Fabric</a></li>
+        <li><a href="https://learn.microsoft.com/fabric/data-factory/how-to-access-on-premises-data">Access on-premises data in Fabric Data Factory</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.1.2 -->
+    <section class="objective" id="obj-2-1-2" data-skill="discover-data">
+      <h3 id="o-2-1-2">2.1.2 Discover data via OneLake catalog &amp; Real-Time hub</h3>
+
+      <div class="concept">
+        <p>Microsoft Fabric provides two first-class discovery experiences. The <strong>OneLake data catalog</strong> (previously OneLake data hub) is a searchable, organization-wide inventory of every Fabric item — lakehouses, warehouses, KQL databases, semantic models, Eventstreams, and more — that you have access to. It surfaces endorsement badges, lineage, descriptions, and contact information so teams can locate authoritative data without direct knowledge of workspace names.</p>
+        <p>The <strong>Real-Time hub</strong> is a streaming-data marketplace: it lists all Eventstream sources, Azure Event Hubs namespaces, MQTT topics, and other event producers that are accessible to you, and it provides one-click connections from those streams into Fabric workloads.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>OneLake catalog</strong> — search or browse by item type, workspace, domain, or endorsement; "All data" tab shows everything you have read access to across the entire tenant.</li>
+          <li><strong>Endorsements:</strong> <em>Promoted</em> (workspace members can endorse) and <em>Certified</em> (tenant-admin-designated certifiers only). Certified items rank higher in search and have a gold badge.</li>
+          <li>Clicking any catalog item opens a detail panel with description, contact, freshness, sensitivity label, and lineage; users can request access directly from the panel if they lack permission.</li>
+          <li>Domains (logical groupings of workspaces) appear as filter facets in the catalog, enabling business-unit-level browsing.</li>
+          <li><strong>Real-Time hub</strong> — surfaces all event producers visible to you; can create and connect Eventstreams, alert rules (Activator), or KQL eventhouses from a stream in one step.</li>
+          <li>Real-Time hub "My streams" tab shows Eventstreams you own; "All streams" shows streams from the entire organisation you have access to; "Microsoft sources" shows connectable Azure services (Event Hubs, IoT Hub, Service Bus, Azure Blob Storage events).</li>
+          <li>From Real-Time hub you can create an alert (Fabric Activator) directly on a stream without writing code.</li>
+          <li>Items without sensitivity labels set by workspace admins inherit the tenant default label configured in Microsoft Purview.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="fabric-onelake-overview"></figure>
+
+      <div class="callout key">
+        <b>Key:</b> The OneLake catalog is a <em>read-only discovery layer</em>; it does not itself store or move data. All items shown live in their respective workspaces; the catalog provides metadata and access pathways only.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Only <em>tenant-admin-designated certifiers</em> can apply the Certified badge; any workspace member can Promote.</li>
+          <li>Real-Time hub is the correct Fabric entry point for connecting to Azure Event Hubs, IoT Hub, and MQTT topics — not the Fabric portal Settings.</li>
+          <li>The catalog searches item names and descriptions but does <em>not</em> index the actual data inside tables or files.</li>
+          <li>"Request access" in the catalog triggers a Fabric access workflow; the workspace admin must approve it — the request does not auto-grant permission.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A data steward wants to flag a lakehouse as the official source of customer data that all teams should trust. Which endorsement level is most appropriate, and who can apply it?</summary>
+        <div class="answer"><b>Answer:</b> <em>Certified</em>, applied by a tenant-admin-designated certifier. <em>Why:</em> The Certified badge conveys org-wide authority; workspace members can only Promote, which signals recommendation without the same governance weight.</div></details>
+        <details class="q"><summary><b>Q2.</b> A business analyst searches the OneLake catalog for "sales" but cannot find the lakehouse owned by another team. What is the most likely reason?</summary>
+        <div class="answer"><b>Answer:</b> The analyst does not have read access to that workspace. <em>Why:</em> The catalog shows only items the signed-in user has at least Viewer-level access to. Items in workspaces the user cannot see are hidden.</div></details>
+        <details class="q"><summary><b>Q3.</b> Which Fabric experience lets you create a one-click connection from an Azure Event Hubs namespace to an Eventhouse KQL database?</summary>
+        <div class="answer"><b>Answer:</b> <em>Real-Time hub</em>. <em>Why:</em> Real-Time hub lists Azure Event Hubs under "Microsoft sources" and provides a wizard to route events directly to Eventhouse, Eventstream, or Activator alerts without custom pipeline code.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/fabric/governance/use-microsoft-purview-hub">Use the OneLake data catalog (Microsoft Fabric)</a></li>
+        <li><a href="https://learn.microsoft.com/fabric/real-time-intelligence/real-time-hub/real-time-hub-overview">Real-Time hub overview — Microsoft Fabric</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.1.3 -->
+    <section class="objective" id="obj-2-1-3" data-skill="ingest-data">
+      <h3 id="o-2-1-3">2.1.3 Ingest or access data</h3>
+
+      <div class="concept">
+        <p>Fabric offers a layered set of ingestion options ranging from ad-hoc file upload to fully orchestrated pipelines. Choosing the right mechanism depends on data volume, latency needs, transformation complexity, and team skill set. A key architectural principle is that all Fabric storage items ultimately write data to <strong>OneLake</strong> in Delta-Parquet format, enabling read sharing across engines.</p>
+        <p>The <strong>medallion architecture</strong> (Bronze → Silver → Gold) is the recommended organisational pattern: raw data lands in the Bronze layer, cleaned and conformed data in Silver, and business-ready aggregates in Gold. Fabric tools map naturally to each layer.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Upload</strong> — drag-and-drop small CSV/Parquet/JSON files directly into a Lakehouse Files section; not suitable for large or recurring loads.</li>
+          <li><strong>Dataflows Gen2</strong> — low-code Power Query M transforms; writes results to a destination (Lakehouse, Warehouse, Azure SQL, etc.); supports query folding for source-pushdown; scheduled up to 48× per day.</li>
+          <li><strong>Pipelines (Data Factory)</strong> — orchestration engine; Copy activity for bulk ingest; supports 90+ connectors; parameterisable; error handling and retry; can call notebooks, Dataflows, stored procedures, and REST APIs.</li>
+          <li><strong>Notebooks / Spark</strong> — PySpark or Scala for complex transforms; read Lakehouse files or Delta tables, transform with Spark DataFrame API, write back as Delta; best for large-scale or schema-on-read scenarios.</li>
+          <li><strong>Shortcuts</strong> — virtual references to external storage (ADLS Gen2, S3, GCS, Dataverse, Google Drive, S3-compatible) without physically copying data; appear as tables or files in the Lakehouse and are read by any Fabric engine.</li>
+          <li><strong>COPY INTO (Warehouse)</strong> — T-SQL bulk load command that reads Parquet or CSV from ADLS Gen2 or OneLake paths directly into Fabric Warehouse tables; no pipeline required for flat loads.</li>
+          <li><strong>Eventstream</strong> — real-time ingestion from Event Hubs, IoT Hub, Kafka, CDC sources, or custom apps into Eventhouse KQL database, Lakehouse Delta tables, or Activator alerts with sub-second latency.</li>
+          <li>Pipelines support <strong>incremental copy</strong> via high-watermark patterns (store last-loaded timestamp in a parameter table, filter source with a WHERE clause in the Copy source query).</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="ingest-paths"></figure>
+      <figure class="diagram" data-svg="medallion"></figure>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- COPY INTO: bulk-load Parquet from ADLS Gen2 into Fabric Warehouse
+COPY INTO dbo.SalesFact
+FROM 'https://myaccount.dfs.core.windows.net/raw/sales/2024/*.parquet'
+WITH (
+    FILE_TYPE = 'PARQUET',
+    CREDENTIAL = (IDENTITY = 'Managed Identity')
+);
+</code></pre>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-python"># PySpark: read CSV from Lakehouse Files, clean, write as Delta table
+from pyspark.sql import functions as F
+
+df = spark.read.option("header", True).csv(
+    "Files/raw/sales/2024/*.csv"
+)
+
+df_clean = (df
+    .withColumn("SaleDate", F.to_date("SaleDate", "yyyy-MM-dd"))
+    .withColumn("Amount",   F.col("Amount").cast("double"))
+    .dropna(subset=["OrderID", "SaleDate"])
+)
+
+df_clean.write.format("delta").mode("append").saveAsTable("SalesFact")
+</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> Use <em>shortcuts</em> when data already lives in ADLS Gen2 or S3 and the team needs access from multiple Fabric engines (Lakehouse, Warehouse, Spark) without duplicating storage costs. Shortcuts are zero-copy — only metadata is stored in OneLake.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>COPY INTO is a Fabric Warehouse–only command; it is not available at the Lakehouse SQL analytics endpoint.</li>
+          <li>Shortcuts are read-only views of external storage — you cannot INSERT or UPDATE data in the source via a shortcut.</li>
+          <li>Eventstream supports only <em>append</em> semantics; it cannot update existing Eventhouse rows.</li>
+          <li>Dataflows Gen2 can write to a Fabric Warehouse destination (DML upsert/overwrite handled by the runtime) — this is distinct from running COPY INTO yourself.</li>
+          <li>Pipeline Copy activity vs. COPY INTO: Copy activity works for any destination (Lakehouse, Warehouse, Azure SQL); COPY INTO is T-SQL only and targets the Warehouse.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A team wants to query petabytes of Parquet files stored in an Azure Data Lake Storage Gen2 account from a Fabric Lakehouse without duplicating the data. Which ingestion mechanism should they use?</summary>
+        <div class="answer"><b>Answer:</b> <em>Shortcut</em>. <em>Why:</em> Shortcuts create a virtual reference to the ADLS Gen2 location; Spark, the SQL analytics endpoint, and OneLake all read the files without copying them into the Lakehouse's own storage.</div></details>
+        <details class="q"><summary><b>Q2.</b> A Fabric pipeline needs to load 50 GB of Parquet files from ADLS Gen2 directly into a Fabric Warehouse table with no transformation. Which is the most efficient method?</summary>
+        <div class="answer"><b>Answer:</b> <em>COPY INTO</em> (T-SQL). <em>Why:</em> COPY INTO is a bulk-optimised T-SQL command that reads Parquet directly from ADLS Gen2/OneLake paths into a Warehouse table in parallel without per-row overhead.</div></details>
+        <details class="q"><summary><b>Q3.</b> Which Fabric tool is best suited for a recurring ETL job that must read from an on-premises SQL Server, join with a Lakehouse Delta table, and write the result to another Lakehouse table using complex business logic?</summary>
+        <div class="answer"><b>Answer:</b> A <em>Notebook (PySpark)</em> called from a <em>Pipeline</em>. <em>Why:</em> The pipeline provides scheduling, retries, and the gateway-connected Copy activity to extract from on-premises SQL Server; the notebook handles the complex PySpark join and write logic that goes beyond what a Dataflow Gen2 or simple COPY INTO can express.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/fabric/data-factory/pipeline-copy-activity">Copy activity in Microsoft Fabric pipelines</a></li>
+        <li><a href="https://learn.microsoft.com/fabric/data-engineering/lakehouse-shortcuts">OneLake shortcuts in Microsoft Fabric Lakehouse</a></li>
+        <li><a href="https://learn.microsoft.com/fabric/data-warehouse/ingest-data-copy">Ingest data into Fabric Warehouse using COPY INTO</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.1.4 -->
+    <section class="objective" id="obj-2-1-4" data-skill="choose-data-store">
+      <h3 id="o-2-1-4">2.1.4 Choose between data stores</h3>
+
+      <div class="concept">
+        <p>Fabric surfaces four primary analytical data stores, each optimised for a different workload profile. Choosing incorrectly leads to limitations that cannot be worked around — for example, a Lakehouse SQL analytics endpoint silently blocks DML writes, and an Eventhouse cannot perform row updates. Understanding the architectural contracts of each store is a core exam competency.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Lakehouse</strong> — stores files and Delta tables in OneLake. Accessed via Spark (full read/write) or the auto-generated <em>SQL analytics endpoint</em> (read-only SELECT; CREATE VIEW, FUNCTION, PROCEDURE allowed; no INSERT/UPDATE/DELETE/CREATE TABLE via SQL endpoint). Best for big-data engineering with Spark.</li>
+          <li><strong>Fabric Data Warehouse</strong> — full T-SQL analytical warehouse; supports INSERT, UPDATE, DELETE, MERGE, CREATE TABLE, CTAS, SELECT INTO. Data stored as Delta-Parquet in OneLake. Best for BI teams comfortable with T-SQL who need DML at scale.</li>
+          <li><strong>Eventhouse (KQL database)</strong> — append-optimised columnar store for time-series, logs, and telemetry. Primary query language is KQL. Supports very high ingest throughput and sub-second freshness. Rows cannot be updated or deleted in the standard write path (use update policies or soft delete, not SQL-style UPDATE).</li>
+          <li><strong>SQL database in Fabric</strong> — OLTP/translytical; full SQL Server-compatible DML; automatically replicates to OneLake Delta for analytical queries; designed for row-level transactional workloads, not large analytical scans.</li>
+          <li><strong>Summary rule:</strong> Need UPDATE/MERGE at analytical scale → Warehouse. Need Spark ETL → Lakehouse. Need sub-second time-series streaming ingest + KQL → Eventhouse. Need OLTP row transactions → SQL database.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="store-comparison"></figure>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- Fabric Warehouse: full DML supported
+MERGE INTO dbo.Customer AS target
+USING dbo.CustomerStaging AS src
+  ON target.CustomerKey = src.CustomerKey
+WHEN MATCHED THEN
+  UPDATE SET target.Email = src.Email,
+             target.UpdatedAt = GETDATE()
+WHEN NOT MATCHED BY TARGET THEN
+  INSERT (CustomerKey, Name, Email, CreatedAt)
+  VALUES (src.CustomerKey, src.Name, src.Email, GETDATE());
+
+-- Lakehouse SQL analytics endpoint: DML is NOT supported
+-- The statement below will be REJECTED at the analytics endpoint:
+-- UPDATE dbo.Customer SET Email = 'new@example.com' WHERE CustomerKey = 1;
+</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> The Lakehouse <em>SQL analytics endpoint</em> is read-only. Writing T-SQL INSERT/UPDATE/DELETE/CREATE TABLE statements against it returns an error. If your workflow requires DML via SQL, you must use a Fabric <em>Warehouse</em>.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Lakehouse SQL endpoint: SELECT + DDL for views/functions/procedures = OK. DML (INSERT/UPDATE/DELETE) + CREATE TABLE = blocked.</li>
+          <li>Warehouse stores data in OneLake as Delta-Parquet — both Spark and other engines can read Warehouse tables via shortcuts or SQL analytics endpoint.</li>
+          <li>Eventhouse is the <em>only</em> store with native KQL support; SQL can be used for basic queries but KQL is the primary and more powerful interface.</li>
+          <li>SQL database in Fabric auto-replicates to OneLake, but is intended for small-to-medium OLTP loads — not petabyte analytical workloads.</li>
+          <li>Both Lakehouse and Warehouse expose a SQL analytics endpoint, but only the Warehouse endpoint allows full DML.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A data engineer runs the T-SQL statement <code>INSERT INTO dbo.Orders SELECT * FROM dbo.OrdersStaging</code> against the Lakehouse SQL analytics endpoint. What happens?</summary>
+        <div class="answer"><b>Answer:</b> The statement <em>fails</em> with an error. <em>Why:</em> The Lakehouse SQL analytics endpoint is read-only; INSERT, UPDATE, DELETE, and CREATE TABLE are not supported. The engineer must use a Fabric Data Warehouse for T-SQL DML operations.</div></details>
+        <details class="q"><summary><b>Q2.</b> A team ingests millions of IoT sensor events per minute and needs KQL-based time-series analysis with sub-second freshness. Which Fabric data store is the best fit?</summary>
+        <div class="answer"><b>Answer:</b> <em>Eventhouse (KQL database)</em>. <em>Why:</em> Eventhouse is purpose-built for high-throughput append-only streaming ingest and KQL-based time-series analysis. SQL databases and Data Warehouses are not optimised for sub-second streaming.</div></details>
+        <details class="q"><summary><b>Q3.</b> A BI team wants to use T-SQL MERGE to implement SCD Type 2 updates on a dimension table. Which Fabric store should they use?</summary>
+        <div class="answer"><b>Answer:</b> <em>Fabric Data Warehouse</em>. <em>Why:</em> MERGE is a DML operation that requires write access. The Fabric Data Warehouse supports full T-SQL DML including MERGE; the Lakehouse SQL analytics endpoint does not.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/fabric/get-started/decision-guide-data-store">Microsoft Fabric decision guide: choose a data store</a></li>
+        <li><a href="https://learn.microsoft.com/fabric/data-warehouse/sql-analytics-endpoint">SQL analytics endpoint for Fabric Lakehouse</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.1.5 -->
+    <section class="objective" id="obj-2-1-5" data-skill="onelake-integration">
+      <h3 id="o-2-1-5">2.1.5 OneLake integration for Eventhouse and semantic models</h3>
+
+      <div class="concept">
+        <p>OneLake is Fabric's unified storage layer — a single logical data lake for the entire organisation, backed by ADLS Gen2 and accessible via DFS endpoint. All Fabric compute engines read from and write to OneLake, giving analytical items a shared physical foundation. Two items that require special understanding are Eventhouse and semantic models.</p>
+        <p><strong>Eventhouse OneLake availability</strong> lets KQL database data be mirrored to OneLake as Delta-Parquet, making it queryable by Spark, Warehouse, and other engines without an Eventstream pipeline. <strong>Direct Lake</strong> is the semantic model storage mode in which Power BI reads Parquet files directly from OneLake rather than importing data into memory or relying on DirectQuery — combining the freshness of DirectQuery with near-Import query performance.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>OneLake availability for Eventhouse</strong> — enable per-table in the KQL database properties; tables are materialised as Delta-Parquet in OneLake; latency is typically minutes after ingestion.</li>
+          <li>Once enabled, Eventhouse data appears as Delta tables under the Lakehouse Files path and can be queried from Spark notebooks or the Lakehouse SQL analytics endpoint with <em>no data movement</em>.</li>
+          <li><strong>Direct Lake mode</strong> — semantic model reads Delta-Parquet files from OneLake (Lakehouse or Warehouse) directly into columnar memory; no import copy or DirectQuery per-query round-trips.</li>
+          <li>Direct Lake has a <em>framing</em> concept: the model frame is anchored to a specific Delta checkpoint (v-order); a refresh operation advances the frame to the latest Delta version, making new data visible.</li>
+          <li>Direct Lake falls back to DirectQuery automatically when the data volume exceeds capacity limits (parquet file row count or column cardinality thresholds).</li>
+          <li>OneLake paths follow the pattern <code>onelake://&lt;workspace&gt;/&lt;item&gt;.Lakehouse/Tables/&lt;tablename&gt;</code>; ADLS Gen2 DFS URL: <code>https://onelake.dfs.fabric.microsoft.com/&lt;workspace-id&gt;/...</code>.</li>
+          <li>Fabric Mirroring (for Azure SQL, Snowflake, Cosmos DB) also replicates data to OneLake as Delta-Parquet, enabling the same cross-engine access pattern as Eventhouse OneLake availability.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="direct-lake-arch"></figure>
+
+      <div class="callout key">
+        <b>Key:</b> Direct Lake is a semantic model <em>storage mode</em>, not an ingestion tool. It does not move or transform data — it reads existing Delta files in OneLake and requires no scheduled import refresh for data freshness (only a frame-advance refresh).
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Direct Lake fallback to DirectQuery happens automatically when parquet capacity limits are hit — the user sees slower queries but no errors.</li>
+          <li>Enabling OneLake availability for Eventhouse does <em>not</em> make Eventhouse writable from Spark; it is a one-direction mirror (KQL → Delta).</li>
+          <li>A Direct Lake semantic model does <em>not</em> need an import refresh to see new Lakehouse data — but it does need a <em>frame refresh</em> to advance the Delta checkpoint pointer.</li>
+          <li>OneLake exposes an ADLS Gen2 DFS endpoint, so any tool compatible with ADLS Gen2 (ADF, Synapse, external Spark clusters, local storage explorer) can read Fabric data.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A data engineer enables OneLake availability for an Eventhouse KQL database table. What happens to that data?</summary>
+        <div class="answer"><b>Answer:</b> The table is mirrored to OneLake as Delta-Parquet and becomes queryable by Spark, the Lakehouse SQL analytics endpoint, and other Fabric engines. <em>Why:</em> OneLake availability exposes KQL table data as Delta files in OneLake without copying it to a separate Lakehouse item.</div></details>
+        <details class="q"><summary><b>Q2.</b> A Power BI semantic model in Direct Lake mode begins returning slower query responses than normal. No model changes were made. What is the most likely cause?</summary>
+        <div class="answer"><b>Answer:</b> The model has <em>fallen back to DirectQuery</em> because the data volume exceeded the capacity parquet limits. <em>Why:</em> Direct Lake automatically falls back to DirectQuery when column cardinality or row thresholds are breached, resulting in slower per-query SQL round-trips to the underlying store.</div></details>
+        <details class="q"><summary><b>Q3.</b> Which statement correctly describes the relationship between a Direct Lake semantic model and its underlying Lakehouse Delta table?</summary>
+        <div class="answer"><b>Answer:</b> The semantic model reads Delta-Parquet files directly from OneLake without importing data into memory or issuing per-query SQL. New data written to the Delta table is only visible to the model after a <em>frame refresh</em> that advances the model's Delta checkpoint pointer.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/fabric/real-time-intelligence/one-lake-availability">OneLake availability for Eventhouse — Microsoft Fabric</a></li>
+        <li><a href="https://learn.microsoft.com/power-bi/enterprise/directlake-overview">Direct Lake overview — Power BI</a></li>
+      </ul></div>
+    </section>
+
+  </section><!-- /sg-2-1 -->
+
+  <!-- ===== 2.2 Transform data ===== -->
+  <section class="skillgroup" id="sg-2-2">
+    <h2 id="g-2-2">2.2 Transform data</h2>
+
+    <!-- 2.2.1 -->
+    <section class="objective" id="obj-2-2-1" data-skill="tsql-objects">
+      <h3 id="o-2-2-1">2.2.1 Create views, functions, and stored procedures (T-SQL)</h3>
+
+      <div class="concept">
+        <p>Fabric Warehouse supports the full set of T-SQL persistent database objects: <strong>views</strong> (named SELECT statements), <strong>user-defined functions</strong> (scalar and table-valued), and <strong>stored procedures</strong> (parameterised T-SQL programs). These objects encapsulate business logic, simplify report queries, and reduce duplicated code across notebooks and Dataflows.</p>
+        <p>The <strong>Lakehouse SQL analytics endpoint</strong> also allows CREATE VIEW, CREATE FUNCTION, and CREATE PROCEDURE — but it does <em>not</em> allow DML. Views created at the analytics endpoint are read-only projections over the underlying Delta tables.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Views</strong> — virtualise a SELECT; no data stored; reflect current table state at query time; support SELECT, JOIN, WHERE, GROUP BY, subqueries, CTEs.</li>
+          <li><strong>Inline table-valued functions (iTVF)</strong> — parameterised views; return a table; can be used in FROM clause; support predicate push-down (query folding from Dataflows).</li>
+          <li><strong>Scalar functions</strong> — return a single value; useful in computed columns or expressions; may reduce query performance if applied row-by-row.</li>
+          <li><strong>Stored procedures</strong> — T-SQL programs; support parameters (IN), conditional logic (IF/ELSE), loops, transactions, and error handling (TRY/CATCH); return result sets or output parameters.</li>
+          <li>Objects created at the Lakehouse SQL analytics endpoint are <em>not</em> visible from Spark — they live in the analytics-endpoint SQL catalog only.</li>
+          <li>Fabric Warehouse does not currently support EXECUTE AS OWNER or cross-database queries within the same warehouse SQL endpoint.</li>
+          <li>Schemas (CREATE SCHEMA) are supported and recommended to organise objects: <code>dbo</code> for core tables, <code>rpt</code> for report views, <code>etl</code> for staging objects.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="persistent-objects"></figure>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- Create a schema for report objects
+CREATE SCHEMA rpt;
+GO
+
+-- Create a view that joins fact and dimension
+CREATE OR ALTER VIEW rpt.vSalesByProduct AS
+SELECT
+    p.ProductName,
+    p.CategoryName,
+    SUM(f.SalesAmount)  AS TotalSales,
+    COUNT(f.OrderID)    AS OrderCount
+FROM dbo.SalesFact      AS f
+JOIN dbo.DimProduct     AS p ON f.ProductKey = p.ProductKey
+WHERE f.SalesAmount &gt; 0
+GROUP BY p.ProductName, p.CategoryName;
+GO
+
+-- Inline table-valued function (parameterised view)
+CREATE OR ALTER FUNCTION dbo.fnSalesByRegion
+    (@Region NVARCHAR(50))
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT f.OrderID, f.SalesAmount, d.RegionName
+    FROM   dbo.SalesFact   f
+    JOIN   dbo.DimGeography d ON f.GeographyKey = d.GeographyKey
+    WHERE  d.RegionName = @Region
+);
+GO
+
+-- Simple stored procedure with error handling
+CREATE OR ALTER PROCEDURE dbo.uspRefreshSalesSummary
+    @LoadDate DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        DELETE FROM dbo.SalesSummary WHERE SaleDate = @LoadDate;
+        INSERT INTO dbo.SalesSummary (SaleDate, TotalSales)
+        SELECT SaleDate, SUM(SalesAmount)
+        FROM   dbo.SalesFact
+        WHERE  SaleDate = @LoadDate
+        GROUP BY SaleDate;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH;
+END;
+GO
+</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Views and functions can be created at the Lakehouse SQL analytics endpoint, but DML inside them (INSERT/UPDATE) is blocked.</li>
+          <li><code>CREATE OR ALTER</code> is the preferred idempotent syntax in Fabric Warehouse — avoids DROP/CREATE pairs that break dependent objects.</li>
+          <li>Inline TVFs support query folding from Dataflows Gen2 (the WHERE predicate on the TVF is pushed to the source); scalar functions do not fold.</li>
+          <li>Stored procedures are <em>not</em> supported as a Direct Lake data source — they must be called from a pipeline activity or a Dataflow's "invoke stored procedure" step.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A Dataflow Gen2 is configured to read from an iTVF in a Fabric Warehouse and filter on a date parameter. A data engineer wants to ensure the filter is applied at the Warehouse rather than in the Dataflow engine. What must be true for query folding to occur?</summary>
+        <div class="answer"><b>Answer:</b> The Dataflow must connect to the Warehouse SQL endpoint via a <em>foldable connector</em> (e.g., SQL Server connector), and the filter step must be expressible as a WHERE clause compatible with the source SQL dialect. Inline TVFs support predicate push-down, so folding will occur as long as the connector supports it.</div></details>
+        <details class="q"><summary><b>Q2.</b> A data engineer creates a view at the Lakehouse SQL analytics endpoint that performs a JOIN between two Delta tables. Another engineer tries to query the view from a PySpark notebook. What is the result?</summary>
+        <div class="answer"><b>Answer:</b> The query fails — or returns an error that the view is not found. <em>Why:</em> Views created at the SQL analytics endpoint exist only in the analytics-endpoint SQL catalog; they are not registered as Delta tables in the Lakehouse metastore and are not visible to Spark.</div></details>
+        <details class="q"><summary><b>Q3.</b> Why should a Fabric Warehouse developer prefer <code>CREATE OR ALTER VIEW</code> over <code>DROP VIEW IF EXISTS; CREATE VIEW</code>?</summary>
+        <div class="answer"><b>Answer:</b> <code>CREATE OR ALTER</code> is atomic and preserves permissions on the existing object. DROP followed by CREATE breaks the permission chain — any GRANT on the old view object must be re-applied after re-creation.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/fabric/data-warehouse/create-views">Create views in Fabric Data Warehouse</a></li>
+        <li><a href="https://learn.microsoft.com/fabric/data-warehouse/functions">User-defined functions in Fabric Data Warehouse</a></li>
+        <li><a href="https://learn.microsoft.com/fabric/data-warehouse/stored-procedures">Stored procedures in Fabric Data Warehouse</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.2.2 -->
+    <section class="objective" id="obj-2-2-2" data-skill="enrich-data">
+      <h3 id="o-2-2-2">2.2.2 Enrich data (add columns and tables)</h3>
+
+      <div class="concept">
+        <p>Data enrichment adds computed columns, derived attributes, or reference data that are not in the source but increase analytical value. In Fabric, enrichment happens in three common layers: T-SQL computed columns or ALTER TABLE ADD COLUMN in the Warehouse, PySpark <code>withColumn</code> transforms in notebooks, and Power Query M column-addition steps in Dataflows Gen2.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>T-SQL</strong> — <code>ALTER TABLE … ADD column AS expression</code> persisted computed columns; or add a regular column and populate with UPDATE. Computed columns referencing other columns are evaluated at query time.</li>
+          <li><strong>PySpark withColumn</strong> — adds a new column from an expression; non-destructive (existing columns are kept); chained calls are lazy-evaluated and optimised by Spark.</li>
+          <li><strong>Power Query M</strong> — <code>Table.AddColumn(table, "NewCol", each [OldCol] * 1.1)</code> adds a computed column; evaluated in-engine unless the connector folds it back to the source.</li>
+          <li><strong>Adding a reference/lookup table</strong> — import a small CSV or call an API in a pipeline → load to Lakehouse → join in Spark or Warehouse. Common pattern: postal code → territory mapping table enriching orders.</li>
+          <li>Enrichment columns should be added in the Silver or Gold layer, not Bronze — Bronze is the raw landing zone and should mirror the source structure.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-python"># PySpark: enrich with computed columns
+from pyspark.sql import functions as F
+
+df_enriched = (df_orders
+    .withColumn("ProfitMargin",
+        F.round((F.col("Revenue") - F.col("Cost")) / F.col("Revenue"), 4))
+    .withColumn("OrderYear",  F.year("OrderDate"))
+    .withColumn("OrderMonth", F.month("OrderDate"))
+    .withColumn("IsHighValue", (F.col("Revenue") &gt; 10000).cast("boolean"))
+)
+df_enriched.write.format("delta").mode("overwrite").option("overwriteSchema","true") \
+    .saveAsTable("gold.OrdersEnriched")
+</code></pre>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- T-SQL: enrich via computed column (Fabric Warehouse)
+ALTER TABLE dbo.SalesFact
+    ADD GrossProfit AS (SalesAmount - CostAmount);
+
+-- T-SQL: add regular column, then populate from lookup join
+ALTER TABLE dbo.SalesFact ADD TerritoryName NVARCHAR(100);
+UPDATE f
+SET    f.TerritoryName = t.TerritoryName
+FROM   dbo.SalesFact   f
+JOIN   dbo.DimTerritory t ON f.TerritoryKey = t.TerritoryKey;
+</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Computed columns in T-SQL are evaluated at query time and cannot be directly indexed (non-persisted). Use persisted computed columns (<code>AS expression PERSISTED</code>) to make them indexable.</li>
+          <li>PySpark <code>withColumn</code> is lazy — it does not execute until an action (write, show, count) is triggered.</li>
+          <li>Power Query <code>Table.AddColumn</code> may fold to the source SQL if the expression is simple (arithmetic, string concat); complex expressions (regex, custom M functions) prevent folding.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A data engineer adds a column <code>ProfitMargin</code> to a Lakehouse Delta table using PySpark <code>withColumn</code>. Nothing is written to storage. What must the engineer do to persist the result?</summary>
+        <div class="answer"><b>Answer:</b> Call a write action such as <code>df.write.format("delta").mode("overwrite").saveAsTable(...)</code>. <em>Why:</em> PySpark transformations are lazy; <code>withColumn</code> only defines the transformation plan. No data is written until an action triggers execution.</div></details>
+        <details class="q"><summary><b>Q2.</b> A Dataflow Gen2 uses <code>Table.AddColumn</code> to compute the ratio of two columns already present in a SQL Server source table. Will this step fold?</summary>
+        <div class="answer"><b>Answer:</b> Yes, <em>if</em> the SQL Server connector supports folding for arithmetic expressions — which it does. The Dataflow engine translates the column addition to a SQL <code>SELECT col1 / col2 AS Ratio</code> expression pushed to SQL Server, avoiding loading all rows into the Dataflow engine.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/fabric/data-engineering/author-execute-notebook">Author and run notebooks in Microsoft Fabric</a></li>
+        <li><a href="https://learn.microsoft.com/powerquery-m/table-addcolumn">Table.AddColumn — Power Query M reference</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.2.3 -->
+    <section class="objective" id="obj-2-2-3" data-skill="star-schema">
+      <h3 id="o-2-2-3">2.2.3 Implement a star schema</h3>
+
+      <div class="concept">
+        <p>A <strong>star schema</strong> organises analytical data into one or more central <strong>fact tables</strong> surrounded by <strong>dimension tables</strong>, connected by foreign-key relationships. It is the standard design for the Gold layer of a Fabric lakehouse or warehouse because it simplifies DAX, reduces join complexity for report tools, and leverages VertiPaq compression efficiently in semantic models.</p>
+        <p>The schema name derives from its visual appearance: the fact table at the center with dimension tables radiating outward like star points. Choosing the right fact type and dimension patterns is a primary exam topic.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Grain</strong> — the level of detail of one row in the fact table (e.g., one row per product per store per day). All measures in the fact must be consistent with the declared grain. Adding columns at a finer grain than declared corrupts the grain.</li>
+          <li><strong>Fact types:</strong>
+            <ul>
+              <li><em>Transaction fact</em> — one row per business event (sale, click, call); sparse; most common.</li>
+              <li><em>Periodic snapshot fact</em> — one row per period per entity (e.g., daily account balance); dense; period inserted even when no transaction occurred.</li>
+              <li><em>Accumulating snapshot fact</em> — one row per process instance that is <em>updated</em> as the process advances through lifecycle milestones (e.g., order → pick → ship → deliver); contains multiple date-FK columns for each milestone.</li>
+            </ul>
+          </li>
+          <li><strong>Surrogate key</strong> — integer key generated by the warehouse (IDENTITY or sequence), not from the source system; insulates the warehouse from source key changes and enables SCD history rows.</li>
+          <li><strong>Conformed dimension</strong> — shared across multiple fact tables (e.g., DimDate used by both SalesFact and InventoryFact); enables cross-subject-area drill and consistent filtering.</li>
+          <li><strong>Role-playing dimension</strong> — a single physical dimension table used multiple times in the same fact table for different date roles (e.g., DimDate used as OrderDate, ShipDate, DueDate); implemented in the semantic model as inactive relationships activated with USERELATIONSHIP().</li>
+          <li><strong>SCD Type 1</strong> — overwrite old value; no history kept; simpler; use when historical attribute is irrelevant (e.g., correcting a typo in a name).</li>
+          <li><strong>SCD Type 2</strong> — add new row with new surrogate key; old row marked inactive (IsCurrent = 0, ExpiredDate = &lt;date&gt;); preserves history; requires surrogate key design; most common for name/address changes.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="star-schema"></figure>
+      <figure class="diagram" data-svg="scd-types"></figure>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- Create DimProduct with surrogate key and SCD columns
+CREATE TABLE dbo.DimProduct (
+    ProductKey      INT IDENTITY(1,1) PRIMARY KEY,  -- surrogate key
+    ProductID       NVARCHAR(20)  NOT NULL,           -- natural/business key
+    ProductName     NVARCHAR(200) NOT NULL,
+    CategoryName    NVARCHAR(100),
+    UnitCost        DECIMAL(10,2),
+    -- SCD Type 2 columns
+    EffectiveDate   DATE NOT NULL,
+    ExpiryDate      DATE NULL,       -- NULL = current row
+    IsCurrent       BIT  NOT NULL DEFAULT 1
+);
+
+-- SCD Type 2 MERGE: expire old row, insert new row
+MERGE INTO dbo.DimProduct AS tgt
+USING (
+    SELECT ProductID, ProductName, CategoryName, UnitCost
+    FROM   stg.ProductStaging
+) AS src ON tgt.ProductID = src.ProductID AND tgt.IsCurrent = 1
+WHEN MATCHED AND (
+        tgt.ProductName  &lt;&gt; src.ProductName   OR
+        tgt.CategoryName &lt;&gt; src.CategoryName  OR
+        tgt.UnitCost     &lt;&gt; src.UnitCost
+) THEN
+    UPDATE SET tgt.IsCurrent   = 0,
+               tgt.ExpiryDate  = CAST(GETDATE() AS DATE)
+WHEN NOT MATCHED BY TARGET THEN
+    INSERT (ProductID, ProductName, CategoryName, UnitCost,
+            EffectiveDate, ExpiryDate, IsCurrent)
+    VALUES (src.ProductID, src.ProductName, src.CategoryName,
+            src.UnitCost, CAST(GETDATE() AS DATE), NULL, 1);
+
+-- After expiring old rows, INSERT new versions (for changed rows)
+INSERT INTO dbo.DimProduct
+    (ProductID, ProductName, CategoryName, UnitCost,
+     EffectiveDate, ExpiryDate, IsCurrent)
+SELECT src.ProductID, src.ProductName, src.CategoryName, src.UnitCost,
+       CAST(GETDATE() AS DATE), NULL, 1
+FROM   stg.ProductStaging src
+JOIN   dbo.DimProduct      tgt
+    ON  tgt.ProductID = src.ProductID AND tgt.IsCurrent = 0
+    AND tgt.ExpiryDate = CAST(GETDATE() AS DATE); -- just expired today
+</code></pre>
+      </div>
+
+      <div class="callout key">
+        <b>Key:</b> Accumulating snapshot facts contain <em>multiple foreign keys to the same dimension</em> (e.g., OrderDateKey, ShipDateKey, DeliveryDateKey — all pointing to DimDate). When implemented in a semantic model, each becomes a separate relationship, with only one active at a time.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>SCD Type 1 = overwrite (simpler, no history). SCD Type 2 = insert new row (history preserved, surrogate key required).</li>
+          <li>Grain must be declared before choosing measures — a "unit price" column at transaction grain is valid; including both transaction-level and period-snapshot measures in the same fact table violates grain consistency.</li>
+          <li>Surrogate key must be generated by the warehouse (IDENTITY), not sourced from the source system — source natural keys can change or be reused.</li>
+          <li>Role-playing dimensions: only one relationship between fact and dimension can be active in a semantic model at a time; the others must use USERELATIONSHIP() in DAX measures.</li>
+          <li>Periodic snapshot facts should include rows for <em>every period</em> even when no activity occurred — otherwise NULL gaps in time-intelligence calculations.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A fact table contains one row per product per store per day recording closing inventory level, including days when no sales occurred. What type of fact table is this?</summary>
+        <div class="answer"><b>Answer:</b> <em>Periodic snapshot</em>. <em>Why:</em> A periodic snapshot captures the state at the end of each regular period (day, week, month) for every entity — rows exist for every period regardless of whether a transaction occurred. A transaction fact would only have rows when events happen.</div></details>
+        <details class="q"><summary><b>Q2.</b> A dimension table for Customer is used in both SalesFact and ServiceRequestFact. When the filter on Customer is applied in a report, it automatically filters both facts. What dimension pattern does this describe?</summary>
+        <div class="answer"><b>Answer:</b> <em>Conformed dimension</em>. <em>Why:</em> A conformed dimension has the same keys and attributes across multiple fact tables, enabling consistent cross-subject filtering and drill-through in a single semantic model.</div></details>
+        <details class="q"><summary><b>Q3.</b> A product changes its name but keeps the same ProductID. The team needs to analyse historical sales under the old name and future sales under the new name. Which SCD type should be implemented?</summary>
+        <div class="answer"><b>Answer:</b> <em>SCD Type 2</em>. <em>Why:</em> Type 2 preserves both old and new attribute values as separate rows with different surrogate keys and effective/expiry dates. Historical sales facts pointing to the old surrogate key will correctly resolve to the old name; new sales get the new row's surrogate key.</div></details>
+        <details class="q"><summary><b>Q4.</b> An order tracking fact table records OrderDateKey, PickDateKey, ShipDateKey, and DeliveryDateKey — all foreign keys to DimDate. What fact type is this, and what challenge does it create in a semantic model?</summary>
+        <div class="answer"><b>Answer:</b> <em>Accumulating snapshot fact</em>. <em>Challenge:</em> A semantic model can only have <em>one active relationship</em> between the fact and DimDate at a time. The other three date relationships must be marked inactive and activated with <code>USERELATIONSHIP()</code> inside DAX measures.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/power-bi/guidance/star-schema">Understand star schema and the importance for Power BI</a></li>
+        <li><a href="https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview">Dimensional modeling overview in Fabric Warehouse</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.2.4 -->
+    <section class="objective" id="obj-2-2-4" data-skill="denormalize">
+      <h3 id="o-2-2-4">2.2.4 Denormalize data</h3>
+
+      <div class="concept">
+        <p>Denormalization intentionally relaxes third-normal-form (3NF) rules by merging related tables or pre-computing derived attributes into a single wider table. The goal is to reduce JOIN complexity at query time, which improves report performance at the cost of storage redundancy. In a Fabric Lakehouse or Warehouse Gold layer, denormalized tables are common inputs for Direct Lake semantic models or flat Power BI reports.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Wide table / flattened fact</strong> — combines columns from fact and all related dimensions into one table; eliminates JOIN at query time; increases row width and storage, reduces query latency.</li>
+          <li><strong>Pre-aggregated summary table</strong> — stores GROUP BY results; fastest query; must be refreshed on a schedule; risk of stale data.</li>
+          <li><strong>Trade-offs:</strong> denormalization reduces query complexity but increases data duplication; update anomalies must be managed by rebuilding or MERGE-updating the denormalised table.</li>
+          <li>In Fabric, CTAS (CREATE TABLE AS SELECT) and SELECT INTO are the T-SQL patterns for creating a denormalised snapshot table from a multi-table JOIN.</li>
+          <li>PySpark equivalent: <code>df_fact.join(df_dim, key).write.format("delta").saveAsTable("gold.WideSales")</code>.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- Fabric Warehouse: create a denormalised wide table (CTAS pattern)
+CREATE TABLE gold.WideSalesFact
+AS
+SELECT
+    f.OrderID,
+    f.OrderDate,
+    f.SalesAmount,
+    f.Quantity,
+    p.ProductName,
+    p.CategoryName,
+    c.CustomerName,
+    c.CountryRegion,
+    d.CalendarYear,
+    d.MonthName
+FROM dbo.SalesFact      f
+JOIN dbo.DimProduct     p ON f.ProductKey   = p.ProductKey
+JOIN dbo.DimCustomer    c ON f.CustomerKey  = c.CustomerKey
+JOIN dbo.DimDate        d ON f.DateKey      = d.DateKey;
+</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Denormalization trades storage space for query speed — always valid in analytical (OLAP) scenarios; never appropriate for OLTP writes (update anomalies).</li>
+          <li>A denormalised table must be <em>rebuilt or merged</em> whenever source dimension attributes change (e.g., product name changes); it does not stay in sync automatically.</li>
+          <li>CTAS in Fabric Warehouse (<code>CREATE TABLE … AS SELECT</code>) creates and populates a table in one statement — equivalent to INSERT … SELECT but also creates the table.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A reporting team complains that their Power BI report is slow because it must JOIN five dimension tables at runtime. A data engineer creates a denormalised wide table that pre-joins all dimensions. What is the primary trade-off?</summary>
+        <div class="answer"><b>Answer:</b> <em>Increased storage and risk of stale data</em>. The wide table stores attribute values redundantly for every row (e.g., ProductName repeated for every sale). If a product name changes, the wide table must be rebuilt or updated; it does not reflect source changes automatically.</div></details>
+        <details class="q"><summary><b>Q2.</b> Which T-SQL statement creates a new denormalised Fabric Warehouse table and populates it in a single operation?</summary>
+        <div class="answer"><b>Answer:</b> <em>CTAS — <code>CREATE TABLE … AS SELECT</code></em>. This is the Fabric Warehouse equivalent of a "create-and-fill" operation; it combines table creation with a SELECT query into one atomic step.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/power-bi/guidance/star-schema#denormalize-to-improve-performance">Denormalization guidance for Power BI star schema</a></li>
+        <li><a href="https://learn.microsoft.com/fabric/data-warehouse/create-table">CREATE TABLE in Fabric Data Warehouse</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.2.5 -->
+    <section class="objective" id="obj-2-2-5" data-skill="aggregate">
+      <h3 id="o-2-2-5">2.2.5 Aggregate data</h3>
+
+      <div class="concept">
+        <p>Aggregation summarises detailed data to a coarser grain using functions such as SUM, COUNT, AVG, MIN, MAX. In Fabric, aggregations are performed in T-SQL (GROUP BY with aggregate functions), PySpark (groupBy + agg), Power Query M (Table.Group), and KQL (summarize). Window functions extend aggregation by computing values within a partition without collapsing rows.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>T-SQL GROUP BY</strong> — every non-aggregate SELECT column must appear in GROUP BY; filter aggregates with HAVING (not WHERE); use ROLLUP for hierarchical subtotals, CUBE for all combinations.</li>
+          <li><strong>Window functions</strong> — <code>SUM() OVER (PARTITION BY … ORDER BY … ROWS …)</code>; returns one row per input row (no collapsing); ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD, FIRST_VALUE, LAST_VALUE; highly optimised in Fabric Warehouse.</li>
+          <li><strong>PySpark groupBy.agg</strong> — <code>df.groupBy("col").agg(F.sum("amount"), F.count("*"))</code>; equivalent to GROUP BY; result is a new DataFrame.</li>
+          <li><strong>Power Query Table.Group</strong> — <code>Table.Group(table, {"Key"}, {{"Total", each List.Sum([Amount]), type number}})</code>; folds to source GROUP BY when the connector supports it.</li>
+          <li><strong>Aggregation tables</strong> in Power BI — pre-aggregated summary tables that Power BI automatically uses for high-level queries, falling back to detail tables for fine-grain queries.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- T-SQL: GROUP BY with HAVING and ROLLUP
+SELECT
+    p.CategoryName,
+    p.ProductName,
+    SUM(f.SalesAmount) AS TotalSales,
+    COUNT(DISTINCT f.OrderID) AS Orders
+FROM dbo.SalesFact  f
+JOIN dbo.DimProduct p ON f.ProductKey = p.ProductKey
+GROUP BY ROLLUP(p.CategoryName, p.ProductName)
+HAVING SUM(f.SalesAmount) &gt; 1000
+ORDER BY p.CategoryName, p.ProductName;
+
+-- Window function: running total and rank within category
+SELECT
+    ProductName,
+    CategoryName,
+    SalesAmount,
+    SUM(SalesAmount) OVER (PARTITION BY CategoryName
+                           ORDER BY SaleDate
+                           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
+                           AS RunningTotal,
+    RANK() OVER (PARTITION BY CategoryName ORDER BY SalesAmount DESC) AS SalesRank
+FROM dbo.SalesFact
+JOIN dbo.DimProduct ON SalesFact.ProductKey = DimProduct.ProductKey;
+</code></pre>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-python"># PySpark: groupBy aggregation and window functions
+from pyspark.sql import functions as F
+from pyspark.sql.window import Window
+
+# Basic aggregation
+df_summary = (df_sales
+    .groupBy("CategoryName", "ProductName")
+    .agg(
+        F.sum("SalesAmount").alias("TotalSales"),
+        F.countDistinct("OrderID").alias("Orders"),
+        F.avg("SalesAmount").alias("AvgSale")
+    )
+    .filter(F.col("TotalSales") &gt; 1000)
+)
+
+# Window function: running total per category
+window_spec = Window.partitionBy("CategoryName").orderBy("SaleDate") \
+    .rowsBetween(Window.unboundedPreceding, Window.currentRow)
+df_running = df_sales.withColumn(
+    "RunningTotal", F.sum("SalesAmount").over(window_spec)
+)
+</code></pre>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-m">// Power Query M: Table.Group aggregation
+let
+    Source = SalesFact,
+    Grouped = Table.Group(
+        Source,
+        {"CategoryName"},
+        {
+          {"TotalSales",  each List.Sum([SalesAmount]),    type number},
+          {"OrderCount",  each Table.RowCount(_),          type number},
+          {"AvgSale",     each List.Average([SalesAmount]),type number}
+        }
+    )
+in
+    Grouped
+</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>HAVING filters on aggregated values; WHERE filters on row values before aggregation — they are not interchangeable.</li>
+          <li>Window functions do not reduce row count — the original rows are preserved with the computed window value added. Use GROUP BY to collapse rows.</li>
+          <li>PySpark <code>groupBy.agg</code> is lazy; use <code>.write</code> or <code>.show</code> to trigger execution.</li>
+          <li><code>Table.Group</code> in Power Query M will fold to source GROUP BY SQL if the source connector supports it; complex aggregation functions prevent folding.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A T-SQL query uses GROUP BY CategoryName and includes a column ProductName in the SELECT list that is not in GROUP BY. What is the result?</summary>
+        <div class="answer"><b>Answer:</b> A <em>syntax error</em> — "Column 'ProductName' is invalid in the select list because it is not contained in either an aggregate function or the GROUP BY clause." Every non-aggregated SELECT column must appear in GROUP BY.</div></details>
+        <details class="q"><summary><b>Q2.</b> A report needs to show each sale row alongside a running total of sales for the same product category, without removing any detail rows. Which T-SQL feature is most appropriate?</summary>
+        <div class="answer"><b>Answer:</b> A <em>window function</em> — <code>SUM(SalesAmount) OVER (PARTITION BY CategoryName ORDER BY SaleDate ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)</code>. Window functions compute per-row aggregates without collapsing rows.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/fabric/data-warehouse/query">Query data in Fabric Data Warehouse (GROUP BY, window functions)</a></li>
+        <li><a href="https://learn.microsoft.com/powerquery-m/table-group">Table.Group — Power Query M reference</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.2.6 -->
+    <section class="objective" id="obj-2-2-6" data-skill="merge-join">
+      <h3 id="o-2-2-6">2.2.6 Merge and join data</h3>
+
+      <div class="concept">
+        <p>Join operations combine rows from two or more tables based on a matching key. In Fabric, joins are performed via T-SQL (INNER/LEFT/RIGHT/FULL OUTER JOIN, CROSS JOIN), PySpark DataFrame join API, and Power Query M (Table.Join / merge queries). The T-SQL MERGE statement extends this to a combined INSERT/UPDATE/DELETE upsert in a single pass, which is critical for dimension loading and incremental ETL.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>INNER JOIN</strong> — returns only rows where the key exists in both tables; rows with no match in either table are excluded.</li>
+          <li><strong>LEFT OUTER JOIN</strong> — all rows from the left table; NULL for right-table columns when no match; used for "show all customers including those with no orders".</li>
+          <li><strong>FULL OUTER JOIN</strong> — all rows from both tables; NULLs on either side when no match; useful for reconciliation.</li>
+          <li><strong>CROSS JOIN</strong> — Cartesian product (every row of left × every row of right); no ON clause; use deliberately for calendar/product grid generation.</li>
+          <li><strong>MERGE (upsert)</strong> — matches source to target; WHEN MATCHED → UPDATE; WHEN NOT MATCHED BY TARGET → INSERT; WHEN NOT MATCHED BY SOURCE → DELETE (soft-deletes pattern). Single-pass over target table.</li>
+          <li><strong>PySpark join types:</strong> <code>inner</code>, <code>left</code>, <code>right</code>, <code>full</code>, <code>left_semi</code> (like INNER but returns only left columns), <code>left_anti</code> (rows in left with no match on right).</li>
+          <li>Power Query <em>merge queries</em> — visual LEFT/INNER/RIGHT/FULL/LEFT ANTI/RIGHT ANTI join; folds to SQL JOIN if source supports it.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- T-SQL: LEFT JOIN with NULL handling
+SELECT
+    c.CustomerName,
+    c.Email,
+    COALESCE(SUM(f.SalesAmount), 0) AS LifetimeSales
+FROM dbo.DimCustomer c
+LEFT JOIN dbo.SalesFact f ON c.CustomerKey = f.CustomerKey
+GROUP BY c.CustomerName, c.Email
+ORDER BY LifetimeSales DESC;
+
+-- T-SQL: MERGE upsert pattern (incremental load)
+MERGE INTO dbo.DimCustomer AS tgt
+USING stg.CustomerStaging  AS src
+    ON tgt.CustomerID = src.CustomerID
+WHEN MATCHED AND (
+    tgt.Email &lt;&gt; src.Email OR tgt.Phone &lt;&gt; src.Phone
+) THEN
+    UPDATE SET tgt.Email       = src.Email,
+               tgt.Phone       = src.Phone,
+               tgt.UpdatedDate = GETDATE()
+WHEN NOT MATCHED BY TARGET THEN
+    INSERT (CustomerID, CustomerName, Email, Phone, CreatedDate)
+    VALUES (src.CustomerID, src.CustomerName, src.Email,
+            src.Phone, GETDATE());
+</code></pre>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-python"># PySpark: join types and left-anti for orphan detection
+df_sales    = spark.table("silver.SalesFact")
+df_customer = spark.table("silver.DimCustomer")
+
+# INNER join: only matched rows
+df_inner = df_sales.join(df_customer, "CustomerKey", "inner")
+
+# LEFT join: all sales, NULL customer attributes if unmatched
+df_left = df_sales.join(df_customer, "CustomerKey", "left")
+
+# LEFT ANTI join: sales with no matching customer (data quality check)
+df_orphans = df_sales.join(df_customer, "CustomerKey", "left_anti")
+df_orphans.write.format("delta").mode("overwrite") \
+    .saveAsTable("dq.OrphanSales")
+</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>MERGE requires the source to produce at most one matching row per target row — if the source has duplicates on the join key, MERGE throws an error. Deduplicate staging before MERGE.</li>
+          <li>PySpark <code>left_semi</code> — returns left rows where a match exists in right, but only left-table columns; equivalent to SQL EXISTS subquery.</li>
+          <li>PySpark <code>left_anti</code> — returns left rows with <em>no</em> match in right; efficient for finding orphaned fact rows (missing dimension key).</li>
+          <li>Power Query merge creates an "expanded" column — you must explicitly choose which right-table columns to expand; unexpanded columns remain as nested Table objects.</li>
+          <li>CROSS JOIN performance: every row combination is produced, so 1,000 left rows × 365 date rows = 365,000 output rows. Always verify intent before using.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A data quality job needs to find all rows in SalesFact that have a CustomerKey value not present in DimCustomer. Which PySpark join type returns exactly these rows?</summary>
+        <div class="answer"><b>Answer:</b> <em>left_anti</em> join. <em>Why:</em> <code>df_sales.join(df_customer, "CustomerKey", "left_anti")</code> returns only the sales rows for which there is no matching CustomerKey in the dimension — exactly the orphaned fact rows.</div></details>
+        <details class="q"><summary><b>Q2.</b> A MERGE statement fails with "The MERGE statement attempted to UPDATE or DELETE the same row more than once." What is the cause and the fix?</summary>
+        <div class="answer"><b>Answer:</b> The source table contains <em>duplicate rows on the join key</em>. MERGE requires each target row to match at most one source row. Fix: deduplicate the source (e.g., <code>SELECT DISTINCT</code> or <code>ROW_NUMBER() OVER (PARTITION BY key) = 1</code>) before the MERGE.</div></details>
+        <details class="q"><summary><b>Q3.</b> A T-SQL query must return all customers <em>and</em> all orders, including customers with no orders and orders with no matching customer. Which JOIN type is required?</summary>
+        <div class="answer"><b>Answer:</b> <em>FULL OUTER JOIN</em>. <em>Why:</em> LEFT JOIN would exclude orders with no customer; RIGHT JOIN would exclude customers with no orders. FULL OUTER JOIN returns all rows from both tables, placing NULLs on whichever side has no match.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/fabric/data-warehouse/merge">MERGE statement in Fabric Data Warehouse</a></li>
+        <li><a href="https://learn.microsoft.com/azure/databricks/spark/latest/spark-sql/language-manual/sql-ref-syntax-qry-select-join">PySpark join types reference</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.2.7 -->
+    <section class="objective" id="obj-2-2-7" data-skill="data-quality">
+      <h3 id="o-2-2-7">2.2.7 Handle duplicates, missing values, and nulls</h3>
+
+      <div class="concept">
+        <p>Real-world source data frequently contains duplicate rows, missing values (empty strings, sentinel values such as -1 or "N/A"), and SQL NULLs. Addressing these in the Silver transformation layer is a fundamental data engineering practice. Fabric supports dedicated operations across T-SQL (ISNULL, COALESCE, NOT EXISTS deduplication), PySpark (dropDuplicates, na.drop, na.fill), and Power Query M (Table.Distinct, Table.FillDown, Table.ReplaceValue).</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>NULL semantics:</strong> Any arithmetic with NULL produces NULL. Any comparison with NULL using = or &lt;&gt; produces UNKNOWN (not TRUE/FALSE) — use IS NULL / IS NOT NULL. COUNT(*) counts all rows; COUNT(column) skips NULLs.</li>
+          <li><strong>ISNULL(expr, replacement)</strong> — SQL Server/Fabric syntax; returns replacement if expr is NULL; limited to two arguments.</li>
+          <li><strong>COALESCE(expr1, expr2, …)</strong> — ANSI SQL; returns the first non-NULL value from the list; preferred when checking multiple fallback values.</li>
+          <li><strong>ROW_NUMBER() deduplication</strong> — assign a row number within a group (PARTITION BY natural key ORDER BY freshness DESC); keep row_num = 1; most flexible dedup pattern in T-SQL.</li>
+          <li><strong>PySpark dropDuplicates([cols])</strong> — removes duplicate rows; optional column list restricts dedup key; whole-row or subset dedup.</li>
+          <li><strong>PySpark na.fill(value, subset=[cols])</strong> — fills NULL with a constant or dict of column→value; <code>na.drop(subset=[cols], thresh=n)</code> removes rows with fewer than n non-null values in the subset.</li>
+          <li><strong>Power Query Table.Distinct([cols])</strong> — removes rows where specified columns are identical; without argument, deduplicates on all columns.</li>
+          <li><strong>Table.FillDown</strong> — propagates last non-null value downward in a column; useful for sparse hierarchical data exports.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- T-SQL: COALESCE and ISNULL for null handling
+SELECT
+    OrderID,
+    COALESCE(ShipCity, BillingCity, 'Unknown') AS City,
+    ISNULL(Discount, 0)                         AS Discount,
+    ISNULL(Notes, '')                            AS Notes
+FROM dbo.Orders;
+
+-- T-SQL: ROW_NUMBER deduplication (keep most recent per OrderID)
+WITH Dedup AS (
+    SELECT *,
+           ROW_NUMBER() OVER (
+               PARTITION BY OrderID
+               ORDER BY LastModifiedDate DESC
+           ) AS RowNum
+    FROM dbo.OrdersStaging
+)
+DELETE FROM Dedup WHERE RowNum &gt; 1;
+
+-- T-SQL: filter out rows where critical column is NULL
+SELECT * FROM dbo.SalesFact
+WHERE CustomerKey IS NOT NULL
+  AND ProductKey  IS NOT NULL;
+</code></pre>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-python"># PySpark: dropDuplicates, na.fill, na.drop
+from pyspark.sql import functions as F
+
+df = spark.table("bronze.RawOrders")
+
+# 1. Remove full-row duplicates
+df_dedup = df.dropDuplicates()
+
+# 2. Remove duplicates on business key, keeping latest
+from pyspark.sql.window import Window
+w = Window.partitionBy("OrderID").orderBy(F.col("LastModifiedDate").desc())
+df_dedup_bk = (df
+    .withColumn("_rn", F.row_number().over(w))
+    .filter(F.col("_rn") == 1)
+    .drop("_rn")
+)
+
+# 3. Fill nulls: constant for numeric, dict for mixed types
+df_filled = df_dedup.na.fill(0, subset=["Discount", "TaxAmount"])
+df_filled = df_filled.na.fill({"ShipCity": "Unknown", "Notes": ""})
+
+# 4. Drop rows missing critical columns
+df_clean = df_filled.na.drop(subset=["OrderID", "CustomerKey", "OrderDate"])
+
+df_clean.write.format("delta").mode("overwrite").saveAsTable("silver.Orders")
+</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>NULL ≠ empty string — <code>WHERE Notes = ''</code> does not catch NULLs; use <code>WHERE Notes IS NULL OR Notes = ''</code>.</li>
+          <li>COALESCE short-circuits evaluation (stops at first non-NULL); ISNULL does not — prefer COALESCE for multiple fallbacks.</li>
+          <li>PySpark <code>dropDuplicates()</code> with no arguments deduplicates on <em>all columns</em> — rows with the same business key but different timestamps will be kept.</li>
+          <li>COUNT(column) vs COUNT(*): COUNT(*) counts all rows including NULLs; COUNT(column) counts only non-NULL values in that column.</li>
+          <li>ROW_NUMBER deduplication in T-SQL inside a CTE can be deleted directly with <code>DELETE FROM cte_name WHERE RowNum &gt; 1</code> — Fabric Warehouse supports this pattern.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A T-SQL query filters rows with <code>WHERE Discount &lt;&gt; 0</code>. A row with Discount = NULL is present. Is it included in the result?</summary>
+        <div class="answer"><b>Answer:</b> <em>No</em>. <em>Why:</em> NULL compared with any value using = or &lt;&gt; evaluates to UNKNOWN, which is treated as FALSE. The row is excluded. To include NULLs, use <code>WHERE Discount &lt;&gt; 0 OR Discount IS NULL</code>.</div></details>
+        <details class="q"><summary><b>Q2.</b> A PySpark job calls <code>df.dropDuplicates()</code> on a DataFrame with an OrderID column and a LastModifiedDate column. Two rows have the same OrderID but different LastModifiedDate values. Are both rows kept?</summary>
+        <div class="answer"><b>Answer:</b> <em>Yes, both are kept</em>. <em>Why:</em> <code>dropDuplicates()</code> with no arguments deduplicates on <em>all</em> columns. Since the two rows differ on LastModifiedDate, they are not considered duplicates. Use <code>dropDuplicates(["OrderID"])</code> to deduplicate by business key only (non-deterministic which row is kept).</div></details>
+        <details class="q"><summary><b>Q3.</b> A column ShipCity contains NULLs. A T-SQL expression must return the BillingCity if ShipCity is NULL, or the string 'Unknown' if BillingCity is also NULL. Which expression is correct?</summary>
+        <div class="answer"><b>Answer:</b> <code>COALESCE(ShipCity, BillingCity, 'Unknown')</code>. <em>Why:</em> COALESCE evaluates its arguments left to right and returns the first non-NULL. ISNULL only accepts two arguments, so it cannot check three values in one expression.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/sql/t-sql/functions/coalesce-transact-sql">COALESCE (Transact-SQL)</a></li>
+        <li><a href="https://learn.microsoft.com/azure/databricks/pyspark/missing-data">Handle missing data with PySpark (Databricks/Spark reference)</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.2.8 -->
+    <section class="objective" id="obj-2-2-8" data-skill="convert-types">
+      <h3 id="o-2-2-8">2.2.8 Convert data types</h3>
+
+      <div class="concept">
+        <p>Source data frequently arrives with incorrect or generic types: dates stored as strings, integers stored as VARCHAR, decimals stored as FLOAT. Converting to the correct analytical type improves storage efficiency, enables correct sorting and arithmetic, and prevents semantic errors in reports. Fabric supports type conversion in T-SQL (CAST, CONVERT, TRY_CAST, TRY_CONVERT), PySpark (<code>cast</code>, <code>withColumn</code>), and Power Query M (type annotations and conversion functions).</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>CAST(expr AS type)</strong> — ANSI SQL standard; throws an error on invalid conversion (e.g., non-numeric string to INT).</li>
+          <li><strong>TRY_CAST / TRY_CONVERT</strong> — "safe" variants; return NULL instead of an error on invalid conversion; essential for dirty data in ETL pipelines.</li>
+          <li><strong>CONVERT(type, expr, style)</strong> — SQL Server extension; adds a style parameter for date/time formatting (e.g., style 103 = dd/mm/yyyy); not ANSI standard.</li>
+          <li><strong>Implicit conversion</strong> — Fabric Warehouse will silently convert compatible types (e.g., INT to BIGINT); implicit conversion of incompatible types (e.g., VARCHAR to DATE) causes runtime errors.</li>
+          <li><strong>PySpark cast</strong> — <code>df.withColumn("Amount", col("Amount").cast("double"))</code>; for invalid values, returns NULL (safe by default in Spark).</li>
+          <li><strong>Power Query M</strong> — each column has a declared type; changing type via UI generates <code>Table.TransformColumnTypes(table, {{"Col", type date}})</code>; errors can be replaced with <code>Table.ReplaceErrorValues</code>.</li>
+          <li>Date/time conversions are the most error-prone: string date format must exactly match the style parameter (or ISO 8601 <code>yyyy-MM-dd</code>); locale-specific formats (MM/dd/yyyy vs dd/MM/yyyy) cause silent wrong conversions.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- T-SQL: CAST, TRY_CAST, TRY_CONVERT examples
+SELECT
+    OrderID,
+    -- Safe conversion; returns NULL for invalid strings (not an error)
+    TRY_CAST(OrderDateStr  AS DATE)          AS OrderDate,
+    TRY_CAST(SalesAmountStr AS DECIMAL(10,2)) AS SalesAmount,
+    -- CAST raises error on bad data — use when data is guaranteed clean
+    CAST(Quantity AS INT)                    AS Quantity,
+    -- CONVERT with style 103 = dd/mm/yyyy input format
+    TRY_CONVERT(DATE, EUDateStr, 103)        AS EUDate
+FROM dbo.OrdersStaging
+WHERE TRY_CAST(SalesAmountStr AS DECIMAL(10,2)) IS NOT NULL;  -- filter bad rows
+</code></pre>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-python"># PySpark: cast columns to correct types
+from pyspark.sql import functions as F
+from pyspark.sql.types import IntegerType, DoubleType, DateType
+
+df = spark.table("bronze.RawOrders")
+
+df_typed = (df
+    .withColumn("OrderDate",   F.to_date("OrderDateStr", "yyyy-MM-dd"))
+    .withColumn("SalesAmount", F.col("SalesAmountStr").cast(DoubleType()))
+    .withColumn("Quantity",    F.col("QuantityStr").cast(IntegerType()))
+    # Flag rows where cast produced NULL (i.e., invalid source values)
+    .withColumn("HasTypeError",
+        F.col("SalesAmount").isNull() | F.col("Quantity").isNull())
+)
+
+df_valid   = df_typed.filter(~F.col("HasTypeError"))
+df_invalid = df_typed.filter( F.col("HasTypeError"))
+
+df_valid.write.format("delta").mode("append").saveAsTable("silver.Orders")
+df_invalid.write.format("delta").mode("append").saveAsTable("dq.TypeConversionErrors")
+</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>CAST vs TRY_CAST: use TRY_CAST in ETL pipelines where source data quality cannot be guaranteed; use CAST only when data is validated.</li>
+          <li>FLOAT is an approximate type — avoid it for financial amounts where DECIMAL(p,s) is required for exact precision.</li>
+          <li>PySpark cast to DoubleType() returns NULL (not an error) for invalid string values — always check for unexpected NULLs post-cast.</li>
+          <li>Power Query M type changes applied via the UI generate <code>Table.TransformColumnTypes</code>; this step will throw a step-level error if a value cannot be converted, halting the entire Dataflow refresh.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A staging table column <code>SalesAmountStr</code> contains mostly numeric strings but occasionally the value 'N/A'. A T-SQL ETL pipeline must convert this column to DECIMAL(10,2) without failing on 'N/A' rows. Which function should be used?</summary>
+        <div class="answer"><b>Answer:</b> <em>TRY_CAST(SalesAmountStr AS DECIMAL(10,2))</em>. <em>Why:</em> TRY_CAST returns NULL for invalid conversions instead of raising an error. CAST would fail the entire query for any 'N/A' value.</div></details>
+        <details class="q"><summary><b>Q2.</b> A PySpark notebook casts a column <code>Price</code> from StringType to DoubleType. After the cast, a data quality check finds unexpected NULLs in Price. What most likely caused this?</summary>
+        <div class="answer"><b>Answer:</b> The source column contains <em>invalid (non-numeric) string values</em> that Spark could not convert. PySpark's cast returns NULL for values that fail conversion instead of throwing an error, so invalid strings silently become NULLs.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/sql/t-sql/functions/try-cast-transact-sql">TRY_CAST (Transact-SQL)</a></li>
+        <li><a href="https://learn.microsoft.com/fabric/data-engineering/spark-data-types">Spark data types in Microsoft Fabric</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.2.9 -->
+    <section class="objective" id="obj-2-2-9" data-skill="filter-data">
+      <h3 id="o-2-2-9">2.2.9 Filter data</h3>
+
+      <div class="concept">
+        <p>Filtering reduces a dataset to only the rows needed for a given transformation step, report, or destination. Applying filters as early as possible in the processing pipeline — ideally at the source system via query pushdown — is the most important performance optimisation in data engineering. This principle is formalised as <strong>predicate pushdown</strong> in Spark and <strong>query folding</strong> in Power Query.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>T-SQL WHERE</strong> — evaluated after FROM/JOIN, before GROUP BY; can reference any column in scope; supports AND, OR, NOT, IN, BETWEEN, LIKE, IS NULL, EXISTS.</li>
+          <li><strong>T-SQL HAVING</strong> — filters on aggregated expressions after GROUP BY; cannot reference aliases defined in SELECT (use CTE or subquery).</li>
+          <li><strong>PySpark filter / where</strong> — equivalent methods; accepts Column expressions or SQL strings; lazy (no execution until action); Spark automatically pushes filters to the Delta scan (partition and file-level pruning).</li>
+          <li><strong>Delta partition pruning</strong> — if the filter column matches a Delta partition column, Spark skips entire file partitions; dramatically reduces I/O on large tables.</li>
+          <li><strong>Power Query Table.SelectRows</strong> — <code>Table.SelectRows(table, each [Amount] &gt; 0 and [Status] = "Active")</code>; folds to source WHERE if connector supports it.</li>
+          <li><strong>Query folding</strong> — Power Query sends the filter as a WHERE clause to the data source, reducing rows returned over the network; verify with "View native query" option.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- T-SQL: WHERE with multiple conditions and IN list
+SELECT OrderID, CustomerKey, SalesAmount, OrderDate
+FROM   dbo.SalesFact
+WHERE  SalesAmount &gt; 0
+  AND  OrderDate BETWEEN '2024-01-01' AND '2024-12-31'
+  AND  StatusCode IN ('SHIP', 'COMP')
+  AND  CancelledDate IS NULL;
+
+-- T-SQL: filter using EXISTS (semi-join — efficient for large tables)
+SELECT c.CustomerKey, c.CustomerName
+FROM   dbo.DimCustomer c
+WHERE  EXISTS (
+    SELECT 1 FROM dbo.SalesFact f
+    WHERE  f.CustomerKey = c.CustomerKey
+      AND  f.OrderDate &gt;= '2024-01-01'
+);
+</code></pre>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-python"># PySpark: filter with Column expressions (partition pruning)
+from pyspark.sql import functions as F
+
+df = spark.table("silver.SalesFact")  # partitioned by OrderYear
+
+# Spark pushes the year filter to the Delta scan — skips other partitions
+df_filtered = (df
+    .filter(F.col("OrderYear") == 2024)           # partition pruning
+    .filter(F.col("SalesAmount") &gt; 0)
+    .filter(F.col("StatusCode").isin("SHIP","COMP"))
+    .filter(F.col("CancelledDate").isNull())
+)
+
+df_filtered.write.format("delta").mode("overwrite") \
+    .saveAsTable("gold.Sales2024Active")
+</code></pre>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-m">// Power Query M: Table.SelectRows with query folding
+let
+    Source    = Sql.Database("myserver.database.windows.net", "SalesDB"),
+    SalesFact = Source{[Schema="dbo",Item="SalesFact"]}[Data],
+    // This filter folds to WHERE SalesAmount &gt; 0 AND StatusCode IN ('SHIP','COMP') in SQL
+    Filtered  = Table.SelectRows(SalesFact,
+                    each [SalesAmount] &gt; 0
+                    and List.Contains({"SHIP","COMP"}, [StatusCode])
+                    and [CancelledDate] = null)
+in
+    Filtered
+</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> Always filter on Delta <em>partition columns</em> first in PySpark. If a table is partitioned by <code>OrderYear</code>, a filter on <code>OrderYear = 2024</code> lets Spark skip all other year partitions at the file-system level — often a 10× or greater I/O reduction.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>WHERE vs HAVING: WHERE filters before aggregation; HAVING filters the result of GROUP BY. Using HAVING to filter on a non-aggregate column is legal but less efficient.</li>
+          <li>Query folding in Power Query: if any step breaks folding (e.g., adding a custom M column with a non-foldable function), all subsequent steps also lose folding — even simple filters.</li>
+          <li>PySpark filter and where are identical — choose either for readability.</li>
+          <li>Delta Z-Order clustering (if applied) also helps filter performance by collocating related data within Parquet files, reducing the number of row groups scanned.</li>
+          <li>EXISTS in T-SQL is usually faster than IN with a large subquery list because it short-circuits on the first match.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A Dataflow Gen2 reads from an Azure SQL Database and applies a <code>Table.SelectRows</code> filter. A data engineer then adds a custom M column using a regex function. What is the impact on query folding for the filter?</summary>
+        <div class="answer"><b>Answer:</b> The filter <em>loses query folding</em>. <em>Why:</em> The custom M column uses a function that cannot be translated to SQL (regex is not a foldable operation). Any step that breaks folding causes all subsequent steps — including earlier filter steps that appear after the break — to execute in the Dataflow engine rather than at the source.</div></details>
+        <details class="q"><summary><b>Q2.</b> A PySpark job filters a Delta table on a column <code>ProductCategory</code>, but the table is partitioned by <code>OrderYear</code>. Will Spark apply partition pruning for the ProductCategory filter?</summary>
+        <div class="answer"><b>Answer:</b> <em>No</em>. <em>Why:</em> Partition pruning skips entire partition directories based only on the partition columns (here, OrderYear). A filter on ProductCategory cannot skip partitions; instead, Spark uses column statistics and row-group filtering within Parquet files (data skipping), which is less aggressive than partition pruning.</div></details>
+        <details class="q"><summary><b>Q3.</b> Which T-SQL filtering technique is most efficient when checking whether a large fact table contains at least one row for each customer in a dimension table, without returning the fact rows themselves?</summary>
+        <div class="answer"><b>Answer:</b> <em>EXISTS</em> — <code>WHERE EXISTS (SELECT 1 FROM SalesFact WHERE CustomerKey = c.CustomerKey)</code>. <em>Why:</em> EXISTS short-circuits on the first match, so Fabric Warehouse does not need to read all matching fact rows. IN with a subquery or a JOIN that returns all fact rows requires processing more data.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/power-query/query-folding-basics">Query folding basics in Power Query</a></li>
+        <li><a href="https://learn.microsoft.com/fabric/data-engineering/delta-optimization-and-v-order">Delta Lake optimization and V-Order in Microsoft Fabric</a></li>
+      </ul></div>
+    </section>
+
+  </section><!-- /sg-2-2 -->
+
+  <!-- ===== 2.3 Query and analyze data ===== -->
+  <section class="skillgroup" id="sg-2-3">
+    <h2 id="g-2-3">2.3 Query and analyze data</h2>
+
+    <!-- 2.3.1 -->
+    <section class="objective" id="obj-2-3-1" data-skill="visual-query">
+      <h3 id="o-2-3-1">2.3.1 Visual Query Editor and query folding</h3>
+
+      <div class="concept">
+        <p>The <strong>Visual Query Editor</strong> is a no-code query builder available inside Fabric Warehouse and the Lakehouse SQL analytics endpoint. It presents a drag-and-drop canvas where engineers add tables, apply transforms (filter, group by, join, rename columns), and preview results — all without writing SQL. Each step is translated into a SQL query that is sent to the underlying engine, meaning the engine does all the heavy lifting rather than the client.</p>
+        <p><strong>Query folding</strong> is the mechanism whereby Power Query (Dataflows Gen2, Power BI Desktop) translates M transform steps into a single native query — SQL, OData, SPARQL — that runs at the source rather than in the Mashup engine. Folded queries reduce data movement and use source-side indexes, parallelism, and pushdown capabilities.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Visual Query Editor in Warehouse produces SQL that can be viewed and copied; the generated query is submitted to the Warehouse SQL engine — no separate compute is used.</li>
+          <li>Transforms available in Visual Query: filter rows, choose/rename/reorder columns, group by, sort, merge (JOIN), append (UNION), aggregate, add column (limited expressions).</li>
+          <li><strong>Query folding indicators</strong> — in Power Query Editor, right-click a step: if "View native query" is available (not grayed out), the step folds. A grayed-out option means folding stopped at that step.</li>
+          <li>Connectors that always support folding: SQL Server, Azure SQL, Fabric Warehouse/Lakehouse, OData, SharePoint List, Salesforce.</li>
+          <li>Steps that commonly <em>break</em> folding: custom M functions, invoke custom function, add index column, Table.Buffer, Table.Sort followed by a non-foldable step, and any function without a native SQL equivalent.</li>
+          <li>Best practice: apply all foldable steps (filter, remove columns, rename, type) <em>before</em> any non-foldable step so the maximum filter is pushed to the source.</li>
+          <li>Visual Query results can be saved as a view in the Warehouse without writing SQL manually.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="query-folding"></figure>
+
+      <div class="callout key">
+        <b>Key:</b> Query folding is a <em>Mashup engine</em> feature, not a storage engine feature. It affects Dataflows Gen2 and Power BI Desktop (Direct Query or Import with Power Query steps) — it does <em>not</em> apply to T-SQL or KQL queries, which always run at the engine directly.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>If a step breaks folding, ALL subsequent steps also lose folding — even a simple rename step after a non-foldable step will execute in the Mashup engine.</li>
+          <li>"View native query" being grayed out confirms folding stopped; use this to diagnose Dataflow performance problems.</li>
+          <li>Visual Query Editor (Warehouse) vs Power Query Editor (Dataflows): both are no-code, but VQE is purely SQL-based and always runs at the engine; Power Query uses M and relies on folding to push work to the source.</li>
+          <li>Table.Buffer() forces data into memory and always breaks folding — avoid unless you have a specific reason (e.g., preventing multiple source evaluations for performance).</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A Dataflow Gen2 connects to a SQL Server source and applies steps in this order: (1) filter rows, (2) remove columns, (3) add custom M column using Text.BetweenDelimiters, (4) rename columns. Which steps fold to SQL Server?</summary>
+        <div class="answer"><b>Answer:</b> Steps 1 and 2 fold. <em>Why:</em> Step 3 (Text.BetweenDelimiters is a non-foldable M function) breaks folding. Step 4 (rename), although normally foldable, comes after the break and therefore also executes in the Mashup engine.</div></details>
+        <details class="q"><summary><b>Q2.</b> A data engineer right-clicks a filter step in Power Query Editor and finds "View native query" is grayed out. What does this indicate?</summary>
+        <div class="answer"><b>Answer:</b> The filter step does <em>not</em> fold to the source — it executes in the Power Query Mashup engine (client-side). A previous step likely broke folding, causing all subsequent steps to run locally. The engineer should identify and relocate or remove the non-foldable step.</div></details>
+        <details class="q"><summary><b>Q3.</b> Which action in a Dataflow Gen2 step sequence always breaks query folding, regardless of the source connector?</summary>
+        <div class="answer"><b>Answer:</b> <em>Table.Buffer()</em>. <em>Why:</em> Table.Buffer forces the data into memory in the Mashup engine, terminating the connection to the source query plan. All steps after Buffer execute entirely in memory within the Mashup engine.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/power-query/query-folding-basics">Query folding basics — Power Query documentation</a></li>
+        <li><a href="https://learn.microsoft.com/fabric/data-warehouse/visual-query-editor">Visual Query Editor in Fabric Data Warehouse</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.3.2 -->
+    <section class="objective" id="obj-2-3-2" data-skill="sql-query">
+      <h3 id="o-2-3-2">2.3.2 Query data with SQL</h3>
+
+      <div class="concept">
+        <p>Fabric Warehouse and the Lakehouse SQL analytics endpoint both expose T-SQL endpoints that clients connect to via TDS (SQL Server wire protocol). Standard SQL tooling — SQL Server Management Studio, Azure Data Studio, Power BI Desktop, and the Fabric web SQL editor — connects with no driver changes. Fabric's T-SQL dialect is based on Azure Synapse Dedicated SQL and supports nearly all ANSI SQL alongside common SQL Server extensions.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>SELECT … FROM … JOIN … WHERE … GROUP BY … HAVING … ORDER BY</strong> — all supported; CTE (WITH clause) fully supported.</li>
+          <li><strong>Window functions</strong> — ROW_NUMBER, RANK, DENSE_RANK, NTILE, LAG, LEAD, FIRST_VALUE, LAST_VALUE, SUM/AVG/COUNT OVER (PARTITION BY … ORDER BY …) — all supported.</li>
+          <li><strong>CROSS APPLY / OUTER APPLY</strong> — supported; used to lateral-join table-valued functions or JSON parsing expressions.</li>
+          <li><strong>Common Fabric-specific unsupported T-SQL:</strong> no distributed transactions, no linked servers, no CLR objects, no XML methods on columns (as of GA). Check documentation for the latest support matrix.</li>
+          <li>Queries can reference tables across <em>workspaces</em> using cross-workspace shortcuts exposed as external tables (via shortcuts at the Lakehouse level).</li>
+          <li>Fabric Warehouse supports <code>EXPLAIN</code> (query plan) via the SQL editor; use it to diagnose full-table scans and suboptimal join orders.</li>
+          <li>SELECT … INTO creates a new table (not supported at Lakehouse SQL analytics endpoint; Warehouse only).</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- Window functions in Fabric Warehouse SQL
+WITH RankedSales AS (
+    SELECT
+        c.CustomerName,
+        p.CategoryName,
+        SUM(f.SalesAmount)   AS TotalSales,
+        ROW_NUMBER() OVER (
+            PARTITION BY p.CategoryName
+            ORDER BY SUM(f.SalesAmount) DESC
+        )                    AS CategoryRank,
+        RANK() OVER (
+            ORDER BY SUM(f.SalesAmount) DESC
+        )                    AS OverallRank,
+        LAG(SUM(f.SalesAmount), 1, 0) OVER (
+            PARTITION BY p.CategoryName
+            ORDER BY MIN(f.OrderDate)
+        )                    AS PrevPeriodSales
+    FROM dbo.SalesFact  f
+    JOIN dbo.DimCustomer c ON f.CustomerKey = c.CustomerKey
+    JOIN dbo.DimProduct  p ON f.ProductKey  = p.ProductKey
+    GROUP BY c.CustomerName, p.CategoryName
+)
+SELECT *
+FROM   RankedSales
+WHERE  CategoryRank &lt;= 10
+ORDER  BY CategoryName, CategoryRank;
+</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>ROW_NUMBER returns a unique integer per row (no ties); RANK skips numbers after ties; DENSE_RANK does not skip.</li>
+          <li>LAG/LEAD access previous/next row values within the partition — powerful for period-over-period comparison without a self-join.</li>
+          <li>The Lakehouse SQL analytics endpoint supports SELECT, CREATE VIEW/FUNCTION/PROCEDURE but not DML. The Warehouse supports full DML.</li>
+          <li>Window functions cannot be referenced directly in WHERE or HAVING — wrap in a CTE or subquery (as shown above with <code>WHERE CategoryRank &lt;= 10</code>).</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A SQL query using a window function assigns the same RANK value to two customers with equal TotalSales. What rank value does the next customer receive?</summary>
+        <div class="answer"><b>Answer:</b> The next customer receives rank 3 (if two customers tied at rank 1) — i.e., RANK <em>skips</em> rank 2. <em>Why:</em> RANK assigns the same value to tied rows and then skips the next rank number(s). Use DENSE_RANK to avoid skipping.</div></details>
+        <details class="q"><summary><b>Q2.</b> A query must filter on a window function result (e.g., show only top-10 per category). A data engineer writes: <code>SELECT ..., RANK() OVER (...) AS Rnk FROM ... WHERE Rnk &lt;= 10</code>. Does this work?</summary>
+        <div class="answer"><b>Answer:</b> <em>No</em> — it throws an error. <em>Why:</em> Window functions are evaluated after WHERE, so they cannot be referenced in the WHERE clause of the same SELECT. Wrap the window function in a CTE or subquery and filter in the outer query.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/fabric/data-warehouse/query">Query a warehouse in Microsoft Fabric</a></li>
+        <li><a href="https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql">SELECT OVER clause (window functions) — Transact-SQL</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.3.3 -->
+    <section class="objective" id="obj-2-3-3" data-skill="kql-query">
+      <h3 id="o-2-3-3">2.3.3 Query data with KQL</h3>
+
+      <div class="concept">
+        <p>Kusto Query Language (KQL) is the primary query language for Fabric Eventhouse (KQL databases). It uses a pipe (<code>|</code>) syntax where the output of each operator flows into the next, building a readable left-to-right transformation pipeline. KQL is optimised for time-series, log analysis, and real-time telemetry — operations that are cumbersome in SQL but natural in KQL.</p>
+        <p>KQL is available in the Eventhouse query editor, from a KQL queryset item, from Fabric notebooks via the <code>%%kql</code> magic, and programmatically through the Kusto REST API. Mastering the core operators and the <code>bin()</code> time-bucketing function is essential for the DP-600 exam.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Pipe syntax</strong> — <code>TableName | operator1 | operator2 | ...</code>; each operator receives the previous output as its input table.</li>
+          <li><strong>where</strong> — filters rows; equivalent to SQL WHERE; <code>| where SalesAmount &gt; 0 and Region == "West"</code>. Use <code>==</code> (not <code>=</code>) for equality comparison in KQL.</li>
+          <li><strong>project</strong> — selects and optionally renames columns; drops all others; <code>| project OrderID, Amount = SalesAmount</code>.</li>
+          <li><strong>project-away</strong> — drops named columns, keeps all others (opposite of project).</li>
+          <li><strong>extend</strong> — adds computed columns without dropping others; <code>| extend ProfitMargin = (Revenue - Cost) / Revenue</code>.</li>
+          <li><strong>summarize</strong> — aggregates; collapses rows to one per group-by key; <code>| summarize TotalSales = sum(SalesAmount), Orders = count() by CategoryName, bin(EventTime, 1h)</code>. After summarize, only by-columns and aggregate expressions are available.</li>
+          <li><strong>bin(column, interval)</strong> — floor to the nearest multiple of interval; essential for time-series bucketing; <code>bin(StartTime, 1d)</code> rounds to day.</li>
+          <li><strong>sort by / order by</strong> — synonyms; <code>| sort by TotalSales desc</code>.</li>
+          <li><strong>take / limit</strong> — return the first N rows (non-deterministic order unless sorted first).</li>
+          <li><strong>render</strong> — chart directive; <code>| render timechart</code>; display hint only — does not change data output.</li>
+          <li><strong>join</strong> — <code>| join kind=inner (RightTable | project ...) on Key</code>; join kinds: inner, leftouter, rightouter, fullouter, leftanti, rightanti, leftsemi.</li>
+          <li><strong>make-series</strong> — creates time-series arrays per group; useful with time-series ML functions (series_decompose, series_outliers).</li>
+          <li><strong>Type functions:</strong> <code>toint()</code>, <code>tolong()</code>, <code>todouble()</code>, <code>tostring()</code>, <code>todatetime()</code>, <code>totimespan()</code>.</li>
+          <li><strong>Time helpers:</strong> <code>ago(30d)</code>, <code>now()</code>, <code>startofday()</code>, <code>startofmonth()</code>, <code>datetime(2024-01-01)</code>.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-kql">// 1. Basic where + project + sort
+SalesFact
+| where EventTime &gt; ago(30d)
+    and SalesAmount &gt; 0
+    and Region == "West"
+| project OrderID, CustomerID, SalesAmount,
+          EventTime, Region
+| sort by SalesAmount desc
+| take 100
+
+// 2. extend: add a computed column
+SalesFact
+| where EventTime between (datetime(2024-01-01) .. datetime(2024-12-31))
+| extend ProfitMargin = round((Revenue - Cost) / Revenue, 4)
+| project OrderID, Revenue, Cost, ProfitMargin
+
+// 3. summarize with bin() for hourly time-series
+SalesFact
+| where EventTime &gt; ago(7d)
+| summarize
+    TotalSales = sum(SalesAmount),
+    Orders     = count()
+  by CategoryName, bin(EventTime, 1h)
+| sort by EventTime asc
+| render timechart
+
+// 4. join: enrich fact with dimension
+SalesFact
+| join kind=leftouter (
+    DimProduct
+    | project ProductID, ProductName, CategoryName
+  ) on ProductID
+| project OrderID, ProductName, CategoryName, SalesAmount, EventTime
+
+// 5. Time-range filter patterns
+SecurityEvents
+| where TimeGenerated between (ago(24h) .. now())
+| where EventID in (4624, 4625, 4648)
+| summarize FailedLogons = countif(EventID == 4625),
+            SuccessLogons = countif(EventID == 4624)
+  by Computer, bin(TimeGenerated, 1h)
+</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> After <code>summarize</code>, <em>only</em> the columns in the <code>by</code> clause and the aggregation expressions exist in the output. Any attempt to reference a column that was present before <code>summarize</code> but not in the <code>by</code> list will cause an error in a downstream operator.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>KQL uses <code>==</code> for equality (not <code>=</code>). Using <code>=</code> causes a parse error.</li>
+          <li><code>project</code> drops all columns not named; <code>extend</code> keeps all existing columns and adds new ones. Know which to use to avoid accidental column loss.</li>
+          <li><code>bin()</code> is required to produce regular time buckets in <code>summarize by</code> — without it, each unique timestamp becomes its own group.</li>
+          <li><code>render</code> is a display directive, not a data operation. It has no effect on the tabular output and does not exist in programmatic API calls.</li>
+          <li><code>take N</code> is non-deterministic unless preceded by <code>sort by</code> — do not use <code>take</code> to get "the most recent N rows" without an explicit sort.</li>
+          <li>After <code>summarize</code>, you cannot <code>project</code> a column that was not in the <code>by</code> clause — it no longer exists in scope.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A KQL query must count the number of events per hour for the past seven days, grouped by server name. Which operators and functions are required?</summary>
+        <div class="answer"><b>Answer:</b> <code>| where TimeGenerated &gt; ago(7d)</code> to filter the time range, then <code>| summarize EventCount = count() by ServerName, bin(TimeGenerated, 1h)</code> to count per hour per server. <code>bin(TimeGenerated, 1h)</code> is essential to floor each timestamp to its hour boundary, creating regular one-hour buckets.</div></details>
+        <details class="q"><summary><b>Q2.</b> A data analyst writes this KQL query: <br><code>SalesFact | summarize Total = sum(SalesAmount) by CategoryName | project OrderID, CategoryName, Total</code>. Why does this query fail?</summary>
+        <div class="answer"><b>Answer:</b> The <code>project</code> references <code>OrderID</code>, which no longer exists after <code>summarize</code>. The <code>summarize</code> operator collapses rows to one per <code>CategoryName</code> and retains only the <code>by</code>-clause columns and aggregate expressions — <code>OrderID</code> is not in scope. Remove <code>OrderID</code> from the <code>project</code> list.</div></details>
+        <details class="q"><summary><b>Q3.</b> In KQL, what is the difference between <code>project</code> and <code>extend</code>?</summary>
+        <div class="answer"><b>Answer:</b> <code>project</code> selects specific columns and drops all others (like SQL SELECT with explicit column list). <code>extend</code> adds new computed columns while preserving all existing columns (like SQL SELECT *, newcol). Use <code>project</code> when you want to narrow the schema; use <code>extend</code> when you want to enrich without losing columns.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/kusto/query/tutorials/use-aggregation-functions?view=microsoft-fabric">KQL tutorial: use aggregation functions — Microsoft Fabric</a></li>
+        <li><a href="https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric">summarize operator — KQL reference</a></li>
+        <li><a href="https://learn.microsoft.com/kusto/query/bin-function?view=microsoft-fabric">bin() function — KQL reference</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.3.4 -->
+    <section class="objective" id="obj-2-3-4" data-skill="dax-query">
+      <h3 id="o-2-3-4">2.3.4 Query data with DAX</h3>
+
+      <div class="concept">
+        <p>Data Analysis Expressions (DAX) is the formula language of Power BI semantic models. For DP-600, DAX is tested at an <em>introductory level</em> in Domain 2 (Prepare data) — you must understand the core concepts of filter context, measures, and the most important functions. Deep DAX mastery (time intelligence, semi-additive measures, row context) belongs to Domain 3 (Analyse and visualise data).</p>
+        <p><strong>Measures</strong> are DAX formulas stored in a semantic model that are evaluated dynamically based on the current <strong>filter context</strong> — the combination of slicer selections, visual filters, and page/report filters active at the moment the measure is called. Unlike calculated columns, measures produce no stored data and are recalculated on every query.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Filter context</strong> — the set of filters applied to a visual at the moment DAX evaluates a measure; determined by slicers, visual-level filters, page filters, report filters, and cross-filter relationships.</li>
+          <li><strong>CALCULATE(expression, [filter1], …)</strong> — the single most important DAX function; evaluates <code>expression</code> after modifying the filter context with the given filters; can add, remove, or replace filters.</li>
+          <li><strong>FILTER(table, condition)</strong> — returns a filtered virtual table; used as an argument to CALCULATE; <code>CALCULATE(SUM(Sales[Amount]), FILTER(Sales, Sales[Region] = "West"))</code>.</li>
+          <li><strong>DIVIDE(numerator, denominator, [alternateResult])</strong> — safe division; returns <code>alternateResult</code> (default: BLANK()) when denominator is 0; always prefer over the <code>/</code> operator to avoid division-by-zero errors.</li>
+          <li><strong>ALL(table_or_column)</strong> — removes filters from the specified table or column; used inside CALCULATE to create "percent of total" measures.</li>
+          <li><strong>Basic aggregations:</strong> SUM, AVERAGE, COUNT (counts rows where expression is non-blank), DISTINCTCOUNT, MIN, MAX, COUNTROWS (counts rows in a table).</li>
+          <li><strong>Time intelligence:</strong> TOTALYTD, TOTALMTD, TOTALQTD require a properly marked Date table; SAMEPERIODLASTYEAR, DATEADD provide comparison periods.</li>
+          <li>DAX measures are defined in the semantic model (dataset), not in the Warehouse or Lakehouse — they do not affect underlying data storage.</li>
+          <li>A semantic model in Direct Lake mode can still have DAX measures; the measures execute against the in-memory framed data loaded from Delta files.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-dax">-- Basic measure definitions
+TotalSales = SUM(SalesFact[SalesAmount])
+
+OrderCount = COUNTROWS(SalesFact)
+
+AvgOrderValue = DIVIDE(
+    SUM(SalesFact[SalesAmount]),
+    COUNTROWS(SalesFact),
+    BLANK()    -- return BLANK instead of error when no rows
+)
+
+-- CALCULATE: modify filter context
+WestRegionSales =
+CALCULATE(
+    SUM(SalesFact[SalesAmount]),
+    DimGeography[Region] = "West"
+)
+
+-- Percent of total using ALL()
+SalesShareOfTotal =
+DIVIDE(
+    SUM(SalesFact[SalesAmount]),
+    CALCULATE(SUM(SalesFact[SalesAmount]), ALL(SalesFact)),
+    0
+)
+
+-- FILTER inside CALCULATE for complex conditions
+HighValueSales =
+CALCULATE(
+    SUM(SalesFact[SalesAmount]),
+    FILTER(
+        SalesFact,
+        SalesFact[SalesAmount] &gt; 10000
+            &amp;&amp; SalesFact[StatusCode] = "COMP"
+    )
+)
+
+-- Time intelligence: year-to-date sales
+SalesYTD =
+TOTALYTD(
+    SUM(SalesFact[SalesAmount]),
+    DimDate[Date]
+)
+</code></pre>
+      </div>
+
+      <div class="callout key">
+        <b>Key:</b> CALCULATE is the gateway to advanced DAX. Every time intelligence function (TOTALYTD, SAMEPERIODLASTYEAR) is implemented by calling CALCULATE internally with a modified date filter. Understanding what CALCULATE does to the filter context is the foundation for understanding all complex DAX patterns.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>DIVIDE(x, y) is always preferred over x / y — the <code>/</code> operator returns a division-by-zero error when y = 0; DIVIDE returns BLANK() or an alternate result.</li>
+          <li>Measures are evaluated in filter context, not row context — a measure referencing <code>SalesFact[SalesAmount]</code> aggregates all matching rows, not a single row.</li>
+          <li>FILTER returns a <em>table</em>; it is used as an argument inside CALCULATE, not as a standalone query function.</li>
+          <li>ALL() removes filters from a column or table. ALLEXCEPT(table, col) removes all filters except the specified column — useful for "percent within category" patterns.</li>
+          <li>Time intelligence functions require a <em>Date table</em> marked as a Date table in the semantic model, with a contiguous date range covering all dates in the fact table.</li>
+          <li>Deep DAX (row context, context transition, EARLIER, RANKX, iterators) is tested in Domain 3 — Domain 2 only requires understanding the concepts above.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A measure calculates total sales only for the "West" region, regardless of any region filter applied in the report. Which DAX function is required and how is it structured?</summary>
+        <div class="answer"><b>Answer:</b> <code>CALCULATE(SUM(SalesFact[SalesAmount]), ALL(DimGeography[Region]), DimGeography[Region] = "West")</code>. <em>Why:</em> CALCULATE first removes any existing Region filter with ALL(), then reapplies the fixed "West" filter. Without ALL(), the measure would still be affected by the report's active region filter, potentially returning BLANK() when a different region is selected.</div></details>
+        <details class="q"><summary><b>Q2.</b> A measure is defined as <code>SharePct = SUM(SalesFact[SalesAmount]) / CALCULATE(SUM(SalesFact[SalesAmount]), ALL(SalesFact))</code>. A report user selects only 2024 in a Year slicer. Does the denominator (total) change?</summary>
+        <div class="answer"><b>Answer:</b> <em>No</em>. <em>Why:</em> ALL(SalesFact) removes <em>all</em> filters on the SalesFact table, including the Year filter. The denominator always returns the grand total across all years, making SharePct a true "share of total" regardless of slicer selection.</div></details>
+        <details class="q"><summary><b>Q3.</b> Why should a developer use DIVIDE(x, y) instead of x / y in a DAX measure?</summary>
+        <div class="answer"><b>Answer:</b> DIVIDE handles division by zero gracefully by returning BLANK() (or a custom alternate result) instead of an error. The <code>/</code> operator raises a "Division by zero" error when the denominator evaluates to 0, which can break visuals. DIVIDE also propagates BLANK() correctly through calculations.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/dax/calculate-function-dax">CALCULATE function — DAX reference</a></li>
+        <li><a href="https://learn.microsoft.com/dax/divide-function-dax">DIVIDE function — DAX reference</a></li>
+        <li><a href="https://learn.microsoft.com/dax/dax-overview">DAX overview — Microsoft documentation</a></li>
+      </ul></div>
+    </section>
+
+  </section><!-- /sg-2-3 -->
+
+</section><!-- /domain2 -->

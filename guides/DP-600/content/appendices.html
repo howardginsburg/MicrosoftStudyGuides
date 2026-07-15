@@ -1,0 +1,177 @@
+<section class="domain appendices" id="appendix" data-domain="9">
+  <h1 id="d9">Appendices — Quick Reference &amp; Cheat Sheets</h1>
+  <p class="domain-intro">Fast-recall material for the final days before the exam. Skim these until the distinctions are automatic.</p>
+
+  <section class="skillgroup" id="apx-stores">
+    <h2 id="g-9-1">A. Data store decision quick-reference</h2>
+    <table class="cmp">
+      <thead><tr><th></th><th>Lakehouse</th><th>Warehouse</th><th>Eventhouse (KQL)</th><th>SQL database</th></tr></thead>
+      <tbody>
+        <tr><td><b>Best for</b></td><td>Mixed/unstructured data, Spark engineering, medallion</td><td>Structured BI, star schemas, T-SQL DML</td><td>Streaming events, time-series, logs/telemetry</td><td>OLTP / operational app data in Fabric</td></tr>
+        <tr><td><b>Primary language</b></td><td>Spark (PySpark/Spark SQL) + read-only T-SQL endpoint</td><td>Full T-SQL (read/write)</td><td>KQL (also T-SQL subset)</td><td>T-SQL (OLTP)</td></tr>
+        <tr><td><b>Write pattern</b></td><td>Notebooks, Dataflows, pipelines (Delta)</td><td>INSERT/UPDATE/DELETE/MERGE, COPY INTO</td><td>Append-only high-velocity ingestion</td><td>Transactional CRUD</td></tr>
+        <tr><td><b>Table format</b></td><td>Delta Parquet in OneLake</td><td>Delta Parquet in OneLake</td><td>KQL engine (also available in OneLake)</td><td>SQL, mirrored to OneLake</td></tr>
+        <tr><td><b>Key limit</b></td><td>SQL analytics endpoint is <b>read-only</b></td><td>No Spark writes; T-SQL only</td><td>Not for relational updates</td><td>Not a bulk analytics engine</td></tr>
+      </tbody>
+    </table>
+    <div class="callout key"><b>Decider:</b> Need <code>UPDATE</code>/<code>MERGE</code> in SQL? → <b>Warehouse</b>. Team writes Python/Spark or data is unstructured? → <b>Lakehouse</b>. Streaming/time-series with KQL? → <b>Eventhouse</b>. All share one <b>OneLake</b> and can be combined via shortcuts and cross-database queries.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-modes">
+    <h2 id="g-9-2">B. Semantic model storage modes</h2>
+    <table class="cmp">
+      <thead><tr><th></th><th>Import</th><th>DirectQuery</th><th>Direct Lake on OneLake</th><th>Direct Lake on SQL endpoint</th></tr></thead>
+      <tbody>
+        <tr><td><b>Where data lives</b></td><td>Cached copy in model (VertiPaq)</td><td>Source database</td><td>Delta tables in OneLake</td><td>Delta via lakehouse/warehouse SQL endpoint</td></tr>
+        <tr><td><b>Query engine</b></td><td>VertiPaq (fast)</td><td>Federated to source (slower)</td><td>VertiPaq, paged from OneLake</td><td>VertiPaq; falls back to DirectQuery</td></tr>
+        <tr><td><b>Refresh</b></td><td>Full data copy (slow, heavy)</td><td>None (live)</td><td>Framing = metadata only (seconds)</td><td>Framing = metadata only (seconds)</td></tr>
+        <tr><td><b>DirectQuery fallback</b></td><td>N/A</td><td>Always live</td><td><b>Never</b></td><td><b>Yes</b> (SQL views, SQL-based security); set by "Direct Lake behavior"</td></tr>
+        <tr><td><b>Composite / mixed modes</b></td><td>Yes</td><td>Yes</td><td><b>Yes</b> (+ Import tables)</td><td><b>No</b></td></tr>
+        <tr><td><b>Sources</b></td><td>Any connector</td><td>Any DQ connector</td><td>One or more Fabric Delta sources</td><td>Single lakehouse/warehouse</td></tr>
+        <tr><td><b>Honors SQL-endpoint RLS/OLS/CLS</b></td><td>No (redefine in model)</td><td>Yes (may error)</td><td>No (uses OneLake file access)</td><td>Yes (RLS ⇒ DirectQuery fallback)</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><b>Tip:</b> <b>Dual</b> storage mode (composite models) lets a shared dimension act as both Import and DirectQuery; the engine picks the cheaper path per query.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-sec">
+    <h2 id="g-9-3">C. Security &amp; access-control layers</h2>
+    <table class="cmp">
+      <thead><tr><th>Layer</th><th>Controls</th><th>Where configured</th></tr></thead>
+      <tbody>
+        <tr><td><b>Workspace roles</b></td><td>Admin / Member / Contributor / Viewer — broad access to all items in a workspace</td><td>Workspace &gt; Manage access</td></tr>
+        <tr><td><b>Item permissions</b></td><td>Share a single item (e.g., a lakehouse/report) and grant specific permissions</td><td>Item &gt; Manage permissions / Share</td></tr>
+        <tr><td><b>Row-level security (RLS)</b></td><td>Which <b>rows</b> a user sees — DAX filter on a role; static or dynamic (<code>USERPRINCIPALNAME()</code>)</td><td>Model roles (Desktop / web modeling)</td></tr>
+        <tr><td><b>Column-level security (CLS)</b></td><td>Hide specific <b>columns</b> from a role</td><td>Model (OLS metadata) / warehouse <code>GRANT</code>/<code>DENY</code></td></tr>
+        <tr><td><b>Object-level security (OLS)</b></td><td>Hide entire <b>tables/columns</b>; admins &amp; members bypass; no Power BI Desktop UI (use external tools)</td><td>Tabular Editor / TMSL</td></tr>
+        <tr><td><b>File/folder (OneLake data access roles)</b></td><td>Restrict access to <code>/Files</code> and <code>/Tables</code> paths in a lakehouse</td><td>Lakehouse &gt; Manage OneLake data access</td></tr>
+        <tr><td><b>Warehouse granular SQL</b></td><td><code>GRANT</code>/<code>DENY</code>, RLS via <code>CREATE SECURITY POLICY</code>, dynamic data masking</td><td>SQL analytics endpoint / warehouse T-SQL</td></tr>
+        <tr><td><b>Sensitivity labels</b></td><td>Purview classification + protection (encryption); propagate downstream</td><td>Microsoft Purview Information Protection</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><b>Gotcha:</b> RLS filters <b>dimensions</b>, letting relationships flow the filter to facts — don't filter the fact table directly. OLS is not a substitute for RLS: RLS = rows, OLS/CLS = tables/columns.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-tsql">
+    <h2 id="g-9-4">D. T-SQL cheat sheet (Fabric warehouse)</h2>
+    <div class="code"><pre><code class="lang-sql">-- Clean + enrich into a curated table (CTAS)
+SELECT o.order_id,
+       ISNULL(c.region, 'Unknown')            AS region,   -- handle NULLs
+       CAST(o.order_ts AS date)               AS order_date,
+       o.qty * o.unit_price                   AS line_total
+INTO   gold.fact_sales
+FROM   staging.orders AS o
+LEFT JOIN staging.customer AS c ON c.customer_id = o.customer_id
+WHERE  o.qty &gt; 0;
+
+-- Deduplicate (keep latest)
+WITH ranked AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_ts DESC) AS rn
+  FROM staging.orders)
+DELETE FROM ranked WHERE rn &gt; 1;
+
+-- Upsert with MERGE (incremental load)
+MERGE gold.dim_customer AS tgt
+USING staging.customer AS src ON tgt.customer_id = src.customer_id
+WHEN MATCHED THEN UPDATE SET tgt.region = src.region
+WHEN NOT MATCHED THEN INSERT (customer_id, region) VALUES (src.customer_id, src.region);
+
+-- Reusable objects
+CREATE VIEW gold.v_active_sales AS SELECT * FROM gold.fact_sales WHERE line_total &gt; 0;
+CREATE PROCEDURE gold.load_sales AS BEGIN /* ETL steps */ END;
+
+-- Fast bulk ingest from files
+COPY INTO gold.fact_sales FROM 'https://.../sales/*.parquet' WITH (FILE_TYPE = 'PARQUET');</code></pre></div>
+    <div class="callout tip"><b>Tip:</b> The lakehouse <b>SQL analytics endpoint is read-only</b> — these DML/DDL statements run in a <b>warehouse</b> (or via Spark for the lakehouse).</div>
+  </section>
+
+  <section class="skillgroup" id="apx-kql">
+    <h2 id="g-9-5">E. KQL cheat sheet (eventhouse / KQL database)</h2>
+    <div class="code"><pre><code class="lang-kql">Sales
+| where OrderDate &gt;= ago(30d)            // filter rows
+| where Region == "Midwest"
+| extend LineTotal = Qty * UnitPrice     // add a column
+| summarize Revenue = sum(LineTotal),    // aggregate
+            Orders  = count()
+    by bin(OrderDate, 1d), Region        // group + time bucket
+| project OrderDate, Region, Revenue, Orders   // select columns
+| order by OrderDate asc
+| top 100 by Revenue                     // limit
+
+// Common operators: where, project, extend, summarize, count, distinct,
+// join kind=inner, union, make-series (time series), ago(), bin(), between()</code></pre></div>
+    <div class="callout key"><b>Remember:</b> KQL is <b>pipe</b>-based, case-<b>sensitive</b> for string equality (<code>==</code>), and reads top-to-bottom — each <code>|</code> feeds the next operator.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-dax">
+    <h2 id="g-9-6">F. DAX cheat sheet</h2>
+    <div class="code"><pre><code class="lang-dax">-- Basic measures
+Revenue      = SUM ( Sales[LineTotal] )
+Profit       = [Revenue] - [Cost]
+Margin %     = DIVIDE ( [Profit], [Revenue] )          -- safe divide (no /0 error)
+
+-- Variables (readable, faster — evaluated once)
+Sales YoY % =
+VAR Cur  = [Revenue]
+VAR Prev = CALCULATE ( [Revenue], SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+RETURN DIVIDE ( Cur - Prev, Prev )
+
+-- Iterator (row-by-row, then aggregate)
+Weighted Sales = SUMX ( Sales, Sales[Qty] * Sales[UnitPrice] )
+
+-- Modify filter context
+Sales All Regions = CALCULATE ( [Revenue], ALL ( 'Region' ) )
+Sales Big Orders  = CALCULATE ( [Revenue], FILTER ( Sales, Sales[LineTotal] &gt; 1000 ) )
+
+-- Information / dynamic security
+Current User = USERPRINCIPALNAME()
+Picked       = SELECTEDVALUE ( 'Product'[Category], "All" )
+
+-- Windowing / time intelligence
+YTD Revenue  = TOTALYTD ( [Revenue], 'Date'[Date] )
+Prev Row     = CALCULATE ( [Revenue], OFFSET ( -1, ORDERBY ( 'Date'[Date] ) ) )</code></pre></div>
+    <div class="callout warn"><b>Gotcha:</b> <b>Row context</b> (in calculated columns/iterators) is not the same as <b>filter context</b> (from slicers/relationships). <code>CALCULATE</code> is what transitions and overrides filter context.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-when">
+    <h2 id="g-9-7">G. "Which one when?" rapid-fire</h2>
+    <div class="facts"><ul>
+      <li><b>UPDATE/MERGE needed</b> → Warehouse (not lakehouse SQL endpoint).</li>
+      <li><b>Huge data, avoid copies, fast refresh</b> → Direct Lake.</li>
+      <li><b>Need composite / Import + Direct Lake together</b> → Direct Lake <b>on OneLake</b>.</li>
+      <li><b>Need SQL-endpoint RLS honored in Direct Lake</b> → Direct Lake <b>on SQL endpoint</b> (accepts DirectQuery fallback).</li>
+      <li><b>Model &gt; 10 GB or scale-out or XMLA write</b> → enable <b>Large semantic model storage format</b>.</li>
+      <li><b>Refresh only recent data of a big table</b> → <b>Incremental refresh</b> (RangeStart/RangeEnd).</li>
+      <li><b>One measure, many time patterns (MTD/YTD/PY)</b> → <b>Calculation group</b>.</li>
+      <li><b>Let users pick a measure/dimension in a slicer</b> → <b>Field parameters</b>.</li>
+      <li><b>Many-to-many between two dimensions</b> → <b>Bridge table</b>.</li>
+      <li><b>Git, code review, CI/CD for reports/models</b> → <b>.pbip</b> project + workspace Git.</li>
+      <li><b>Reuse a report/model structure without data</b> → <b>.pbit</b> template. Standardize a connection → <b>.pbids</b>.</li>
+      <li><b>Deploy Dev→Test→Prod inside Fabric</b> → <b>Deployment pipelines</b>. Programmatic/external deploy → <b>XMLA endpoint</b> (read-write).</li>
+      <li><b>Assess blast radius of a change</b> → <b>Impact analysis</b> / lineage view.</li>
+      <li><b>Signal a trusted dataset</b> → <b>Endorsement</b> (Promoted → Certified). <b>Classify/protect</b> → <b>Sensitivity label</b>.</li>
+    </ul></div>
+  </section>
+
+  <section class="skillgroup" id="apx-glossary">
+    <h2 id="g-9-8">H. Glossary</h2>
+    <div class="facts"><ul>
+      <li><b>OneLake</b> — the single, tenant-wide data lake underlying all Fabric items ("one copy" of data in Delta Parquet).</li>
+      <li><b>Shortcut</b> — a pointer to data in another location (OneLake, ADLS Gen2, S3) with no copy.</li>
+      <li><b>Medallion architecture</b> — Bronze (raw) → Silver (cleaned) → Gold (curated/modeled) layering.</li>
+      <li><b>Delta table</b> — open Parquet + transaction log; the standard OneLake table format.</li>
+      <li><b>SQL analytics endpoint</b> — auto-created read-only T-SQL surface over a lakehouse's Delta tables.</li>
+      <li><b>Framing</b> — Direct Lake's metadata-only refresh that repoints the model to the latest Delta files.</li>
+      <li><b>Transcoding</b> — on-demand loading of Delta columns into VertiPaq memory for Direct Lake.</li>
+      <li><b>Star schema</b> — central fact table(s) surrounded by denormalized dimension tables.</li>
+      <li><b>SCD</b> — Slowly Changing Dimension; Type 1 overwrites, Type 2 keeps history (new row + validity).</li>
+      <li><b>Calculation group</b> — a reusable set of calculation items (e.g., YTD, PY) applied to measures.</li>
+      <li><b>Field parameter</b> — lets report users swap measures/columns on a visual via a slicer.</li>
+      <li><b>XMLA endpoint</b> — the Analysis Services protocol surface for external tools to read/write semantic models.</li>
+      <li><b>.pbip / .pbit / .pbids</b> — Power BI project (Git-friendly) / template (structure, no data) / data-source connection file.</li>
+      <li><b>Real-Time hub</b> — central place to discover and subscribe to streaming data (eventstreams, KQL).</li>
+      <li><b>Endorsement</b> — trust signal: Promoted, Certified, or Master data.</li>
+      <li><b>Query folding</b> — Power Query pushing transformation steps down to the source system.</li>
+    </ul></div>
+  </section>
+</section>

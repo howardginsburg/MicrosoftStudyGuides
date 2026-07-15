@@ -1,0 +1,18 @@
+{
+  "exam": "XX-000",
+  "title": "<Full exam title>",
+  "description": "<One-line description of what this exam / guide covers>",
+  "doc_title": "XX-000 Study Guide (Community Edition) — <Exam Title>",
+  "brand": "XX-000",
+  "brand_sub": "<Short subtitle> — Study Guide",
+  "official_url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/xx-000",
+  "weights": {
+    "<Domain 1 name>": "25–30%",
+    "<Domain 2 name>": "45–50%",
+    "<Domain 3 name>": "25–30%"
+  },
+  "status": "draft",
+  "last_refreshed": "YYYY-MM-DD",
+  "fragments": ["frontmatter.html", "domain1.html", "domain2.html", "domain3.html", "appendices.html"],
+  "output_html": "XX-000.html"
+}

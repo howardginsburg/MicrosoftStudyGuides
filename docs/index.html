@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Microsoft Certification Study Guides</title>
+<style>
+  :root{
+    --navy:#0b3d63; --blue:#0f6cbd; --blue2:#3a9bdc; --ink:#1b2733; --mute:#5b6b7a;
+    --line:#d7e2ee; --pale:#eaf3fb; --bg:#f5f8fc; --card:#ffffff; --ok:#107c41; --draft:#b45309;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5}
+  header{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;padding:38px 20px 30px}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+  header h1{margin:0 0 8px;font-size:30px;font-weight:700}
+  header p{margin:0;opacity:.92;max-width:70ch}
+  main{padding:28px 0 60px}
+  .bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 20px}
+  #search{flex:1;min-width:220px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:15px}
+  .count{color:var(--mute);font-size:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+  .card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:14px;
+        padding:18px 18px 16px;text-decoration:none;color:inherit;transition:box-shadow .15s,transform .15s,border-color .15s}
+  .card:hover{box-shadow:0 8px 22px rgba(11,61,99,.13);transform:translateY(-2px);border-color:var(--blue2)}
+  .card .code{display:inline-block;font-weight:700;font-size:13px;letter-spacing:.5px;color:#fff;
+        background:var(--blue);border-radius:6px;padding:3px 9px;align-self:flex-start}
+  .card h2{margin:12px 0 4px;font-size:19px;color:var(--navy)}
+  .card .desc{margin:0 0 12px;color:var(--mute);font-size:14px;flex:1}
+  .weights{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:4px}
+  .weights li{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;border-top:1px dashed var(--line);padding-top:4px}
+  .weights li span:first-child{color:var(--ink)}
+  .weights li span:last-child{color:var(--blue);font-weight:600;white-space:nowrap}
+  .meta{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto;padding-top:6px;font-size:12px;color:var(--mute)}
+  .status{font-weight:600;border-radius:20px;padding:2px 10px;font-size:11.5px}
+  .status.complete{background:#e6f4ec;color:var(--ok)}
+  .status.draft{background:#fdf0dd;color:var(--draft)}
+  .open{color:var(--blue);font-weight:600;font-size:13px}
+  .empty,.error{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:32px;text-align:center;color:var(--mute)}
+  .error{border-color:#e2b6b6;color:#8a3a3a}
+  footer{border-top:1px solid var(--line);background:#fff}
+  footer .wrap{padding:22px 20px;color:var(--mute);font-size:12.5px}
+  footer a{color:var(--blue)}
+  code{background:var(--pale);border-radius:4px;padding:1px 5px;font-size:12.5px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Microsoft Certification Study Guides</h1>
+    <p>Community-built, clean-room study guides for Microsoft certification exams &mdash; each grounded
+       only in public Microsoft&nbsp;Learn documentation, with original writing, diagrams, and practice
+       questions. Pick a guide to start studying.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="bar">
+      <input id="search" type="search" placeholder="Filter by exam code, title, or topic&hellip;" autocomplete="off">
+      <span class="count" id="count"></span>
+    </div>
+    <div id="catalog" class="grid" aria-live="polite"></div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    These guides are independent, unofficial study aids &mdash; <b>not affiliated with, endorsed by, or
+    sponsored by Microsoft</b>. &ldquo;Microsoft&rdquo;, product names, and exam names are trademarks of
+    Microsoft, used nominatively. Content is original and grounded in public
+    <a href="https://learn.microsoft.com">Microsoft&nbsp;Learn</a> documentation; objective titles quote
+    the public Skills&nbsp;Measured blueprint. Provided as-is, without warranty.
+  </div>
+</footer>
+
+<script>
+  var catalog = document.getElementById("catalog");
+  var countEl = document.getElementById("count");
+  var searchEl = document.getElementById("search");
+  var GUIDES = [];
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+  function card(g){
+    var weights = "";
+    if (g.weights && Object.keys(g.weights).length){
+      weights = "<ul class='weights'>" + Object.keys(g.weights).map(function(k){
+        return "<li><span>"+esc(k)+"</span><span>"+esc(g.weights[k])+"</span></li>"; }).join("") + "</ul>";
+    }
+    var status = (g.status==="complete") ? "complete" : "draft";
+    var statusLabel = (status==="complete") ? "Complete" : "Draft";
+    var refreshed = g.last_refreshed ? ("Updated "+esc(g.last_refreshed)) : "";
+    return ""+
+      "<a class='card' href='"+esc(g.file)+"'>"+
+        "<span class='code'>"+esc(g.exam)+"</span>"+
+        "<h2>"+esc(g.title||g.exam)+"</h2>"+
+        "<p class='desc'>"+esc(g.description||"")+"</p>"+
+        weights+
+        "<div class='meta'>"+
+          "<span class='status "+status+"'>"+statusLabel+"</span>"+
+          "<span>"+refreshed+"</span>"+
+          "<span class='open'>Open &rarr;</span>"+
+        "</div>"+
+      "</a>";
+  }
+
+  function render(list){
+    if (!list.length){
+      catalog.innerHTML = "<div class='empty'>No guides match your filter.</div>";
+      countEl.textContent = "";
+      return;
+    }
+    catalog.innerHTML = list.map(card).join("");
+    countEl.textContent = list.length + (list.length===1?" guide":" guides");
+  }
+
+  function applyFilter(){
+    var q = searchEl.value.trim().toLowerCase();
+    if (!q){ render(GUIDES); return; }
+    render(GUIDES.filter(function(g){
+      var hay = [g.exam, g.title, g.description].concat(Object.keys(g.weights||{})).join(" ").toLowerCase();
+      return hay.indexOf(q) !== -1;
+    }));
+  }
+
+  searchEl.addEventListener("input", applyFilter);
+
+  fetch("guides.json", {cache:"no-store"})
+    .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+    .then(function(data){
+      GUIDES = (data && data.guides) ? data.guides : [];
+      render(GUIDES);
+    })
+    .catch(function(err){
+      catalog.innerHTML = "<div class='error'>Couldn&rsquo;t load the guide catalog (guides.json). "+
+        "If you opened this file directly, run it from a local server or view it on GitHub&nbsp;Pages.<br><small>"+
+        esc(err.message)+"</small></div>";
+      countEl.textContent = "";
+    });
+</script>
+</body>
+</html>
