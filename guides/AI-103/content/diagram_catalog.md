@@ -1,0 +1,22 @@
+# Diagram catalog (id — concept). Reference in HTML via <figure class="diagram" data-svg="ID">.
+
+- foundry-topology
+- model-selection
+- deployment-options
+- rag-pipeline
+- agent-anatomy
+- function-calling
+- multi-agent
+- content-safety
+- evaluation-flow
+- observability
+- identity-security
+- rai-governance
+- image-generation
+- multimodal-understanding
+- content-understanding
+- speech-pipeline
+- search-indexing
+- hybrid-search
+- doc-extraction
+- generation-params

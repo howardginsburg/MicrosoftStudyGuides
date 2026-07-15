@@ -1,0 +1,628 @@
+<section class="domain" id="domain4" data-domain="4">
+  <h1 id="d4">Domain 4 — Implement text analysis solutions <span class="weight">10–15%</span></h1>
+  <p class="domain-intro">This domain covers how to extract structured information from text and audio using Azure AI Language, Azure OpenAI, Azure Translator, and Azure AI Speech. Topics span entity extraction, sentiment analysis, PII detection, machine and LLM-powered translation, speech recognition, text-to-speech synthesis, and audio-grounded multimodal reasoning—capabilities that underpin agentic, compliant, and voice-enabled AI solutions.</p>
+
+  <section class="skillgroup" id="sg-4-1">
+    <h2 id="g-4-1">4.1 Apply language model text analysis</h2>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="objective" id="obj-4-1-1" data-skill="Extract entities, topics, summaries, and structured JSON outputs">
+      <h3 id="o-4-1-1">4.1.1 Extract entities, topics, summaries, and structured JSON outputs</h3>
+
+      <div class="concept">
+        <p>Azure AI Language provides prebuilt NLP capabilities for entity recognition and summarization that require no model training. Named Entity Recognition (NER) identifies and categorizes entities such as people, places, organizations, and quantities from unstructured text using a preset taxonomy. A custom NER variant allows training on domain-specific entity types that go beyond the standard list—useful for legal, medical, or financial text.</p>
+        <p>Language Summarization delivers three modes matched to input genre: text summarization for prose blocks, conversation summarization for multi-turn transcripts, and native document summarization for .txt, .pdf, and .docx files. Extractive summarization selects and ranks the most salient original sentences—returning a rank score and positional data per sentence. Abstractive summarization generates novel, concise sentences that may not appear verbatim in the source. Both modes purge results within 24 hours.</p>
+        <p>For generative extraction with a guaranteed structure, Azure OpenAI Structured Outputs enforces a JSON Schema by setting <code>response_format</code> to <code>json_schema</code> with <code>strict: true</code>. This guarantees schema compliance, unlike JSON mode, which only guarantees valid JSON syntax. The Python <code>openai</code> + <code>pydantic</code> stack lets you declare a <code>BaseModel</code> schema and have the SDK validate the parsed response automatically before returning it.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Structured Outputs require API version <strong>2024-08-01-preview</strong> or later (GA: <strong>2024-10-21</strong>).</li>
+          <li>Supported models: <code>gpt-4o</code> (≥ 2024-08-06), <code>gpt-4o-mini</code> (≥ 2024-07-18), <code>gpt-4.1</code>, <code>o4-mini</code>, <code>o3</code>.</li>
+          <li>Structured Outputs are <strong>not</strong> supported with <code>gpt-4o-audio-preview</code>, bring-your-own-data scenarios, the Assistants API, or Azure AI Agents Service.</li>
+          <li>JSON mode guarantees valid JSON; Structured Outputs (<code>strict: true</code>) guarantee schema shape compliance.</li>
+          <li>Summarization results are purged after <strong>24 hours</strong>—retrieve and store results before this window closes.</li>
+          <li>Extractive summarization returns <strong>rank score</strong> and <strong>positional information</strong> per selected sentence.</li>
+          <li>Custom NER training requires labeled examples created in Language Studio or via REST API.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-python">from pydantic import BaseModel, Field
+from openai import AzureOpenAI
+
+class DocumentExtract(BaseModel):
+    title: str
+    summary: str = Field(..., description="One-sentence summary")
+    entities: list[str] = Field(..., description="Key named entities")
+
+client = AzureOpenAI(
+    azure_endpoint="https://&lt;resource&gt;.openai.azure.com/",
+    api_key="&lt;key&gt;",
+    api_version="2024-10-21",
+)
+
+completion = client.beta.chat.completions.parse(
+    model="gpt-4o",
+    messages=[{
+        "role": "user",
+        "content": "Extract entities and summarize: &lt;document text here&gt;"
+    }],
+    response_format=DocumentExtract,
+)
+result: DocumentExtract = completion.choices[0].message.parsed
+print(result.title, result.entities)</code></pre>
+      </div>
+
+      <div class="callout tip"><b>Tip:</b> Use Structured Outputs (<code>strict: true</code>) when downstream pipelines depend on a guaranteed schema shape. Fall back to JSON mode only when you need valid JSON but the exact key set is flexible.</div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>JSON mode ≠ Structured Outputs: JSON mode guarantees valid JSON, not schema shape. Structured Outputs guarantee both.</li>
+          <li>Structured Outputs do <em>not</em> work with audio-preview models, BYOD, the Assistants API, or Azure AI Agents Service.</li>
+          <li>Summarization results expire in 24 hours—always persist retrieved summaries immediately.</li>
+          <li>Prebuilt NER uses a fixed taxonomy; Custom NER requires labeled training data but covers any domain entity type.</li>
+          <li>Abstractive summaries generate new sentences; extractive summaries return ranked <em>original</em> sentences from the source.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A developer needs an Azure OpenAI response that always contains the fields <code>risk_score</code> (int) and <code>summary</code> (str) — no extra fields allowed. Which feature and setting should they use?</summary>
+        <div class="answer"><b>Answer:</b> Azure OpenAI Structured Outputs — set <code>response_format</code> to <code>json_schema</code> with <code>strict: true</code> and define a matching Pydantic <code>BaseModel</code>. <em>Why:</em> JSON mode guarantees valid JSON but not field presence or type; Structured Outputs with <code>strict: true</code> enforce schema compliance exactly.</div></details>
+        <details class="q"><summary><b>Q2.</b> A compliance system must summarize .pdf audit documents and recognize domain-specific clause entity types not covered by the standard NER taxonomy. Which two Azure AI Language features address these requirements?</summary>
+        <div class="answer"><b>Answer:</b> Native document summarization (accepts .pdf natively) and Custom NER (trained on domain-specific clause labels). <em>Why:</em> Prebuilt NER only covers the standard taxonomy; document-based summarization handles .pdf without preprocessing.</div></details>
+        <details class="q"><summary><b>Q3.</b> When using extractive summarization, what two metadata values does Azure AI Language return for each selected sentence?</summary>
+        <div class="answer"><b>Answer:</b> Rank score and positional information. <em>Why:</em> These allow downstream systems to sort sentences by relevance and locate them within the source document.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/language-service/named-entity-recognition/overview">Named Entity Recognition overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/language-service/summarization/overview">Text and conversation summarization overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-foundry/openai/how-to/structured-outputs">How to use Structured Outputs</a></li>
+          <li><a href="https://learn.microsoft.com/azure/developer/ai/how-to/extract-entities-using-structured-outputs">Extract entities using Structured Outputs</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="objective" id="obj-4-1-2" data-skill="Configure detection of sentiment, tone, safety issues, and sensitive content">
+      <h3 id="o-4-1-2">4.1.2 Configure detection of sentiment, tone, safety issues, and sensitive content</h3>
+
+      <div class="concept">
+        <p>Azure AI Language Sentiment Analysis assigns positive, neutral, or negative labels at both sentence and document level, returning confidence scores between 0 and 1 for each label—the label with the highest score is selected. Opinion Mining (aspect-based sentiment analysis) extends this by linking detected sentiment to specific target words or attributes, providing feature-level insight beyond aggregate document polarity.</p>
+        <p>PII Detection identifies sensitive personal data across three input formats matched to the data structure: Text PII handles synchronous string payloads such as messages and logs; Conversation PII processes turn-based chat and transcript structures; Document-based PII asynchronously processes .pdf, .docx, and .txt files while preserving document layout. All three variants return entity category, confidence score, and configurable redacted output with adjustable masking style.</p>
+        <p>These capabilities are surfaced through the shared <code>azure-ai-textanalytics</code> (Python) / <code>Azure.AI.TextAnalytics</code> (.NET) SDK and can be combined with other Language features in a single asynchronous batch request. For on-premises or strict data-residency scenarios, both sentiment analysis and PII detection support Docker container deployment.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Sentiment labels are confidence scores 0–1; the label with the <strong>highest score</strong> is the assigned sentiment.</li>
+          <li>Opinion Mining is enabled by passing <code>show_opinion_mining=True</code> — it links sentiment to <em>target words</em> (aspects).</li>
+          <li>PII variants by format: <strong>Text PII</strong> (synchronous strings), <strong>Conversation PII</strong> (turn-based chat), <strong>Document PII</strong> (async .pdf/.docx/.txt).</li>
+          <li>PII returns <strong>redacted text</strong>, entity categories, and confidence scores per detected span.</li>
+          <li>Classic Language sentiment analysis retires <strong>March 31, 2029</strong>; new projects should migrate to Azure AI Foundry models.</li>
+          <li>Docker container deployment is supported for both sentiment analysis and PII detection for on-premises processing.</li>
+          <li>All Language features share the same SDK: <code>azure-ai-textanalytics</code> (Python) / <code>Azure.AI.TextAnalytics</code> (.NET).</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="content-safety"><figcaption>Content safety and PII detection flow: text input is analyzed by category, confidence scores are returned per detected span, and sensitive content is redacted or flagged before output reaches the application layer.</figcaption></figure>
+
+      <div class="code">
+        <pre><code class="lang-python">from azure.ai.textanalytics import TextAnalyticsClient
+from azure.core.credentials import AzureKeyCredential
+
+client = TextAnalyticsClient(
+    "https://&lt;resource&gt;.cognitiveservices.azure.com/",
+    AzureKeyCredential("&lt;key&gt;")
+)
+
+# Sentiment with opinion mining (aspect-level feedback)
+reviews = ["The delivery was fast but the product quality was disappointing."]
+sentiment_results = client.analyze_sentiment(reviews, show_opinion_mining=True)
+for doc in sentiment_results:
+    print(doc.sentiment, doc.confidence_scores)
+
+# PII redaction from a text payload
+pii_docs = ["Please reach out to Sofia Hernandez at sofia.h@example.com."]
+pii_results = client.recognize_pii_entities(pii_docs)
+for doc in pii_results:
+    print(doc.redacted_text)</code></pre>
+      </div>
+
+      <div class="callout warn"><b>Gotcha:</b> Classic Azure AI Language sentiment analysis is scheduled to retire March 31, 2029. Begin planning migration timelines now for applications with long operational lifetimes.</div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Opinion Mining is a <em>mode</em> of sentiment analysis (pass <code>show_opinion_mining=True</code>), not a separate API call.</li>
+          <li>The choice between Text PII, Conversation PII, and Document PII depends on <em>input format</em>, not content sensitivity.</li>
+          <li>Docker containers allow Language features to run entirely on-premises — data never leaves the local environment.</li>
+          <li>PII detection returns a <code>redacted_text</code> property and a list of detected entity spans with categories and confidence scores.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A retail company wants to identify which specific product features customers mention negatively in reviews, rather than just knowing the overall review sentiment. Which Language feature should they enable?</summary>
+        <div class="answer"><b>Answer:</b> Opinion Mining (aspect-based sentiment analysis), enabled by passing <code>show_opinion_mining=True</code> to <code>analyze_sentiment</code>. <em>Why:</em> Standard sentiment returns document/sentence polarity only; Opinion Mining links sentiment polarity to specific target words—the product feature in this case.</div></details>
+        <details class="q"><summary><b>Q2.</b> A financial services firm must redact PII from multi-turn customer support chat logs before long-term storage. Which PII feature type is appropriate and why?</summary>
+        <div class="answer"><b>Answer:</b> Conversation PII, which is designed for turn-based chat and transcript data structures. <em>Why:</em> Text PII processes single synchronous string payloads; Conversation PII understands the multi-turn structure of chat logs and preserves speaker-turn context.</div></details>
+        <details class="q"><summary><b>Q3.</b> A regulated financial institution cannot send data to Azure cloud endpoints. Which deployment option for PII detection meets this requirement?</summary>
+        <div class="answer"><b>Answer:</b> Docker container deployment. <em>Why:</em> Azure AI Language supports running sentiment analysis and PII detection in Docker containers on-premises, keeping data within the organization's network boundary.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/language-service/sentiment-opinion-mining/overview">Sentiment analysis and opinion mining overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/language-service/personally-identifiable-information/overview">PII detection overview</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="objective" id="obj-4-1-3" data-skill="Translate text using Azure Translator in Foundry Tools or LLM-powered flows">
+      <h3 id="o-4-1-3">4.1.3 Translate text using Azure Translator in Foundry Tools or LLM-powered translation flows</h3>
+
+      <div class="concept">
+        <p>Azure Translator is a cloud-based neural machine translation (NMT) service accessible via REST API. Beginning with the 2026-06-06 GA API release, individual translation requests can optionally route through a large language model (for example, GPT-5.4) for context-aware, tonally adaptive translation. Standard NMT continues to work with existing Translator or multi-service resources; LLM-powered translation requires a Foundry resource.</p>
+        <p>The two paths have distinct service limits and billing models. NMT supports up to 1,000 array elements at 50,000 characters each per request; LLM translation is capped at 50 array elements and 5,000 characters per element. NMT is billed by source character count, while LLM translation is billed by input and output token consumption under Azure OpenAI pricing—a significantly different cost profile at scale.</p>
+        <p>The Foundry portal Translator playground (available from November 2025) allows side-by-side comparison of Azure-MT (NMT), GPT-4o, and GPT-4o mini outputs and supports customization by gender, tone, and domain terminology without writing code. The Transliterate endpoint converts text between writing systems (for example, Japanese kana to Latin romanization) without translating the language itself.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>NMT limits: <strong>1,000 array elements / 50,000 characters per element</strong> per request.</li>
+          <li>LLM translation limits: <strong>50 array elements / 5,000 characters per element</strong> per request.</li>
+          <li>NMT billed by source character count; LLM translation billed by input + output tokens (OpenAI pricing).</li>
+          <li>LLM translation requires a <strong>Foundry resource</strong>; standalone Translator resources are insufficient.</li>
+          <li>Foundry playground model options: <em>Azure-MT</em>, <em>GPT-4o</em>, <em>GPT-4o mini</em>.</li>
+          <li>Transliterate converts scripts/alphabets (e.g., kana → Latin) — distinct from translation; the source language is preserved.</li>
+          <li>For high-volume, cost-sensitive workloads, route to NMT; reserve LLM for tone control or domain-specific contextual handling.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-python">import requests, uuid
+
+endpoint = "https://api.cognitive.microsofttranslator.com"
+headers = {
+    "Ocp-Apim-Subscription-Key": "&lt;key&gt;",
+    "Ocp-Apim-Subscription-Region": "&lt;region&gt;",
+    "Content-Type": "application/json",
+    "X-ClientTraceId": str(uuid.uuid4()),
+}
+# NMT: translate Italian to English and French in one call
+body = [{"text": "Questo documento è riservato."}]
+params = {"api-version": "3.0", "from": "it", "to": ["en", "fr"]}
+response = requests.post(
+    f"{endpoint}/translate", headers=headers, params=params, json=body
+)
+for translation in response.json()[0]["translations"]:
+    print(f"[{translation['to']}] {translation['text']}")</code></pre>
+      </div>
+
+      <div class="callout key"><b>Key:</b> Route to NMT for high-volume baseline traffic. Use LLM translation only when tone control, gender agreement, or rich domain adaptation is required—and confirm the Foundry resource is provisioned before calling the 2026-06-06 API endpoint.</div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>NMT and LLM translation have <em>different</em> element-count and character limits — exceeding LLM limits causes errors not encountered with NMT.</li>
+          <li>Transliterate ≠ Translate: transliterate changes the script but keeps the source language; translate changes the language.</li>
+          <li>LLM translation is billed per token, not per character — can be significantly more expensive at high volume.</li>
+          <li>The 2026-06-06 API version is required to select an LLM per request; earlier API versions support NMT only.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A legal firm needs to translate contracts requiring precise tone and gender agreement. They have an existing standalone Translator resource. What must they provision to enable LLM-powered translation?</summary>
+        <div class="answer"><b>Answer:</b> A Foundry resource (not a standalone Translator resource), and they must call API version 2026-06-06. <em>Why:</em> LLM translation is only available via the Foundry resource; existing standalone Translator resources cannot route requests through an LLM.</div></details>
+        <details class="q"><summary><b>Q2.</b> A solution needs to translate 800 text strings in a single API call, each up to 40,000 characters. Which translation path is compatible?</summary>
+        <div class="answer"><b>Answer:</b> NMT (standard Azure Translator). <em>Why:</em> NMT supports up to 1,000 elements and 50,000 characters per element per call; LLM translation is limited to 50 elements and 5,000 characters per element.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/translator/overview">Azure Translator overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/translator/text-translation/overview">Text translation overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/translator/text-translation/2026-06-06/rest-api-guide">Translator REST API 2026-06-06 reference</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/translator/whats-new">What's new in Azure Translator</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="objective" id="obj-4-1-4" data-skill="Customize language model outputs for domain tasks">
+      <h3 id="o-4-1-4">4.1.4 Customize language model outputs for domain tasks such as compliance summarization and domain extraction</h3>
+
+      <div class="concept">
+        <p>Domain customization spans both classical Language Service features and generative model configuration. Custom NER allows labeling and training on entity types specific to a business domain—contract clause types, pharmaceutical drug names, financial instruments—that the prebuilt taxonomy does not cover. Custom Translator trains domain-adapted machine translation models using parallel bilingual document pairs; a Category ID is assigned to the trained model and supplied in Translator API calls to route requests through it.</p>
+        <p>For conversation-based compliance workflows, Language Summarization supports domain-specific aspect configuration: <em>recap</em>, <em>issue/resolution</em> (call-center QA), <em>chapter title</em>, and <em>narrative</em>. These aspects are tailored to the structure of compliance monitoring, meeting notes, and audit-trail generation. The 2026-06-06 API also introduces adaptive custom translation for select language pairs (English, French, German, Spanish), enabling terminology fine-tuning without full model retraining.</p>
+        <p>Generative model customization uses Pydantic-based Structured Outputs to enforce domain-specific JSON shapes from an LLM. Declaring fields such as <code>clause_type</code>, <code>risk_level</code>, and <code>action_required</code> in a <code>BaseModel</code> ensures schema-validated responses for downstream pipeline reliability. The SDK's <code>analyze_actions</code> method batches NER, summarization, key phrase extraction, and PII redaction into a single asynchronous request—important for throughput-sensitive compliance workloads.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Custom NER requires labeled training data; annotate in Language Studio or via REST API before training.</li>
+          <li>Custom Translator: assign a <strong>Category ID</strong> to the trained model; pass it in Translator API calls to route through the domain-adapted model.</li>
+          <li>Adaptive custom translation (2026-06-06 API) tunes terminology for select language pairs without full retraining.</li>
+          <li>Conversation summarization aspects: <em>recap</em>, <em>issue/resolution</em>, <em>chapter title</em>, <em>narrative</em>.</li>
+          <li>Document-based PII and summarization accept <strong>.pdf and .docx natively</strong>, eliminating preprocessing for document-heavy workflows.</li>
+          <li><code>begin_analyze_actions</code> combines multiple Language tasks (NER, summarization, key phrases, PII) in a single async batch.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="generation-params"><figcaption>Customizing language model outputs: prompt engineering, schema constraints (Structured Outputs), and domain-tuned models (Custom NER, Custom Translator) work together to shape extraction and summarization for domain-specific compliance and extraction tasks.</figcaption></figure>
+
+      <div class="code">
+        <pre><code class="lang-python">from azure.ai.textanalytics import (
+    TextAnalyticsClient,
+    ExtractSummaryAction,
+    RecognizeEntitiesAction,
+)
+from azure.core.credentials import AzureKeyCredential
+
+client = TextAnalyticsClient(
+    "https://&lt;resource&gt;.cognitiveservices.azure.com/",
+    AzureKeyCredential("&lt;key&gt;")
+)
+
+docs = ["This service agreement shall remain in effect for thirty-six months from execution..."]
+
+poller = client.begin_analyze_actions(
+    docs,
+    actions=[
+        ExtractSummaryAction(max_sentence_count=2),
+        RecognizeEntitiesAction(),
+    ],
+)
+for result_page in poller.result():
+    for action_result in result_page:
+        print(action_result)</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Custom NER vs. prebuilt NER: prebuilt covers general entity types with no training; Custom NER requires labeled data but covers any domain entity type.</li>
+          <li>Custom Translator requires the <strong>Category ID</strong> in each API call — without it, requests fall back to the base NMT model silently.</li>
+          <li>Adaptive custom translation covers only <em>select language pairs</em>—verify pair support before designing routing logic.</li>
+          <li><code>begin_analyze_actions</code> is async; iterate over the poller's result pages to retrieve each action's output.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A compliance team wants to summarize call-center transcripts with structured output that separates the problem identified from the resolution applied. Which conversation summarization aspect should they configure?</summary>
+        <div class="answer"><b>Answer:</b> The <em>issue/resolution</em> aspect. <em>Why:</em> This aspect is purpose-built for call-center quality assurance, generating summaries that explicitly separate problem identification from outcome/resolution.</div></details>
+        <details class="q"><summary><b>Q2.</b> A pharmaceutical company trains a Custom Translator model on drug approval documentation. How do they ensure live translation API requests use this model instead of the base NMT model?</summary>
+        <div class="answer"><b>Answer:</b> Pass the <strong>Category ID</strong> of the trained custom model in the Translator API request. <em>Why:</em> Without the Category ID, requests are silently routed through the default base NMT model, bypassing domain-specific training.</div></details>
+        <details class="q"><summary><b>Q3.</b> A developer needs to run entity recognition, extractive summarization, and PII redaction on a set of legal documents in the fewest possible API calls. Which SDK approach enables this?</summary>
+        <div class="answer"><b>Answer:</b> Use <code>begin_analyze_actions</code> with <code>ExtractSummaryAction</code>, <code>RecognizeEntitiesAction</code>, and <code>RecognizePiiEntitiesAction</code> in a single asynchronous batch. <em>Why:</em> <code>analyze_actions</code> combines multiple Language tasks in one call, reducing latency and API overhead for compliance batch workflows.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/language-service/named-entity-recognition/overview">Named Entity Recognition and custom NER</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/language-service/summarization/overview">Summarization overview (conversation aspects)</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-foundry/openai/how-to/structured-outputs">Structured Outputs for domain-specific extraction</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/translator/overview">Azure Translator and Custom Translator overview</a></li>
+        </ul>
+      </div>
+    </section>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════════════════ -->
+  <section class="skillgroup" id="sg-4-2">
+    <h2 id="g-4-2">4.2 Implement speech solutions</h2>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="objective" id="obj-4-2-1" data-skill="Convert speech to text and text to speech for agentic interactions">
+      <h3 id="o-4-2-1">4.2.1 Convert speech to text and text to speech for agentic interactions</h3>
+
+      <div class="concept">
+        <p>The Azure AI Speech SDK provides a unified API surface for speech-to-text (STT), text-to-speech (TTS), speech translation, and related audio capabilities. It is available for C#, C++, Java, JavaScript, Python, Go, Objective-C, and Swift across Windows, Linux, macOS, Android, iOS, and browser environments, making it well-suited for embedding voice modalities into agent applications across diverse deployment targets.</p>
+        <p>Real-time STT is built from a <code>SpeechRecognizer</code> composed with a <code>SpeechConfig</code> (subscription key and region) and an <code>AudioConfig</code> (microphone or audio file). <code>recognize_once_async()</code> handles single utterances; continuous recognition with event callbacks handles streaming agent interactions. For TTS, a <code>SpeechSynthesizer</code> configured with a voice name and language renders agent text responses to audio output using <code>speak_text_async()</code>.</p>
+        <p>For batch transcription of large audio archives, the Speech REST API is the correct interface—not the SDK. When LLM-enhanced transcription accuracy is required, the Speech Transcription SDK (<code>azure-ai-speech-transcription</code> package) provides an alternative high-accuracy path. Real-time and file-based scenarios share the same SDK API surface; only <code>AudioConfig</code> differs between them.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Speech SDK languages: C#, C++, Java, JavaScript, Python, Go, Objective-C, Swift.</li>
+          <li>Real-time STT: <code>SpeechRecognizer</code> + <code>recognize_once_async()</code> for single utterances; event-based continuous recognition for streaming.</li>
+          <li>TTS: <code>SpeechSynthesizer</code> + <code>speak_text_async()</code>; voice configured via <code>speech_config.speech_synthesis_voice_name</code>.</li>
+          <li>Batch transcription and custom model management use the <strong>Speech REST API</strong>, not the SDK.</li>
+          <li>LLM-enhanced transcription uses the separate <strong>Speech Transcription SDK</strong> (<code>azure-ai-speech-transcription</code>).</li>
+          <li>Only <code>AudioConfig</code> differs between microphone and file-based scenarios; <code>SpeechConfig</code> is identical.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="speech-pipeline"><figcaption>Speech pipeline for agentic interactions: audio input flows through STT recognition into the agent's reasoning layer; the agent's text output is rendered back to the user as synthesized audio via TTS.</figcaption></figure>
+
+      <div class="code">
+        <pre><code class="lang-python">import azure.cognitiveservices.speech as speechsdk
+
+speech_config = speechsdk.SpeechConfig(subscription="&lt;key&gt;", region="&lt;region&gt;")
+speech_config.speech_synthesis_voice_name = "en-US-JennyNeural"
+
+# TTS: render agent's text response as speech
+synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config)
+tts_result = synthesizer.speak_text_async("The package will arrive by Friday.").get()
+
+# STT: capture user's spoken query
+audio_config = speechsdk.AudioConfig(use_default_microphone=True)
+recognizer = speechsdk.SpeechRecognizer(
+    speech_config=speech_config, audio_config=audio_config
+)
+stt_result = recognizer.recognize_once_async().get()
+print("User said:", stt_result.text)</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Batch transcription uses the <em>Speech REST API</em>, not the SDK — a common source of confusion on the exam.</li>
+          <li>The <code>AudioConfig</code> is the only component that changes between microphone and file inputs; <code>SpeechConfig</code> remains identical.</li>
+          <li>Voice name is set on <code>SpeechConfig</code> (<code>speech_synthesis_voice_name</code>), not on the <code>SpeechSynthesizer</code> object directly.</li>
+          <li>LLM-enhanced transcription requires the <em>separate</em> <code>azure-ai-speech-transcription</code> package, not the standard SDK package.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An agent application must transcribe 15,000 stored audio files overnight in a cost-efficient manner. Which Azure Speech interface should it use?</summary>
+        <div class="answer"><b>Answer:</b> The Speech REST API (batch transcription endpoint). <em>Why:</em> Batch transcription of large audio archives is designed for the REST API, not the real-time Speech SDK, which targets streaming or single-utterance scenarios.</div></details>
+        <details class="q"><summary><b>Q2.</b> A developer sets <code>speech_config.speech_synthesis_voice_name = "en-US-AriaNeural"</code>. What additional object do they need to create, and which method renders the text as speech?</summary>
+        <div class="answer"><b>Answer:</b> A <code>SpeechSynthesizer</code> object, instantiated with the <code>SpeechConfig</code>. Call <code>speak_text_async("…").get()</code> to perform synthesis. <em>Why:</em> <code>SpeechConfig</code> carries configuration; the synthesizer holds the synthesis logic and exposes the async method.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk">Azure AI Speech SDK overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/speech-service/overview">Azure AI Speech service overview</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="objective" id="obj-4-2-2" data-skill="Integrate speech as an agent modality, including custom speech models">
+      <h3 id="o-4-2-2">4.2.2 Integrate speech as an agent modality, including custom speech models</h3>
+
+      <div class="concept">
+        <p>Custom Speech improves recognition accuracy beyond the universal base model by training on domain-specific vocabulary and audio conditions. Training inputs include text transcripts, audio files paired with reference transcriptions, structured text for pattern-based recognition, and custom pronunciation files. This is especially valuable in agents deployed in specialized domains—legal, medical, technical—where base models produce high error rates on niche terminology.</p>
+        <p>The Custom Speech workflow follows five sequential steps: create a Speech Studio project (or use the API), upload training and test data, train the custom model, evaluate accuracy using Word Error Rate (WER), then deploy the approved model to a custom endpoint. Real-time STT with a custom model requires a dedicated custom endpoint; batch transcription can reference a custom model directly without hosting a persistent endpoint, reducing ongoing costs for bulk offline processing.</p>
+        <p>Custom endpoints remain pinned to the model version they were trained on, providing stable, predictable recognition quality even as Microsoft releases new base model versions. When a domain spans distinct sub-areas with different vocabularies, separate per-sub-area custom models outperform a single generalized custom model. Integration is seamless: set <code>speech_config.endpoint_id</code> to the custom endpoint URL; no other SDK changes are required.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Custom Speech training data types: text transcripts, audio + reference transcriptions, structured text, custom pronunciations.</li>
+          <li>Accuracy is measured by <strong>Word Error Rate (WER)</strong> — lower WER indicates better recognition quality.</li>
+          <li>Real-time STT with a custom model <strong>requires</strong> a custom endpoint; batch transcription does <em>not</em>.</li>
+          <li>Custom endpoints are version-pinned — recognition quality remains consistent even when Microsoft releases newer base models.</li>
+          <li>Training cost applies if the base model was created on or after <strong>October 1, 2023</strong>; endpoint hosting cost applies regardless of base model date.</li>
+          <li>Use <code>speech_config.endpoint_id = "&lt;custom-endpoint-id&gt;"</code> to route SDK calls to the custom model.</li>
+          <li>Multiple domain-specific models outperform a single generalized model when vocabularies between sub-areas are distinctly different.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-python">import azure.cognitiveservices.speech as speechsdk
+
+speech_config = speechsdk.SpeechConfig(subscription="&lt;key&gt;", region="&lt;region&gt;")
+# Route SDK calls to the trained custom speech endpoint
+speech_config.endpoint_id = "&lt;custom-endpoint-id&gt;"
+
+audio_config = speechsdk.AudioConfig(filename="legal_deposition.wav")
+recognizer = speechsdk.SpeechRecognizer(
+    speech_config=speech_config,
+    audio_config=audio_config,
+)
+result = recognizer.recognize_once_async().get()
+print("Transcript:", result.text)</code></pre>
+      </div>
+
+      <div class="callout tip"><b>Tip:</b> Evaluate WER on held-out audio that is representative of actual production conditions, not just training data. A low WER on training audio but high WER in production typically indicates a distribution mismatch—collect more diverse samples before retraining.</div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>A custom endpoint is <em>required</em> for real-time STT with a custom model — this is not optional.</li>
+          <li>Batch transcription can use a custom model <em>without</em> a dedicated hosted endpoint — use this to avoid hosting charges for offline workloads.</li>
+          <li>Endpoint hosting costs apply <em>regardless</em> of base model date; only the training cost varies based on the October 1, 2023 cutoff.</li>
+          <li>Only <code>endpoint_id</code> needs to change in the SDK to switch from the base model to a custom model.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A hospital voice agent uses Azure Speech for live physician dictation. The standard model frequently misidentifies drug names. What is the recommended solution?</summary>
+        <div class="answer"><b>Answer:</b> Train a Custom Speech model using medical transcripts and custom pronunciation files, deploy it to a custom endpoint, and set <code>speech_config.endpoint_id</code> to point to it. <em>Why:</em> The universal base model does not cover specialized medical terminology; Custom Speech training on domain data reduces WER on niche vocabulary.</div></details>
+        <details class="q"><summary><b>Q2.</b> A team needs to run overnight batch transcription using a custom speech model while minimizing costs. Do they need to host a custom endpoint?</summary>
+        <div class="answer"><b>Answer:</b> No. Batch transcription can reference a custom model directly without a dedicated hosted endpoint. <em>Why:</em> Only real-time STT requires a hosted custom endpoint; batch transcription references the model ID directly, avoiding ongoing endpoint hosting charges.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/speech-service/custom-speech-overview">Custom Speech overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/speech-service/how-to-custom-speech-train-model">Train a custom speech model</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk">Azure AI Speech SDK</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="objective" id="obj-4-2-3" data-skill="Enable multimodal reasoning from audio inputs">
+      <h3 id="o-4-2-3">4.2.3 Enable multimodal reasoning from audio inputs</h3>
+
+      <div class="concept">
+        <p>Audio-capable Azure OpenAI models — <code>gpt-4o-audio-preview</code> and <code>gpt-4o-mini-audio-preview</code> — accept audio as a content part inside a standard chat completions message, alongside text and images, enabling the model to reason directly over spoken content without a separate STT preprocessing step. Audio is base64-encoded and submitted as an <code>input_audio</code> content type alongside a user text instruction.</p>
+        <p>For low-latency conversational agents, the GPT Realtime API provides a persistent WebSocket session supporting "speech in, speech out" interactions. The <code>openai</code> Python library exposes a <code>RealtimeClient</code> helper for managing audio delta streams and model response events. Sessions can include an ISO-639-1 language hint (for example, <code>"en"</code>) to improve transcription accuracy for a known input language. The <code>gpt-realtime-translate</code> Foundry model targets real-time speech translation over this same WebSocket channel.</p>
+        <p>An important constraint: Structured Outputs (schema-enforced JSON) are not supported with <code>gpt-4o-audio-preview</code> or <code>gpt-4o-mini-audio-preview</code>. Pipelines that need schema-validated JSON output must transcribe audio to text first, then apply Structured Outputs in a subsequent text-model call. LLM Speech (Speech Transcription SDK) provides an alternative path supporting approximately 25 input languages in multi-lingual mode by default.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>gpt-4o-audio-preview</code> and <code>gpt-4o-mini-audio-preview</code> accept <code>input_audio</code> content parts in chat messages—no separate STT step needed.</li>
+          <li>GPT Realtime API uses a <strong>persistent WebSocket</strong> for low-latency "speech in, speech out" conversational interactions.</li>
+          <li><code>gpt-realtime-translate</code>: Global Standard (pay-as-you-go) deployment; billed <strong>hourly</strong> under Audio Models pricing.</li>
+          <li><strong>Structured Outputs are NOT supported</strong> with <code>gpt-4o-audio-preview</code> / <code>gpt-4o-mini-audio-preview</code> (version 2024-12-17).</li>
+          <li>Language hints in Realtime API sessions use ISO-639-1 codes (e.g., <code>"en"</code>); optional but improve accuracy for known locales.</li>
+          <li>LLM Speech (Speech Transcription SDK) supports ~25 languages, multi-lingual mode by default — no locale specification required.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="multimodal-understanding"><figcaption>Multimodal audio reasoning: audio input is base64-encoded and submitted as an input_audio content part in a chat completions request, allowing the model to reason over spoken content and produce a text response without a separate STT preprocessing step.</figcaption></figure>
+
+      <div class="code">
+        <pre><code class="lang-python">import base64
+from openai import AzureOpenAI
+
+client = AzureOpenAI(
+    azure_endpoint="https://&lt;resource&gt;.openai.azure.com/",
+    api_key="&lt;key&gt;",
+    api_version="2025-01-01-preview",
+)
+
+with open("meeting_clip.wav", "rb") as f:
+    audio_b64 = base64.b64encode(f.read()).decode()
+
+response = client.chat.completions.create(
+    model="gpt-4o-audio-preview",
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "text", "text": "List any action items mentioned in this recording."},
+            {"type": "input_audio", "input_audio": {"data": audio_b64, "format": "wav"}},
+        ],
+    }],
+)
+print(response.choices[0].message.content)</code></pre>
+      </div>
+
+      <div class="callout warn"><b>Gotcha:</b> Structured Outputs (<code>strict: true</code> JSON schema enforcement) are <em>not supported</em> with audio-preview models. If your pipeline requires schema-validated JSON, transcribe the audio to text first, then call a text-capable model with Structured Outputs in a second request.</div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Audio-preview models accept audio directly in chat—no STT preprocessing required—but <em>no Structured Outputs</em> either.</li>
+          <li><code>gpt-realtime-translate</code> is billed <em>hourly</em>, not per token or character—factor this into high-volume cost planning.</li>
+          <li>LLM Speech operates in multi-lingual mode by default; no input locale needs to be specified, unlike classic STT.</li>
+          <li>The Realtime API is WebSocket-based and stateful per session—not compatible with stateless HTTP REST patterns.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A developer submits an audio clip to <code>gpt-4o-audio-preview</code> and needs the response as a JSON object with specific fields for downstream processing. What must they do?</summary>
+        <div class="answer"><b>Answer:</b> Transcribe the audio to text first (using STT or a non-audio model path), then submit the text to a supported model (e.g., <code>gpt-4o</code>) with <code>response_format = json_schema</code> and <code>strict: true</code>. <em>Why:</em> Structured Outputs are not supported with <code>gpt-4o-audio-preview</code>; schema enforcement requires a text-based model.</div></details>
+        <details class="q"><summary><b>Q2.</b> Which deployment type and billing model applies to <code>gpt-realtime-translate</code>?</summary>
+        <div class="answer"><b>Answer:</b> Global Standard (pay-as-you-go) deployment, billed hourly under the Audio Models pricing tier. <em>Why:</em> This model is specialized for real-time speech translation and has a distinct hourly pricing structure separate from token-based model billing.</div></details>
+        <details class="q"><summary><b>Q3.</b> What is the key advantage of LLM Speech (Speech Transcription SDK) over classic Azure Speech STT for multilingual input scenarios?</summary>
+        <div class="answer"><b>Answer:</b> LLM Speech operates in multi-lingual mode by default across approximately 25 languages without requiring a pre-specified input locale, whereas classic STT requires you to declare the recognition language upfront. <em>Why:</em> This simplifies multilingual agent pipelines where the input language may vary between speakers or turns.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/openai/realtime-audio-quickstart">GPT Realtime API quickstart</a></li>
+          <li><a href="https://learn.microsoft.com/azure/foundry/openai/concepts/gpt-realtime-translate">GPT Realtime Translate overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/speech-service/llm-speech">LLM Speech (Speech Transcription SDK)</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/speech-service/overview">Azure AI Speech service overview</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <section class="objective" id="obj-4-2-4" data-skill="Translate speech into other languages using language models and Foundry Tools">
+      <h3 id="o-4-2-4">4.2.4 Translate speech into other languages using language models and Foundry Tools</h3>
+
+      <div class="concept">
+        <p>Azure AI Speech Translation provides real-time speech-to-text and speech-to-speech translation via the Speech SDK or CLI. The standard Speech Translation API supports up to two target languages in a single call; producing output in more than two languages requires a multi-service Foundry resource, with Azure Translator pricing applied for each additional target language beyond the second. Outputs include STT translation, speech-to-speech synthesis, and multi-lingual conversation translation.</p>
+        <p>Live Interpreter continuously identifies the spoken input language without requiring a pre-configured locale setting, then synthesizes translated output in a natural voice that preserves the speaker's style and tone. This makes it well-suited for international conferences, Teams meetings, contact centers, and educational events where the input language is dynamic. Domain-specific translation accuracy can be improved by supplying a Custom Translator Category ID in the <code>SpeechTranslationConfig</code>, routing translated output through a domain-adapted MT model while the STT step remains unchanged.</p>
+        <p>For LLM-powered speech translation, <code>gpt-realtime-translate</code> is a dedicated Foundry model delivering multilingual speech-to-speech translation over a persistent WebSocket session. The Speech Transcription SDK (LLM Speech) supports approximately 25 input languages for both transcription and translation tasks in multi-lingual mode by default, with optional ISO-639-1 locale hints available for specific languages.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Standard Speech Translation API: up to <strong>2 target languages per call</strong>; more requires a multi-service Foundry resource.</li>
+          <li>Additional languages beyond the second incur <strong>Azure Translator character-based pricing</strong>.</li>
+          <li>Live Interpreter: automatic language identification (no pre-set locale), speech-to-speech synthesis with speaker style preservation.</li>
+          <li>Custom Translator integration: supply <strong>Category ID</strong> in <code>SpeechTranslationConfig</code> to apply domain-adapted MT to translated output.</li>
+          <li><code>gpt-realtime-translate</code>: Foundry model, Global Standard deployment, billed hourly.</li>
+          <li>LLM Speech: ~25 input languages, multi-lingual mode by default, optional ISO-639-1 locale hints.</li>
+          <li>Total billing = STT transcription cost + Translator character fees per additional target language beyond the second.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-python">import azure.cognitiveservices.speech as speechsdk
+
+translation_config = speechsdk.translation.SpeechTranslationConfig(
+    subscription="&lt;key&gt;", region="&lt;region&gt;"
+)
+translation_config.speech_recognition_language = "en-US"
+translation_config.add_target_language("es")  # target language 1
+translation_config.add_target_language("ja")  # target language 2
+
+audio_config = speechsdk.AudioConfig(use_default_microphone=True)
+recognizer = speechsdk.translation.TranslationRecognizer(
+    translation_config=translation_config,
+    audio_config=audio_config,
+)
+
+def on_recognized(evt):
+    for lang, text in evt.result.translations.items():
+        print(f"[{lang}] {text}")
+
+recognizer.recognized.connect(on_recognized)
+recognizer.start_continuous_recognition()
+input("Press Enter to stop...\n")
+recognizer.stop_continuous_recognition()</code></pre>
+      </div>
+
+      <div class="callout key"><b>Key:</b> When more than two simultaneous target languages are required, provision a multi-service Foundry resource before making the API call. Translator character-based pricing applies per additional language—estimate character volume carefully for high-throughput scenarios.</div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>The 2-language limit is a <em>per-request</em> limit, not an account limit — you cannot circumvent it without a multi-service Foundry resource.</li>
+          <li>Live Interpreter does <em>not</em> require a pre-set input locale — automatic language detection is its defining capability.</li>
+          <li>Custom Translator Category ID goes on <code>SpeechTranslationConfig</code>, not on <code>SpeechConfig</code>.</li>
+          <li><code>gpt-realtime-translate</code> is billed hourly — significantly different from character-based NMT pricing at high audio volume.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A conference organizer needs real-time speech translation into five simultaneous target languages. They have a standalone Azure Speech resource. What must they provision to support this?</summary>
+        <div class="answer"><b>Answer:</b> A multi-service Foundry resource. <em>Why:</em> The standard Speech Translation API supports only two target languages per call; exceeding this limit requires a multi-service Foundry resource, with Translator character pricing applied for each additional language.</div></details>
+        <details class="q"><summary><b>Q2.</b> A developer wants to apply domain-adapted medical terminology to the speech translation output without changing the STT step. How should they configure this?</summary>
+        <div class="answer"><b>Answer:</b> Train a Custom Translator model on medical parallel corpora to obtain a Category ID, then supply that Category ID in the <code>SpeechTranslationConfig</code>. <em>Why:</em> This routes only the translation component through the domain-adapted model; the STT step is unaffected, improving medical terminology accuracy in translated output.</div></details>
+        <details class="q"><summary><b>Q3.</b> Which speech translation feature automatically identifies the input language without a pre-configured locale, and in which scenarios is it most appropriate?</summary>
+        <div class="answer"><b>Answer:</b> Live Interpreter. It is most appropriate for multilingual conferences, international Teams meetings, contact centers, and educational events where speakers switch languages dynamically. <em>Why:</em> Live Interpreter continuously detects the spoken language and synthesizes translated output, eliminating the need to pre-declare a recognition language.</div></details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/speech-service/speech-translation">Speech translation overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/speech-service/how-to-translate-speech">How to translate speech</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/speech-service/get-started-speech-translation">Get started with speech translation</a></li>
+          <li><a href="https://learn.microsoft.com/azure/foundry/openai/concepts/gpt-realtime-translate">GPT Realtime Translate</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/speech-service/llm-speech">LLM Speech (Speech Transcription SDK)</a></li>
+        </ul>
+      </div>
+    </section>
+  </section>
+</section>

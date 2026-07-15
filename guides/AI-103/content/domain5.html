@@ -1,0 +1,659 @@
+<section class="domain" id="domain5" data-domain="5">
+  <h1 id="d5">Domain 5 — Implement information extraction solutions <span class="weight">10–15%</span></h1>
+  <p class="domain-intro">Domain 5 focuses on building pipelines that extract, enrich, index, and retrieve information from diverse content types—documents, images, audio, and video—using Azure AI Search, Azure AI Document Intelligence, and Azure AI Content Understanding. Mastery of ingestion architectures, search configurations, and document-analysis APIs is essential for grounding agents and RAG applications in accurate, verifiable source material.</p>
+
+  <section class="skillgroup" id="sg-5-1">
+    <h2 id="g-5-1">5.1 Build retrieval and grounding pipelines</h2>
+
+    <section class="objective" id="obj-5-1-1" data-skill="ingest-index">
+      <h3 id="o-5-1-1">5.1.1 Ingest and index content (documents, images, audio, video)</h3>
+
+      <div class="concept">
+        <p>Azure AI Search uses <strong>indexers</strong> as pull-based crawlers that connect to a supported data source, crack document formats, optionally apply AI enrichment, and load content into a search index—eliminating the need for custom ingestion code for common sources such as Azure Blob Storage, Azure Data Lake Storage Gen2, Azure SQL Database, Azure Cosmos DB, and SharePoint Online.</p>
+        <p>Indexers progress through four sequential stages: document cracking (opening files and isolating text and images), field mappings (routing source fields to index fields), skillset execution (optional AI transformation), and output field mappings (writing enriched values to the index). Each indexer targets exactly one data source and one destination index.</p>
+        <p>Image content extraction is disabled by default and must be enabled via the <code>imageAction</code> configuration property. For richer multimodal pipelines, the <strong>Azure Content Understanding skill</strong> offers semantic chunking, cross-page table support, AI-generated image descriptions, and Office-format ingestion (DOCX, XLSX, PPTX), while the simpler <strong>Document Extraction skill</strong> is faster but lacks cross-page table support.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Indexers use a <em>pull model</em>: they read from a connected data source on demand or on a schedule (minimum every 5 minutes, ISO 8601: <code>PT5M</code>).</li>
+          <li>Four indexer stages in order: document cracking → field mappings → skillset execution → output field mappings.</li>
+          <li>Supported built-in data sources include Blob Storage, ADLS Gen2, Azure SQL, Cosmos DB (SQL / MongoDB / Gremlin), Table Storage, SQL Managed Instance, OneLake, and SharePoint Online (preview).</li>
+          <li>Image extraction is <strong>off by default</strong>; enable via <code>imageAction: "generateNormalizedImages"</code>.</li>
+          <li>One indexer job runs per search unit; parallel processing requires sufficient replicas.</li>
+          <li>Multimodal pipelines can verbalize images with the GenAI Prompt skill to produce natural-language captions for RAG grounding.</li>
+          <li>Extracted images can be written to a <strong>knowledge store</strong> in Azure Storage for downstream data science or Power BI use.</li>
+          <li>The Azure Content Understanding skill supports cross-page tables and multiple file types; the Document Extraction skill does not.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="search-indexing">
+        <figcaption>Azure AI Search indexer pipeline: data source → document cracking → skillset enrichment → search index. Image extraction and multimodal enrichment branch off the main cracking stage.</figcaption>
+      </figure>
+
+      <div class="code"><pre><code class="lang-json">// Minimal indexer definition enabling image extraction and a 5-minute schedule
+{
+  "name": "blob-indexer",
+  "dataSourceName": "my-blob-source",
+  "targetIndexName": "my-index",
+  "parameters": {
+    "configuration": {
+      "imageAction": "generateNormalizedImages"
+    }
+  },
+  "schedule": { "interval": "PT5M" }
+}</code></pre></div>
+
+      <div class="callout tip">
+        <b>Tip:</b> Prefer the Azure Content Understanding skill over the older Document Extraction skill when you need cross-page table support, Office-format ingestion, or AI-generated figure descriptions for multimodal RAG pipelines.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Image extraction is <em>off by default</em>—forgetting <code>imageAction</code> is a common scenario trap.</li>
+          <li>Each indexer targets <strong>exactly one</strong> data source and <strong>one</strong> destination index—you cannot fan out in a single indexer.</li>
+          <li>A knowledge store stores enriched projections in Azure Storage and is <em>separate</em> from the search index.</li>
+          <li>Minimum schedule interval is <strong>5 minutes</strong> (PT5M)—not 1 minute or 30 seconds.</li>
+          <li>SharePoint Online as a data source is still in <strong>preview</strong>.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q">
+          <summary><b>Q1.</b> A developer ingests scanned PDFs from Azure Blob Storage into Azure AI Search and wants text inside images to be indexed. What single indexer configuration change is required?</summary>
+          <div class="answer"><b>Answer:</b> Set <code>imageAction</code> to <code>"generateNormalizedImages"</code> in the indexer's parameters configuration. <em>Why:</em> Image extraction is disabled by default. This property instructs document cracking to extract and normalize embedded images so downstream OCR skills can process them.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q2.</b> An organization needs to ingest XLSX spreadsheets into AI Search with cross-page table support and AI-generated figure descriptions. Which ingestion skill should they choose?</summary>
+          <div class="answer"><b>Answer:</b> The <strong>Azure Content Understanding skill</strong>. <em>Why:</em> The Document Extraction skill does not support cross-page tables or Office formats. Content Understanding handles DOCX, XLSX, PPTX, produces AI-generated figure descriptions, and supports semantic chunking.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q3.</b> What is the minimum interval at which an Azure AI Search indexer can be automatically scheduled?</summary>
+          <div class="answer"><b>Answer:</b> Every <strong>5 minutes</strong> (ISO 8601 duration <code>PT5M</code>). <em>Why:</em> The service enforces a 5-minute floor to protect shared resource utilization. Intervals shorter than PT5M are rejected.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/search/search-indexer-overview">Azure AI Search indexer overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/search/search-how-to-create-indexers">Create an indexer in Azure AI Search</a></li>
+          <li><a href="https://learn.microsoft.com/azure/search/multimodal-search-overview">Multimodal search overview</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="objective" id="obj-5-1-2" data-skill="search-config">
+      <h3 id="o-5-1-2">5.1.2 Configure semantic search, hybrid search, and vector search for grounding</h3>
+
+      <div class="concept">
+        <p><strong>Vector search</strong> converts content and queries into numeric embedding vectors and ranks results by mathematical similarity (cosine, dot product, or Euclidean distance). It enables similarity search, multilingual content, and multimodal content. Vector fields coexist with traditional text fields in the same index. Two nearest-neighbor algorithms are available: <strong>HNSW</strong> (approximate, fast at query time) and <strong>exhaustive KNN</strong> (exact, best for small sets or precision-critical workloads).</p>
+        <p><strong>Hybrid search</strong> combines a BM25 full-text query and one or more vector queries in a <em>single request</em>, running them in parallel and merging the ranked lists using <strong>Reciprocal Rank Fusion (RRF)</strong>. This produces a unified response without multiple round-trips and consistently outperforms either approach alone.</p>
+        <p>Adding <code>queryType=semantic</code> invokes the <strong>semantic ranker</strong>—an L2 reranker that applies deep-learning language models (from Bing research) to reorder the top-50 results by semantic relevance. It also extracts verbatim <em>captions</em> and optional <em>answers</em>. For optimal RAG grounding, benchmark results confirm that combining all three—hybrid search plus semantic ranking—delivers the best overall relevance.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>HNSW = approximate nearest-neighbor (fast); exhaustive KNN = exact (use for precision or small datasets).</li>
+          <li>Hybrid search runs BM25 + vector queries <strong>in parallel</strong> in one request; results merged by <strong>RRF</strong>.</li>
+          <li>Semantic ranker reranks the top <strong>50</strong> initial results; scores reported on a <strong>0–4 scale</strong> (<code>@search.rerankerScore</code>).</li>
+          <li>Semantic configuration must name <strong>title</strong>, <strong>keywords</strong>, and <strong>content</strong> fields; up to 2,048 tokens per document summarized (as of November 2024).</li>
+          <li><strong>Query rewrite</strong> (semantic ranker feature) generates up to <strong>10</strong> reformulated query variants to widen recall before reranking.</li>
+          <li>Best RAG grounding pattern: hybrid (BM25 + vectors) + semantic ranking.</li>
+          <li>Vector fields and text fields coexist in the same index schema.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="hybrid-search">
+        <figcaption>Hybrid search in Azure AI Search: BM25 full-text and vector queries run in parallel; Reciprocal Rank Fusion merges the ranked lists, then the semantic ranker reorders the top-50 results.</figcaption>
+      </figure>
+
+      <div class="code"><pre><code class="lang-rest">POST /indexes/hotels/docs/search?api-version=2026-04-01
+{
+  "search": "historic hotel near restaurants",
+  "vectorQueries": [{
+    "kind": "vector",
+    "vector": [ 0.012, -0.034, 0.089 ],
+    "k": 50,
+    "fields": "descriptionVector"
+  }],
+  "queryType": "semantic",
+  "semanticConfiguration": "my-semantic-config",
+  "select": "hotelName, description"
+}</code></pre></div>
+
+      <div class="callout key">
+        <b>Key:</b> The semantic ranker only <em>reranks</em>—it does not retrieve additional documents. It operates on the top-50 results already returned by the prior BM25 or hybrid retrieval pass. Ensure your initial retrieval returns enough candidates.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Hybrid search merges results using <strong>RRF</strong>—not a weighted average and not BM25 alone.</li>
+          <li>Semantic ranker scores are on a <strong>0–4 scale</strong>—not 0–1; confusion with confidence scores (0–1) is common.</li>
+          <li>Query rewrite generates up to <strong>10</strong> reformulations—not unlimited.</li>
+          <li>Enabling <code>queryType=semantic</code> requires a defined <strong>semantic configuration</strong> on the index; without it the request fails.</li>
+          <li>Exhaustive KNN returns exact results; HNSW is approximate but much faster at scale.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q">
+          <summary><b>Q1.</b> A search application runs a keyword query and a vector query together in a single request. What mechanism does Azure AI Search use to merge the two ranked result lists?</summary>
+          <div class="answer"><b>Answer:</b> <strong>Reciprocal Rank Fusion (RRF)</strong>. <em>Why:</em> Hybrid search runs BM25 and vector queries in parallel and uses RRF—not a weighted average—to combine the ranked lists into a single unified result set.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q2.</b> How many initial results does the semantic ranker reorder, and on what scale are its scores reported?</summary>
+          <div class="answer"><b>Answer:</b> The semantic ranker reranks the top <strong>50</strong> results from the prior retrieval pass. Scores appear in <code>@search.rerankerScore</code> on a <strong>0–4 scale</strong>. <em>Why:</em> The ranker is a reranking model, not a retrieval model—it reorders an existing candidate set rather than expanding it.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q3.</b> An application needs the best possible RAG grounding quality from Azure AI Search. Which combination of features should be used?</summary>
+          <div class="answer"><b>Answer:</b> <strong>Hybrid search</strong> (BM25 + vector queries) combined with <strong>semantic ranking</strong> (<code>queryType=semantic</code>). <em>Why:</em> Microsoft's benchmark results confirm this three-way combination delivers the highest relevance for RAG grounding, outperforming any single method alone.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/search/vector-search-overview">Vector search in Azure AI Search</a></li>
+          <li><a href="https://learn.microsoft.com/azure/search/hybrid-search-overview">Hybrid search overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/search/semantic-search-overview">Semantic search in Azure AI Search</a></li>
+          <li><a href="https://learn.microsoft.com/azure/search/hybrid-search-how-to-query">Run a hybrid query</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="objective" id="obj-5-1-3" data-skill="skillset-enrichment">
+      <h3 id="o-5-1-3">5.1.3 Implement enrichment using custom or built-in skills for text, images, and layout</h3>
+
+      <div class="concept">
+        <p>A <strong>skillset</strong> is a JSON-defined collection of skills attached to an indexer. It functions as a transformation pipeline—a "pipeline within the pipeline"—operating on an <em>enriched document tree</em> that accumulates outputs from each skill before writing them to the search index or other destinations. Skillsets allow AI enrichment (OCR, language understanding, embeddings) without custom ingestion code.</p>
+        <p><strong>Built-in cognitive skills</strong> connect to Foundry Tools (Azure AI Services) and cover: OCR (printed and handwritten text), image analysis (descriptions, landmarks, facial detection), entity recognition, key phrase extraction, sentiment and opinion mining, language detection, text translation, and PII detection. The OCR skill consumes normalized images and outputs extracted text; the Image Analysis skill produces natural-language descriptions—both outputs flow into index fields via output field mappings.</p>
+        <p><strong>Custom skills</strong> wrap any external REST endpoint, enabling integration of proprietary NLP models, classifiers, or embedding calls. Skillset outputs can flow to three destinations: the <strong>search index</strong> (required), an optional <strong>knowledge store</strong> (blobs or tables in Azure Storage for Power BI or data science), or an <strong>enrichment cache</strong> (to avoid reprocessing unchanged content when iterating on the pipeline).</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>A skillset operates on an <em>enriched document tree</em> that accumulates skill outputs as a property bag.</li>
+          <li>Built-in skills: OCR, image analysis, entity recognition, key phrase extraction, sentiment, language detection, translation, PII detection.</li>
+          <li>OCR skill input: <code>/document/normalized_images/*</code>; output: an <code>ocrText</code> field.</li>
+          <li>The <strong>Azure Content Understanding skill</strong> is preferred for new workloads requiring table extraction and layout analysis.</li>
+          <li><strong>Custom skills</strong> (WebApiSkill) call any external REST endpoint and must implement the JSON request/response contract.</li>
+          <li>A billable <strong>Azure AI Services multi-service account</strong> must be attached for most Foundry-backed built-in skills beyond free-tier limits.</li>
+          <li>Three enrichment output destinations: search index (required), knowledge store (optional), enrichment cache (optional).</li>
+        </ul>
+      </div>
+
+      <div class="code"><pre><code class="lang-json">// OCR skill snippet inside a skillset definition
+{
+  "@odata.type": "#Microsoft.Skills.Vision.OcrSkill",
+  "name": "ocr-skill",
+  "inputs": [
+    { "name": "image", "source": "/document/normalized_images/*" }
+  ],
+  "outputs": [
+    { "name": "text", "targetName": "ocrText" }
+  ],
+  "detectOrientation": true
+}</code></pre></div>
+
+      <div class="callout tip">
+        <b>Tip:</b> Enable the <strong>enrichment cache</strong> on your skillset to skip re-running expensive OCR and image-analysis skills on documents that have not changed. Only modified documents or newly added skills trigger reprocessing, dramatically reducing cost during schema iteration.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Most built-in skills require a <strong>billable Azure AI Services</strong> account—free-tier limits are quickly exhausted on real workloads.</li>
+          <li><em>Output field mappings</em> are distinct from <em>input field mappings</em>: they map the enriched document tree to index fields after skill execution.</li>
+          <li>A knowledge store is <strong>separate</strong> from the search index—it stores projections in Azure Storage, not in the index.</li>
+          <li>The enrichment cache prevents expensive reprocessing when you modify the index schema but not the document content.</li>
+          <li>Custom skills must implement the WebApiSkill JSON contract—they are not generic HTTP proxies.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q">
+          <summary><b>Q1.</b> A skillset processes scanned insurance forms. OCR costs are high because unchanged documents are reprocessed on every indexer run. What feature should the developer enable?</summary>
+          <div class="answer"><b>Answer:</b> The <strong>enrichment cache</strong>. <em>Why:</em> The enrichment cache stores intermediate skill outputs. On subsequent runs, only changed documents or modified skills are reprocessed, avoiding redundant and costly OCR calls.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q2.</b> A team wants to integrate a proprietary domain classification model hosted on their own infrastructure into an Azure AI Search indexer pipeline. Which skill type should they use?</summary>
+          <div class="answer"><b>Answer:</b> A <strong>custom skill</strong> (WebApiSkill). <em>Why:</em> Custom skills wrap any external REST endpoint, allowing integration of proprietary or non-Azure models, provided the endpoint implements the expected JSON request/response interface.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q3.</b> An analyst needs enriched document data available in Power BI without querying the search index directly. How should the skillset be configured?</summary>
+          <div class="answer"><b>Answer:</b> Configure a <strong>knowledge store</strong> in the skillset. <em>Why:</em> The knowledge store projects enriched content to Azure Storage (blobs or tables), making it accessible to Power BI and data science tools independently of the search index.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/search/cognitive-search-concept-intro">AI enrichment in Azure AI Search</a></li>
+          <li><a href="https://learn.microsoft.com/azure/search/cognitive-search-concept-image-scenarios">Image enrichment scenarios</a></li>
+          <li><a href="https://learn.microsoft.com/azure/search/cognitive-search-predefined-skills">Built-in skills reference</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="objective" id="obj-5-1-4" data-skill="rag-ingestion">
+      <h3 id="o-5-1-4">5.1.4 Configure RAG ingestion flow, including documents and OCR</h3>
+
+      <div class="concept">
+        <p><strong>Integrated vectorization</strong> extends the indexer pipeline to handle both chunking and embedding generation in a single indexer run without custom orchestration. A Text Split skill (or Azure Content Understanding skill) divides documents into appropriately sized fragments, and an embedding skill converts each fragment into a vector—all in the same pipeline that also runs OCR and field mappings.</p>
+        <p>Chunking is required because embedding models have token-input limits. For example, Azure OpenAI's <code>text-embedding-3-small</code> accepts up to 8,191 tokens. The <strong>Text Split skill</strong> provides two modes: <code>pages</code> (fixed-size multi-sentence chunks with configurable overlap) and <code>sentences</code> (single-sentence chunks). Starting defaults of <code>maximumPageLength=2000</code> characters and <code>pageOverlapLength=500</code> characters (10–25% overlap) are recommended to preserve cross-boundary context.</p>
+        <p>For scanned or image-only PDFs, an OCR skill must execute before chunking. To preserve document structure (tables, headings) through the RAG pipeline, the Document Intelligence Layout model's <strong>Markdown output</strong> serves as an ideal chunking surface—splits happen at heading boundaries rather than at arbitrary character counts. <em>Index projections</em> allow chunked content to populate a child chunk index while a parent index retains document-level metadata.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Integrated vectorization</strong>: chunking + embedding in the indexer pipeline—no separate custom orchestration code needed.</li>
+          <li>Text Split skill modes: <code>pages</code> (multi-sentence, fixed size with overlap) and <code>sentences</code> (single sentence).</li>
+          <li>Recommended defaults: <code>maximumPageLength=2000</code> characters, <code>pageOverlapLength=500</code> characters (10–25% of chunk size).</li>
+          <li>Azure OpenAI <code>text-embedding-3-small</code> accepts up to <strong>8,191 tokens</strong> input.</li>
+          <li>Supported embedding skills: AzureOpenAIEmbedding (ada-002, -3-small, -3-large), Azure Vision multimodal embeddings, AML skill, custom skill.</li>
+          <li>A <strong>vectorizer</strong> in the index schema auto-converts query text to a vector at query time using the same model as indexing.</li>
+          <li>OCR must precede chunking for scanned PDFs; Document Intelligence Layout Markdown output enables heading-based semantic splitting.</li>
+          <li><strong>Index projections</strong> populate a child chunk index; a parent index holds document-level metadata for context retrieval.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="rag-pipeline">
+        <figcaption>RAG ingestion pipeline: documents → OCR/layout extraction → Text Split skill (chunking) → embedding skill → vector index. A vectorizer on the index converts query text at query time using the same embedding model.</figcaption>
+      </figure>
+
+      <div class="code"><pre><code class="lang-python"># Semantic chunking from a scanned PDF using Document Intelligence + LangChain
+from langchain_community.document_loaders import AzureAIDocumentIntelligenceLoader
+from langchain.text_splitter import MarkdownHeaderTextSplitter
+
+loader = AzureAIDocumentIntelligenceLoader(
+    file_path="contract.pdf",
+    api_key="&lt;key&gt;",
+    api_endpoint="https://&lt;endpoint&gt;.cognitiveservices.azure.com/",
+    api_model="prebuilt-layout"  # produces Markdown preserving tables and headings
+)
+docs = loader.load()
+
+splitter = MarkdownHeaderTextSplitter(headers_to_split_on=[
+    ("#", "H1"), ("##", "H2"), ("###", "H3")
+])
+chunks = splitter.split_text(docs[0].page_content)</code></pre></div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> Without a <strong>vectorizer</strong> defined in the index schema, query text is not automatically converted to a vector at query time. You must embed the query client-side and pass the raw vector, coupling your client to the embedding model version.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Chunk overlap (10–25%) preserves cross-boundary context—zero overlap can cause answers spanning chunk edges to be missed.</li>
+          <li>The vectorizer must use the <strong>same model</strong> as indexing; a mismatched model produces meaningless similarity scores.</li>
+          <li>Integrated vectorization is configured <em>within</em> the Azure AI Search indexer pipeline—not as a separate external step.</li>
+          <li>Index projections create a <strong>parent-child relationship</strong>: RAG queries target the chunk (child) index for precision.</li>
+          <li>For scanned PDFs, OCR must run <em>before</em> chunking—no text is otherwise available to split.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q">
+          <summary><b>Q1.</b> A developer building a RAG solution wants query text to be automatically embedded at query time without any client-side code change. What must be configured on the index?</summary>
+          <div class="answer"><b>Answer:</b> A <strong>vectorizer</strong> must be defined in the index schema. <em>Why:</em> A vectorizer maps incoming query text to a vector using the same model used during indexing, enabling end-to-end vector search without client-side embedding calls.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q2.</b> A Text Split skill uses <code>maximumPageLength=2000</code> and <code>pageOverlapLength=0</code>. What RAG quality problem can arise?</summary>
+          <div class="answer"><b>Answer:</b> Answers that span chunk boundaries may be missed or appear incomplete. <em>Why:</em> With zero overlap, sentences or paragraphs straddling a chunk boundary are split between adjacent chunks. Neither chunk contains the complete information needed to answer a question about that boundary region.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q3.</b> Financial contracts (scanned PDFs) are being chunked at arbitrary character positions, breaking tables across chunks. What approach best preserves table structure?</summary>
+          <div class="answer"><b>Answer:</b> Use the Document Intelligence Layout model with <strong>Markdown output</strong> and split on Markdown headers (e.g., <code>MarkdownHeaderTextSplitter</code>). <em>Why:</em> Markdown output preserves table structure and heading hierarchy. Splitting on headers aligns chunks with logical document boundaries rather than arbitrary character positions.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/search/vector-search-integrated-vectorization">Integrated vectorization in Azure AI Search</a></li>
+          <li><a href="https://learn.microsoft.com/azure/search/vector-search-how-to-chunk-documents">Chunk documents for vector search</a></li>
+          <li><a href="https://learn.microsoft.com/azure/search/retrieval-augmented-generation-overview">RAG overview in Azure AI Search</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/document-intelligence/concept/retrieval-augmented-generation">Document Intelligence for RAG</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="objective" id="obj-5-1-5" data-skill="agentic-retrieval">
+      <h3 id="o-5-1-5">5.1.5 Connect retrieval pipelines directly to workflows and agent tools</h3>
+
+      <div class="concept">
+        <p><strong>Agentic retrieval</strong> is a multi-query pipeline built into Azure AI Search that is purpose-built for complex conversational RAG and agent-to-agent scenarios. Rather than issuing a single query, it uses an LLM to decompose a complex question—including full conversation history—into multiple focused <em>subqueries</em>, executes them in parallel, applies semantic reranking to each result set, and returns a unified grounding payload to the caller.</p>
+        <p>The pipeline is configured through two objects: a <strong>knowledge base</strong> (orchestrates query planning, holds LLM configuration, and defines retrieval parameters) and one or more <strong>knowledge sources</strong> (either <em>indexed</em>—backed by an Azure AI Search index—or <em>remote</em>—external platform content retrieved at query time). This separation allows multiple agent pipelines to share the same underlying knowledge without duplication.</p>
+        <p>Agentic retrieval powers <strong>Foundry IQ</strong> in the Microsoft Foundry portal, exposing permission-aware knowledge bases to Foundry Agent Service so agents can reference them as tools during reasoning. Billing is token-based (not per query): Azure AI Search charges retrieval tokens; Azure OpenAI charges query-planning input/output tokens—with a monthly free allowance. Custom integrations can call the <code>retrieve</code> REST action or connect through the <strong>MCP endpoint</strong> exposed by the service.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Three <strong>reasoning effort levels</strong>: <code>minimal</code> (no LLM, direct query), <code>low</code> (default—LLM generates subqueries), <code>medium</code> (LLM generates subqueries + iterative expansion).</li>
+          <li>Higher effort improves coverage for complex multi-hop questions but increases latency and cost.</li>
+          <li>Subquery decomposition incorporates the full <strong>conversation history</strong> for accurate multi-turn grounding.</li>
+          <li>Knowledge source types: <strong>indexed</strong> (AI Search index) and <strong>remote</strong> (external content).</li>
+          <li>Powers <strong>Foundry IQ</strong>: knowledge bases are exposed to Foundry Agent Service as agent tools.</li>
+          <li>Billing: Azure AI Search charges by retrieval <strong>tokens</strong>; Azure OpenAI charges query-planning tokens.</li>
+          <li>Integration paths: <code>retrieve</code> REST action or <strong>MCP endpoint</strong>.</li>
+          <li>The backing index should have a <strong>semantic configuration</strong> and vector fields for optimal subquery execution and internal reranking.</li>
+        </ul>
+      </div>
+
+      <div class="code"><pre><code class="lang-python"># Calling the agentic retrieval retrieve action (pseudocode)
+response = search_client.knowledge_bases.retrieve(
+    knowledge_base_name="my-kb",
+    query="What are the refund policies for premium accounts?",
+    conversation_history=[
+        {"role": "user", "content": "I have a premium account."}
+    ],
+    reasoning_effort="low"   # default; use "medium" for complex multi-hop questions
+)
+grounding_content = response["content"]  # pass directly to LLM for answer synthesis</code></pre></div>
+
+      <div class="callout key">
+        <b>Key:</b> Agentic retrieval differs fundamentally from standard RAG search. Standard RAG issues one query; agentic retrieval uses an LLM to plan and execute multiple parallel subqueries, making it far more effective for compound or multi-hop questions across long conversation histories.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><code>minimal</code> effort skips the LLM entirely—use only for simple, single-intent queries where planning overhead is unnecessary.</li>
+          <li>Agentic retrieval requires a <strong>semantic configuration</strong> on the backing index for internal reranking to work.</li>
+          <li>Billing is <strong>token-based</strong>—complex questions cost more because they consume more tokens for subquery planning and reranking.</li>
+          <li>The response includes source references (citations) and an activity log, supporting provenance tracking in regulated workflows.</li>
+          <li>Foundry IQ is the Foundry portal's managed surface for agentic retrieval—understanding this link is key for agent-integration exam questions.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q">
+          <summary><b>Q1.</b> An agent must answer complex multi-hop questions drawing on long conversation histories. Which Azure AI Search feature should be used, and why is it better than standard RAG?</summary>
+          <div class="answer"><b>Answer:</b> <strong>Agentic retrieval</strong>. <em>Why:</em> Agentic retrieval decomposes complex queries—including conversation history—into parallel subqueries using an LLM, then reranks and unifies the results. Standard single-query RAG cannot handle multi-hop questions as effectively.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q2.</b> A developer wants to reduce cost and latency of agentic retrieval for simple single-intent lookup queries. Which reasoning effort level should they set?</summary>
+          <div class="answer"><b>Answer:</b> <code>minimal</code>. <em>Why:</em> The <code>minimal</code> level bypasses LLM subquery planning entirely and issues the query directly, eliminating LLM cost and latency while still returning results from the index.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q3.</b> How does Foundry IQ relate to agentic retrieval in Azure AI Search?</summary>
+          <div class="answer"><b>Answer:</b> Foundry IQ is the managed knowledge layer in the Microsoft Foundry portal powered by agentic retrieval. It exposes permission-aware knowledge bases to Foundry Agent Service so agents can reference them as reasoning tools. <em>Why:</em> The same knowledge base and retrieval pipeline underpin Foundry IQ; it is simply surfaced through the Foundry portal's managed interface rather than called directly.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/search/agentic-retrieval-overview">Agentic retrieval overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/search/agentic-retrieval-how-to-create-knowledge-base">Create a knowledge base for agentic retrieval</a></li>
+          <li><a href="https://learn.microsoft.com/azure/search/agentic-retrieval-how-to-create-pipeline">Create an agentic retrieval pipeline</a></li>
+        </ul>
+      </div>
+    </section>
+
+  </section>
+
+  <section class="skillgroup" id="sg-5-2">
+    <h2 id="g-5-2">5.2 Extract content from documents</h2>
+
+    <section class="objective" id="obj-5-2-1" data-skill="doc-intelligence">
+      <h3 id="o-5-2-1">5.2.1 Extract information via multimodal pipelines combining OCR, layout analysis, and field extraction</h3>
+
+      <div class="concept">
+        <p>Azure AI Document Intelligence's <strong>layout model</strong> (<code>prebuilt-layout</code>, GA v4.0 / 2024-11-30) combines OCR and document structure analysis in a single API call. It extracts text, tables, selection marks, figures, headings, and logical roles (title, section heading, footer) from a broad range of file formats. The distinction between <em>geometric roles</em> (text blocks, tables, figures, selection marks) and <em>logical roles</em> (titles, headings, footers) is fundamental to structure-aware downstream processing.</p>
+        <p>The layout model's most impactful capability for RAG and agent pipelines is outputting results as <strong>Markdown</strong>, preserving table structure, heading hierarchy, and paragraph boundaries in a form that LLMs can consume directly without additional parsing. For ad-hoc structured extraction, <strong>query field extraction</strong> lets callers specify desired field names at inference time without training a custom model.</p>
+        <p>Beyond the general layout model, Document Intelligence provides a portfolio of over 100 domain-specific <strong>prebuilt models</strong> covering invoices, receipts, ID documents, tax forms (1040, W-2, 1099 variants), mortgage forms (1003, 1004), contracts, and pay stubs—each with tailored field schemas that eliminate the need for custom training in those domains. Language support spans 309 printed and 12 handwritten languages.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Layout model: GA <strong>v4.0 / 2024-11-30</strong>.</li>
+          <li>Supported formats: PDF, JPEG, PNG, BMP, TIFF, HEIF, and Office formats (DOCX, XLSX, PPTX, HTML).</li>
+          <li>Paid-tier limits: up to <strong>500 MB</strong> per file; up to <strong>2,000 pages</strong> per PDF/TIFF.</li>
+          <li>Geometric roles: text blocks, tables, figures, selection marks. Logical roles: titles, headings, footers.</li>
+          <li>Markdown output preserves table structure and headings—ideal for direct LLM consumption.</li>
+          <li><strong>Query field extraction</strong>: specify fields at inference time with no custom model training required.</li>
+          <li>Prebuilt model portfolio: 100+ domain types (invoices, receipts, IDs, tax forms, mortgage forms, contracts, pay stubs).</li>
+          <li>Language support: <strong>309 printed languages</strong>, <strong>12 handwritten languages</strong>.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="doc-extraction">
+        <figcaption>Azure AI Document Intelligence layout pipeline: input document → OCR + structure analysis → geometric roles (tables, figures, selection marks) and logical roles (headings, footers) → Markdown or JSON for downstream RAG or automation.</figcaption>
+      </figure>
+
+      <div class="code"><pre><code class="lang-python"># Extract layout as Markdown using the Document Intelligence SDK
+from azure.ai.documentintelligence import DocumentIntelligenceClient
+from azure.ai.documentintelligence.models import (
+    AnalyzeDocumentRequest,
+    DocumentContentFormat
+)
+
+client = DocumentIntelligenceClient(endpoint, credential)
+poller = client.begin_analyze_document(
+    "prebuilt-layout",
+    AnalyzeDocumentRequest(url_source="https://example.com/doc.pdf"),
+    output_content_format=DocumentContentFormat.MARKDOWN
+)
+result = poller.result()
+markdown_content = result.content  # tables and headings preserved as Markdown</code></pre></div>
+
+      <div class="callout tip">
+        <b>Tip:</b> For ad-hoc extraction from documents where you know the field names but don't want to train a custom model, use <strong>query field extraction</strong>. You specify field names at inference time and the model locates and extracts them—no labeled training data needed.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Markdown output is preferred for LLM consumption because it preserves table structure without additional post-processing.</li>
+          <li>The layout model extracts <strong>both geometric and logical roles</strong>—exam questions may test your ability to distinguish them.</li>
+          <li>Query field extraction works <strong>without custom model training</strong>—useful for prototypes or ad-hoc extractions.</li>
+          <li>With 100+ prebuilt models, check the portfolio before recommending a custom model, which requires labeled training data.</li>
+          <li>The single layout model covers 309 printed languages—multilingual scenarios do not require separate per-language models.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q">
+          <summary><b>Q1.</b> A developer needs to extract vendor names and invoice totals from invoices without training a custom model. What is the best approach?</summary>
+          <div class="answer"><b>Answer:</b> Use the <strong>prebuilt invoice model</strong> from the Document Intelligence prebuilt portfolio. Alternatively, use <strong>query field extraction</strong> on the layout model for highly variable formats. <em>Why:</em> The prebuilt invoice model has a tailored field schema requiring no training. Query field extraction also needs no training and works for ad-hoc field lookup.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q2.</b> An LLM receives poorly structured text from a PDF parser that discards table boundaries. How should the Document Intelligence API be called to fix this?</summary>
+          <div class="answer"><b>Answer:</b> Call <code>begin_analyze_document</code> with <code>output_content_format=DocumentContentFormat.MARKDOWN</code>. <em>Why:</em> The layout model's Markdown output preserves table rows and columns and heading hierarchy, making it directly consumable by LLMs without extra parsing to reconstruct table structure.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q3.</b> A global bank processes documents in 280 different printed languages. How many Document Intelligence models are required?</summary>
+          <div class="answer"><b>Answer:</b> <strong>One</strong>—the single <code>prebuilt-layout</code> model supports 309 printed languages. <em>Why:</em> The layout model's multilingual OCR covers all 309 languages out of the box; no additional per-language models are needed.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/document-intelligence/prebuilt/layout?view=doc-intel-4.0.0">Document Intelligence layout model</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/document-intelligence/model-overview?view=doc-intel-4.0.0">Document Intelligence model overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/document-intelligence/concept/query-fields?view=doc-intel-4.0.0">Query fields in Document Intelligence</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/document-intelligence/concept/retrieval-augmented-generation?view=doc-intel-4.0.0">Document Intelligence for RAG</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="objective" id="obj-5-2-2" data-skill="content-understanding-rag">
+      <h3 id="o-5-2-2">5.2.2 Produce clean, grounded representations for agents and RAG by using Content Understanding</h3>
+
+      <div class="concept">
+        <p><strong>Azure AI Content Understanding</strong> is a Foundry Tool that processes documents, images, audio, and video into user-defined structured output using generative AI. For RAG and agentic pipelines it delivers <strong>clean Markdown representations</strong> with full layout context preserved—paragraphs, tables, and figures are structured, and AI-generated textual descriptions of charts and diagrams replace opaque visual content that standard text-only extractors cannot capture.</p>
+        <p><strong>Grounding</strong> is a first-class design principle: every extracted or generated field value is paired with a source region reference—a bounding box (for documents and images) or a timestamp (for audio and video). These references enable precise citations and human-in-the-loop verification, which are critical in regulated automation workflows. Paired with <strong>confidence scores</strong> (0–1 range), field values can flow through straight-through processing when confidence is high, or be routed to manual review when it is low.</p>
+        <p>Content Understanding also supports <strong>classification at ingestion time</strong>: an incoming document can be categorized first (e.g., invoice vs. contract), then routed to the appropriate domain-specific analyzer. The <code>prebuilt-documentSearch</code> RAG analyzer is the recommended starting point for document ingestion in RAG workflows—it extracts paragraphs, tables, figures with AI descriptions, handwritten annotations, and a document-level summary.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Content Understanding is a <strong>Foundry Tool</strong> within Azure AI Foundry.</li>
+          <li>RAG output: clean <strong>Markdown</strong> with AI-generated figure descriptions—charts as <code>chart.js</code> syntax, diagrams as <code>mermaid.js</code> syntax.</li>
+          <li>Grounding: every field value carries a <strong>bounding box</strong> (documents/images) or <strong>timestamp</strong> (audio/video) for citations.</li>
+          <li>Confidence scores (0–1) enable <strong>straight-through processing</strong> for high-confidence values; low-confidence values are flagged for human review.</li>
+          <li>Classification routing: categorize documents first, then dispatch to the appropriate domain-specific analyzer.</li>
+          <li><code>prebuilt-documentSearch</code>: recommended RAG analyzer—paragraphs, tables, AI-described figures, handwritten annotations, document summary.</li>
+          <li>The same analyzer invocation can produce both Markdown and structured JSON.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="content-understanding">
+        <figcaption>Azure AI Content Understanding: document → analyzer (OCR + layout + generative AI) → grounded Markdown and structured JSON. Each extracted value carries a bounding-box citation for downstream RAG agents.</figcaption>
+      </figure>
+
+      <div class="code"><pre><code class="lang-rest">POST /analyzers/prebuilt-documentSearch:analyze
+Content-Type: application/json
+
+{
+  "url": "https://storage.example.com/report.pdf"
+}</code></pre></div>
+
+      <div class="callout key">
+        <b>Key:</b> Content Understanding's AI-generated figure descriptions are especially valuable for RAG pipelines: charts and diagrams that are invisible to standard OCR are converted into natural-language (or <code>chart.js</code> / <code>mermaid.js</code>) text that LLMs can reason about.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Chart descriptions are in <code>chart.js</code> syntax; diagram descriptions in <code>mermaid.js</code> syntax—these are textual, machine-parseable representations.</li>
+          <li>Confidence scores are on a <strong>0–1 scale</strong>—different from semantic ranker scores (0–4); do not confuse them.</li>
+          <li>Bounding box / timestamp references are required for citation generation—not optional metadata.</li>
+          <li><code>prebuilt-documentSearch</code> is the <em>recommended</em> RAG analyzer—not <code>prebuilt-read</code> or <code>prebuilt-layout</code>, which lack generative AI enrichment.</li>
+          <li>Classification routing before extraction enables heterogeneous document pipelines—a key differentiator from simpler extractors.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q">
+          <summary><b>Q1.</b> An agent processes financial reports containing bar charts. Standard OCR misses chart content entirely. Which Content Understanding output feature addresses this?</summary>
+          <div class="answer"><b>Answer:</b> AI-generated figure descriptions in <code>chart.js</code> syntax produced by the <code>prebuilt-documentSearch</code> analyzer. <em>Why:</em> Content Understanding uses generative AI to produce textual representations of charts and diagrams that standard OCR cannot extract, making them available for LLM reasoning.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q2.</b> A compliance automation system must flag extracted values for human review when extraction confidence is below a threshold. What Content Understanding feature enables this pattern?</summary>
+          <div class="answer"><b>Answer:</b> <strong>Confidence scores</strong> (0–1 range) returned with each extracted field value. <em>Why:</em> High-confidence values flow through straight-through processing; values below the threshold are flagged for human review—the exact pattern for regulated automation.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q3.</b> A developer needs to cite the exact location in a source PDF where an extracted field value originated. Which Content Understanding feature provides this?</summary>
+          <div class="answer"><b>Answer:</b> <strong>Grounding region references</strong> (bounding boxes for documents and images). <em>Why:</em> Every extracted field value is accompanied by the bounding box of its source region in the document, enabling in-document citations for human verification.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/content-understanding/overview">Azure AI Content Understanding overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/prebuilt-analyzers">Content Understanding prebuilt analyzers</a></li>
+          <li><a href="https://learn.microsoft.com/azure/search/retrieval-augmented-generation-overview">RAG overview in Azure AI Search</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="objective" id="obj-5-2-3" data-skill="content-understanding-analyzers">
+      <h3 id="o-5-2-3">5.2.3 Implement analyzers generating structured or markdown outputs for downstream reasoning by using Content Understanding</h3>
+
+      <div class="concept">
+        <p>An <strong>analyzer</strong> in Azure AI Content Understanding is a versioned, reusable configuration that specifies the content type (document, image, audio, video), extraction settings, field schema, output format, and which Foundry AI models to invoke. Analyzers are the atomic unit of work in the service—all processing is performed by submitting content to a named analyzer endpoint.</p>
+        <p>Analyzers fall into four categories: <em>content extraction</em> (OCR + layout, no LLM: <code>prebuilt-read</code>, <code>prebuilt-layout</code>, <code>prebuilt-digitalParse</code>), <em>base analyzers</em> (per-modality processing foundations), <em>RAG analyzers</em> (semantic Markdown + AI figure description: <code>prebuilt-documentSearch</code>, <code>prebuilt-imageSearch</code>, <code>prebuilt-audioSearch</code>, <code>prebuilt-videoSearch</code>), and <em>domain-specific</em> (preconfigured schemas for invoices, IDs, tax forms, mortgages, and contracts). RAG analyzers produce Markdown with <code>chart.js</code> chart syntax and <code>mermaid.js</code> diagram syntax for downstream LLM reasoning.</p>
+        <p>Within a custom analyzer's <strong>field schema</strong>, each field specifies one of three extraction methods: <code>Extract</code> (retrieve a verbatim value from the document), <code>Classify</code> (assign a label from a fixed enumeration), or <code>Generate</code> (invoke an LLM to produce a derived value such as a summary or translation). These three modes can be freely mixed within a single analyzer. Custom analyzers are built on a <code>baseAnalyzerId</code>; prebuilt definitions can be retrieved, modified, and published using a <code>copy</code> operation to freeze them against future API-version changes.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Four analyzer categories: <strong>content extraction</strong>, <strong>base</strong>, <strong>RAG</strong>, and <strong>domain-specific</strong>.</li>
+          <li>Content extraction analyzers (<code>prebuilt-read</code>, <code>prebuilt-layout</code>, <code>prebuilt-digitalParse</code>) do <strong>not</strong> invoke an LLM.</li>
+          <li>RAG analyzers: <code>prebuilt-documentSearch</code>, <code>prebuilt-imageSearch</code>, <code>prebuilt-audioSearch</code>, <code>prebuilt-videoSearch</code>—all use generative AI.</li>
+          <li>Three field methods: <code>Extract</code> (verbatim), <code>Classify</code> (enumeration label), <code>Generate</code> (LLM-produced)—freely mixable in one schema.</li>
+          <li>Custom analyzers specify a <code>baseAnalyzerId</code>; use the <strong>copy operation</strong> to freeze a prebuilt definition before customizing.</li>
+          <li><code>prebuilt-audioSearch</code> and <code>prebuilt-videoSearch</code>: transcribe speech, auto-segment by topic or scene change, generate per-segment summaries with people, places, and actions.</li>
+          <li>The analyze endpoint accepts a document URL or binary payload; response includes content, field values, confidence scores, grounding regions, and (for RAG analyzers) full Markdown.</li>
+        </ul>
+      </div>
+
+      <div class="code"><pre><code class="lang-json">// Custom analyzer definition (excerpt)
+{
+  "analyzerId": "myInvoiceAnalyzer",
+  "baseAnalyzerId": "prebuilt-document",
+  "config": { "enableOcr": true },
+  "fieldSchema": {
+    "fields": {
+      "vendorName": {
+        "type": "string",
+        "method": "extract"
+      },
+      "invoiceSentiment": {
+        "type": "string",
+        "method": "classify",
+        "enum": ["positive", "neutral", "disputed"]
+      },
+      "executiveSummary": {
+        "type": "string",
+        "method": "generate"
+      }
+    }
+  },
+  "models": { "completion": "gpt-5.2" }
+}</code></pre></div>
+
+      <div class="callout tip">
+        <b>Tip:</b> Use the <strong>copy operation</strong> to snapshot a prebuilt analyzer's definition before customizing it. This insulates your production pipeline from breaking changes introduced in future API versions of the underlying prebuilt.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Content extraction analyzers (<code>prebuilt-read</code>, <code>prebuilt-layout</code>) do <strong>not</strong> use an LLM—they are pure OCR + layout, incurring no generative AI costs.</li>
+          <li>RAG analyzers (<code>prebuilt-documentSearch</code> etc.) <strong>do</strong> invoke generative AI for figure descriptions and summaries.</li>
+          <li>The three field methods—<code>Extract</code>, <code>Classify</code>, <code>Generate</code>—can be mixed freely; only <code>Generate</code> invokes an LLM.</li>
+          <li>Audio and video RAG analyzers segment by <strong>topic or scene change</strong>—not by fixed time intervals—producing semantically coherent chunks.</li>
+          <li>The <code>copy</code> operation is important for production stability; modifying a prebuilt directly risks regression when the prebuilt definition is updated.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q">
+          <summary><b>Q1.</b> A developer needs an analyzer that extracts the invoice number verbatim, classifies dispute status from a fixed set, and generates an executive summary. How many analyzers are required?</summary>
+          <div class="answer"><b>Answer:</b> <strong>One</strong> custom analyzer. <em>Why:</em> A single field schema can mix <code>Extract</code>, <code>Classify</code>, and <code>Generate</code> methods across different fields. All three operations execute in a single analyzer invocation.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q2.</b> An organization wants to start from <code>prebuilt-documentSearch</code>, extend its field schema, and protect the customized version from future upstream changes. What operation should they use?</summary>
+          <div class="answer"><b>Answer:</b> Use the <strong>copy operation</strong> to copy the prebuilt analyzer's current definition, then modify and publish it as a new named analyzer. <em>Why:</em> Copying freezes the prebuilt's definition so future API-version updates to the underlying prebuilt do not affect the custom analyzer.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q3.</b> A pipeline must extract content from documents without incurring any LLM costs. Which analyzer category and examples are appropriate?</summary>
+          <div class="answer"><b>Answer:</b> Use a <strong>content extraction analyzer</strong> such as <code>prebuilt-read</code>, <code>prebuilt-layout</code>, or <code>prebuilt-digitalParse</code>. <em>Why:</em> These perform OCR and layout analysis without invoking a generative model, so no LLM costs are incurred. RAG and domain-specific analyzers use LLMs and would add cost.</div>
+        </details>
+        <details class="q">
+          <summary><b>Q4.</b> How does <code>prebuilt-videoSearch</code> segment video content for RAG indexing, and why is this superior to fixed time-interval splitting?</summary>
+          <div class="answer"><b>Answer:</b> It auto-segments by <strong>topic or scene change</strong> and generates per-segment summaries with people, places, and actions. <em>Why:</em> Segmenting on semantic boundaries produces cohesive, topically unified chunks for RAG retrieval, unlike fixed time splits that often cut mid-discussion and produce incoherent fragments.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b>
+        <ul>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/analyzer-reference">Content Understanding analyzer reference</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/prebuilt-analyzers">Content Understanding prebuilt analyzers</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/content-understanding/overview">Azure AI Content Understanding overview</a></li>
+          <li><a href="https://learn.microsoft.com/azure/ai-services/document-intelligence/concept/markdown-elements?view=doc-intel-4.0.0">Markdown elements in Document Intelligence output</a></li>
+        </ul>
+      </div>
+    </section>
+
+  </section>
+
+</section>

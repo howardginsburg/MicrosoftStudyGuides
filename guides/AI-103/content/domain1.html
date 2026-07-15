@@ -1,0 +1,1243 @@
+<section class="domain" id="domain1" data-domain="1">
+<h1 id="d1">Domain 1 — Plan and manage an Azure AI solution <span class="weight">25–30%</span></h1>
+<p class="domain-intro">This domain covers selecting the right models and Foundry services for generative AI and agent workloads, provisioning and configuring the supporting Azure infrastructure, managing operational concerns such as quotas and observability, and ensuring responsible AI principles are applied throughout the solution lifecycle. It represents the foundational planning and governance layer that underpins every other domain.</p>
+
+<!-- ============================================================ -->
+<section class="skillgroup" id="sg-1-1">
+<h2 id="g-1-1">1.1 Choose the appropriate Foundry services for generative AI and agents</h2>
+
+<!-- o-1-1-1 -->
+<section class="objective" id="obj-1-1-1" data-skill="model-selection">
+<h3 id="o-1-1-1">1.1.1 Choose an appropriate model for each task</h3>
+
+<div class="concept">
+<p>The Azure AI Foundry model catalog aggregates more than 1,900 models from Microsoft, OpenAI, Anthropic, Meta, Mistral, DeepSeek, xAI, and the broader Hugging Face community. Models fall into two top-level catalog categories: <strong>Foundry Models sold by Azure</strong> (hosted and billed by Azure, covered by Microsoft SLAs, using fungible PTU quota) and <strong>Foundry Models from partners and community</strong> (governed by third-party terms, available via pay-as-you-go serverless or managed compute).</p>
+<p>Selecting the right model begins with understanding the nature of the task — its complexity, latency requirements, context window needs, and whether the input is text-only or multimodal. Large language models (LLMs) handle complex, multi-step reasoning; small language models (SLMs) suit resource-constrained or edge scenarios; embedding models convert text to vectors for retrieval; and multimodal models process both text and images in a single inference call.</p>
+<p>The <strong>Model Router</strong> deployment is a special option that dispatches each incoming prompt at runtime to the most cost-effective model capable of handling it (selecting from GPT-4.1, GPT-4.1-mini, GPT-4.1-nano, or o4-mini), exposed as a single Chat Completions API endpoint. This reduces manual tuning of model selection logic when query complexity varies widely across users.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>GPT-5 / gpt-5.6-sol/terra/luna</strong>: highest-capability models; support multimodal input (text + image); up to 1 M-token context window.</li>
+<li><strong>GPT-4.1 family</strong> (gpt-4.1, gpt-4.1-mini, gpt-4.1-nano): production-grade; mini/nano variants optimised for low-latency, high-throughput workloads.</li>
+<li><strong>o-series reasoning models</strong> (o4-mini, o3, o1): extended thinking for complex problem-solving; higher latency but deeper chain-of-thought.</li>
+<li><strong>Claude</strong> (Anthropic): strong for advanced reasoning, code generation, and multimodal tasks.</li>
+<li><strong>DeepSeek-R1</strong>: open-weight reasoning model at scale.</li>
+<li><strong>Mistral families</strong>: multilingual text, code generation, general-purpose chat.</li>
+<li><strong>SLMs — Phi-4</strong>: Microsoft SLM with strong reasoning at an efficient footprint; <em>Phi-4 Mini Instruct</em> for even smaller deployments.</li>
+<li><strong>SLMs — Meta Llama 1B/3B</strong>: on-device and edge inferencing.</li>
+<li><strong>Multimodal — GPT-4o</strong>: text + image input by design.</li>
+<li><strong>Multimodal — Llama 4 Scout / Maverick</strong>: mixture-of-experts (MoE) architecture; 128 K-token context; text + image.</li>
+<li><strong>Audio — Whisper</strong>: speech-to-text; GPT-4o audio models support speech-in/speech-out.</li>
+<li><strong>Embedding models</strong>: text-embedding-3-small, text-embedding-3-large, text-embedding-ada-002 — convert text to dense vectors for similarity search and RAG.</li>
+<li><strong>Industry / domain models</strong> (NVIDIA NIMs, Bayer, Rockwell, Cerence, etc.) require managed compute on AI Hub resources.</li>
+<li><strong>Model Router</strong>: single deployment endpoint that routes to GPT-4.1 / mini / nano / o4-mini based on query complexity; reduces cost without sacrificing quality on complex queries.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="model-selection"><figcaption>Decision tree for matching task characteristics (complexity, modality, context length, latency) to Azure AI Foundry model families.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python"># Call a Phi-4 model via Foundry project client (keyless auth)
+from azure.identity import DefaultAzureCredential
+from azure.ai.projects import AIProjectClient
+
+project = AIProjectClient(
+    endpoint="https://&lt;resource&gt;.ai.azure.com/api/projects/&lt;project&gt;",
+    credential=DefaultAzureCredential(),
+)
+openai_client = project.get_openai_client()
+
+# Phi-4 is well-suited for summarisation tasks with efficient compute
+response = openai_client.chat.completions.create(
+    model="phi-4",
+    messages=[{"role": "user", "content": "Summarise this article in three bullet points."}],
+    max_tokens=300,
+)
+print(response.choices[0].message.content)
+</code></pre></div>
+
+<div class="callout tip"><b>Tip:</b> Always match the embedding model used at <em>indexing</em> time with the vectorizer configured at <em>query</em> time — a mismatch silently degrades retrieval quality.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>SLMs (Phi-4, Llama 1B/3B) are the right choice for edge, on-device, or resource-constrained scenarios — not for complex reasoning tasks.</li>
+<li>The <em>o-series</em> models use extended thinking/chain-of-thought; they have higher latency than standard chat models and are not optimal for low-latency streaming.</li>
+<li>Model Router is a <em>single deployment</em> endpoint — the underlying model is selected automatically, not by the caller.</li>
+<li>Partner/community models (serverless API) operate under third-party terms and do not support custom content filters or keyless authentication.</li>
+<li>Embedding models are distinct from completion/chat models — they output vectors, not text, and are selected based on dimension requirements and the downstream vector store.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A financial services firm needs a model that accepts scanned document images alongside text descriptions and performs complex multi-step reasoning to extract structured data. Which model family best satisfies both requirements?</summary>
+<div class="answer"><b>Answer:</b> GPT-4o or GPT-4.1 (multimodal LLM). <em>Why:</em> Both models natively accept text and image inputs in a single call. The GPT-4.1 family is the current production choice for complex reasoning with multimodal capability and a large context window.</div></details>
+<details class="q"><summary><b>Q2.</b> A smart-device team must run inference on a microcontroller with 2 GB RAM and no internet connectivity. Which model category is appropriate?</summary>
+<div class="answer"><b>Answer:</b> A Small Language Model (SLM) such as Phi-4 Mini Instruct or Meta Llama 1B. <em>Why:</em> SLMs are designed specifically for on-device and edge deployments with minimal compute resources, making them the only viable option for severely resource-constrained hardware.</div></details>
+<details class="q"><summary><b>Q3.</b> A team wants to serve users with widely varying query complexity from a single API endpoint, automatically using cheaper models for simple queries. What should they deploy?</summary>
+<div class="answer"><b>Answer:</b> A Model Router deployment. <em>Why:</em> Model Router dispatches each prompt to the best-fit model (GPT-4.1, mini, nano, or o4-mini) based on complexity at runtime, exposed as a single Chat Completions endpoint — no client-side routing logic is needed.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry">What is Azure AI Foundry?</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/foundry-models/concepts/models-sold-directly-by-azure">Foundry Models sold directly by Azure</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview">Model deployments in Azure AI Foundry</a></li>
+</ul></div>
+</section>
+
+<!-- o-1-1-2 -->
+<section class="objective" id="obj-1-1-2" data-skill="foundry-services">
+<h3 id="o-1-1-2">1.1.2 Choose the appropriate Foundry services for generative tasks, grounding, vector search, agent workflows, or multimodal processing</h3>
+
+<div class="concept">
+<p>Microsoft Foundry is Azure's unified PaaS platform for AI. It consolidates model inference, agent hosting, evaluation, fine-tuning, and observability under a single resource hierarchy rooted in a <code>Microsoft.CognitiveServices/accounts</code> resource of kind <code>AIServices</code>. Rather than assembling separate AI services manually, teams compose purpose-built Foundry capabilities for each layer of their solution.</p>
+<p>Choosing the right Foundry service begins with the question: <em>what is this component doing?</em> Generating text responses calls for Azure OpenAI in Foundry Models; grounding responses in enterprise data calls for Azure AI Search or Foundry IQ; orchestrating multi-step tasks calls for the Foundry Agent Service; processing images alongside text calls for multimodal models. Each service has a specific role and is accessed through the same Foundry project.</p>
+<p><strong>Foundry Tools</strong> (the former Azure AI Services umbrella) encompasses Speech, Vision, Language, Translator, and Azure AI Content Understanding — all accessible within the same Foundry resource, allowing a single project to combine generative and classic AI capabilities without managing separate resource keys.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>Generative text / chat</strong>: Azure OpenAI in Foundry Models — Chat Completions API or Responses API.</li>
+<li><strong>RAG grounding</strong>: Azure AI Search (retrieval) feeding context into an LLM completion; <strong>Foundry IQ</strong> (managed knowledge layer) for permission-aware enterprise knowledge bases.</li>
+<li><strong>Vector search</strong>: Azure AI Search — supports full-text (BM25), vector, hybrid, and multimodal queries; natively underpins Foundry IQ and the Agent File Search tool.</li>
+<li><strong>Agent workflows</strong>: Foundry Agent Service (GA May 2025) — Responses API with Conversations, Items, and Runs primitives.</li>
+<li><strong>Multimodal (image + text)</strong>: GPT-4o, GPT-4.1, Llama 4 Scout/Maverick; audio: Whisper or GPT-4o audio.</li>
+<li><strong>Content moderation</strong>: Azure AI Content Safety (part of Foundry Tools) — real-time harm classification for text and images; integrates as guardrails on model deployments.</li>
+<li><strong>Agent grounding tools</strong>: File Search (RAG over Azure AI Search / Blob Storage), Grounding with Bing Search (live web), Grounding with Bing Custom Search (scoped web), SharePoint tool, Fabric Data Agent (structured data Q&amp;A).</li>
+<li><strong>Multi-agent orchestration</strong>: Connected agents (GA May 2025) — task-specific sub-agents interacting with a primary agent via A2A endpoints (preview).</li>
+<li><strong>Foundry Tools</strong>: Speech, Vision, Language, Translator, Content Understanding — all available within the same Foundry resource.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="foundry-topology"><figcaption>Azure AI Foundry service topology: Foundry resource, projects, model deployments, connected services (AI Search, Storage, Key Vault, App Insights), and Foundry Tools.</figcaption></figure>
+
+<div class="callout key"><b>Key:</b> For live web grounding use <em>Grounding with Bing Search</em>; for internal SharePoint documents use the <em>SharePoint tool</em>; for structured Fabric data use the <em>Fabric Data Agent</em> — they are not interchangeable.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>Foundry IQ provides a managed, permission-aware knowledge layer — choose it over DIY RAG when you need automatic access-control inheritance.</li>
+<li>Azure AI Search is the underlying retrieval engine for both Foundry IQ and the Agent File Search tool.</li>
+<li>The Foundry Agent Service is GA; Connected agents (A2A endpoints) are in preview — know the difference in scenarios requiring multi-agent coordination.</li>
+<li>Audio processing (speech-to-text) uses Whisper or GPT-4o audio — these are distinct from standard text multimodal models.</li>
+<li>Foundry Tools (Azure AI Services) can be accessed within the same Foundry resource — no separate connection or key required when using managed identity.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A legal firm needs an agent that can answer questions grounded in internal SharePoint contract libraries. Which Foundry capability should be configured?</summary>
+<div class="answer"><b>Answer:</b> The SharePoint tool within the Foundry Agent Service. <em>Why:</em> The SharePoint tool connects the agent directly to organisational SharePoint document libraries, enabling grounding without manual document export or indexing pipelines.</div></details>
+<details class="q"><summary><b>Q2.</b> An e-commerce chatbot needs to answer questions about current product availability from live web pages. Which agent tool is most appropriate?</summary>
+<div class="answer"><b>Answer:</b> Grounding with Bing Search. <em>Why:</em> This tool enables real-time web grounding via the Bing API, giving the agent access to current, publicly available web content rather than a static index.</div></details>
+<details class="q"><summary><b>Q3.</b> A solution must moderate images uploaded by users before storing them. Which Foundry service provides this capability?</summary>
+<div class="answer"><b>Answer:</b> Azure AI Content Safety (part of Foundry Tools). <em>Why:</em> Content Safety performs real-time harm classification for both text and images, and can be integrated as a guardrail at the output or input stage of the solution.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry">What is Azure AI Foundry?</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture">Azure AI Foundry architecture</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search">What is Azure AI Search?</a></li>
+</ul></div>
+</section>
+
+<!-- o-1-1-3 -->
+<section class="objective" id="obj-1-1-3" data-skill="retrieval-indexing">
+<h3 id="o-1-1-3">1.1.3 Choose an appropriate method for retrieval and indexing</h3>
+
+<div class="concept">
+<p>Azure AI Search offers two retrieval modes that address different agent patterns. <strong>Classic search</strong> is index-first: queries run against a single index with predictable, low-latency results. It supports full-text BM25 ranking, vector similarity, hybrid combinations, and semantic re-ranking. <strong>Agentic retrieval</strong> uses a <em>knowledge base</em> abstraction backed by an LLM query planner that decomposes complex questions into sub-queries, runs them in parallel across multiple knowledge sources, and returns a synthesised answer with references — suited for agents that answer open-ended, multi-document questions.</p>
+<p><strong>Integrated vectorization</strong> automates the chunking and embedding steps inside the indexing pipeline, eliminating the need for a separate preprocessing service. It works through a combination of an <em>indexer</em> (pulls data from source), a <em>skillset</em> (splits text and calls an embedding model), and a <em>vector field</em> in the index schema. At query time, a configured <em>vectorizer</em> converts the incoming text query to a vector automatically — using the same embedding model as the skillset.</p>
+<p>Choosing the right retrieval method depends on the desired balance of recall and precision, latency requirements, and whether the downstream consumer is a classic application or an agentic system. Hybrid search (BM25 + vector, fused via Reciprocal Rank Fusion) with optional semantic re-ranking delivers the best combined recall and precision for most RAG use cases.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>Hybrid search</strong>: BM25 + vector scores fused via Reciprocal Rank Fusion (RRF); provides better recall + precision than either alone.</li>
+<li><strong>Semantic ranking</strong>: cross-encoder re-ranker scores top 50 BM25 candidates by intent relevance (0–4 scale, <code>@search.rerankerScore</code>); adds caption and answer extraction.</li>
+<li><strong>Integrated vectorization components</strong>: indexer (data source pull) → skillset (Text Split + AzureOpenAIEmbedding or AML skill) → vector field in index → query-time vectorizer.</li>
+<li><strong>Supported embedding skills</strong>: <code>AzureOpenAIEmbeddingSkill</code> (text-embedding-ada-002, text-embedding-3-small, text-embedding-3-large), <code>AML skill</code> (Foundry catalog models), <code>Azure Vision multimodal embeddings skill</code>.</li>
+<li><strong>Vectorizer must match embedding model</strong>: the vectorizer applied at query time must use the same embedding model as the indexing skillset — a mismatch silently degrades cosine similarity scores.</li>
+<li><strong>Agentic retrieval / knowledge base</strong>: abstracts multiple knowledge sources; LLM query planner decomposes queries into sub-queries and synthesises results; referenced by agents via the knowledge base, not by direct index queries.</li>
+<li><strong>Supported data sources for indexers</strong>: Azure Blob Storage, Azure Data Lake Storage Gen2, Azure SQL, Azure Cosmos DB, SharePoint Online, Microsoft Fabric OneLake.</li>
+<li><strong>Pricing</strong>: dedicated (Search Units/hr) or serverless (CU/hr + per-GB storage; preview).</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="rag-pipeline"><figcaption>RAG pipeline: document ingestion through chunking and vectorisation, index storage, and query-time hybrid retrieval feeding context into an LLM.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-json">// Minimal integrated-vectorization skillset (JSON definition)
+{
+  "name": "docs-vectorize-skillset",
+  "skills": [
+    {
+      "@odata.type": "#Microsoft.Skills.Text.SplitSkill",
+      "textSplitMode": "pages",
+      "maximumPageLength": 2000,
+      "pageOverlapLength": 200,
+      "inputs": [{"name": "text", "source": "/document/content"}],
+      "outputs": [{"name": "textItems", "targetName": "pages"}]
+    },
+    {
+      "@odata.type": "#Microsoft.Skills.Text.AzureOpenAIEmbeddingSkill",
+      "resourceUri": "https://&lt;aoai-resource&gt;.openai.azure.com",
+      "deploymentId": "text-embedding-3-small",
+      "modelName": "text-embedding-3-small",
+      "dimensions": 1536,
+      "inputs": [{"name": "text", "source": "/document/pages/*"}],
+      "outputs": [{"name": "embedding", "targetName": "text_vector"}]
+    }
+  ]
+}
+</code></pre></div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>The vectorizer at query time <strong>must use the same embedding model</strong> as the skillset used during indexing — this is a common exam scenario.</li>
+<li>Semantic ranking re-ranks only the <strong>top 50</strong> BM25 candidates — it does not scan the full index.</li>
+<li>Agentic retrieval uses a knowledge base, <em>not</em> a direct index query — the difference matters for agent design.</li>
+<li>Integrated vectorization requires an indexer; it cannot be used with the push API (direct document upload to the index).</li>
+<li>Reciprocal Rank Fusion (RRF) is the fusion algorithm for hybrid search — scores are not simply added.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> After deploying a RAG solution, users report that keyword searches return accurate results but semantic/intent-based queries perform poorly. What is the most likely cause?</summary>
+<div class="answer"><b>Answer:</b> The query-time vectorizer is misconfigured or does not match the embedding model used during indexing. <em>Why:</em> Cosine similarity between a query vector and document vectors only produces meaningful scores when both are generated by the same embedding model with the same dimension settings.</div></details>
+<details class="q"><summary><b>Q2.</b> A team wants the best possible recall for a RAG retrieval step without manually selecting keyword or vector mode. What configuration achieves this?</summary>
+<div class="answer"><b>Answer:</b> Hybrid search (BM25 + vector with RRF fusion) plus semantic ranking. <em>Why:</em> Hybrid RRF combines the lexical strengths of BM25 with semantic vector matching, then semantic ranking re-scores the top 50 results by intent relevance — providing the highest overall recall and precision.</div></details>
+<details class="q"><summary><b>Q3.</b> An agent needs to answer multi-document questions across several knowledge sources with automatic query decomposition. Which Azure AI Search capability should be used?</summary>
+<div class="answer"><b>Answer:</b> Agentic retrieval backed by a knowledge base. <em>Why:</em> Agentic retrieval uses an LLM query planner to decompose complex questions into sub-queries, run them across multiple sources in parallel, and return a synthesised result — classic single-index queries cannot do this automatically.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search">What is Azure AI Search?</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization">Integrated vectorization in Azure AI Search</a></li>
+</ul></div>
+</section>
+
+<!-- o-1-1-4 -->
+<section class="objective" id="obj-1-1-4" data-skill="memory-tools-knowledge">
+<h3 id="o-1-1-4">1.1.4 Choose appropriate memory, tool, and knowledge integration services for agent solutions</h3>
+
+<div class="concept">
+<p>The Foundry Agent Service (GA May 2025) is the managed runtime for AI agents. It exposes three core primitives via the Responses API: <strong>Conversations</strong> (persistent message threads), <strong>Items</strong> (individual messages or structured objects within a conversation), and <strong>Runs</strong> (execution cycles where the agent reads context, invokes tools, and produces a response). Each Run generates Run Steps that record every individual tool call or message produced during that cycle.</p>
+<p>Agents have access to two memory scopes. <strong>Short-term memory</strong> is the in-thread conversation history — automatically maintained within the active session and truncated to fit the model's context window. <strong>Long-term memory</strong> is provided by the Foundry Agent Service Memory Store (preview), a persistent managed store that extracts and consolidates knowledge across sessions so agents can recall user preferences and prior facts on future runs.</p>
+<p>Tools available to agents are divided into <em>knowledge tools</em> (retrieve information) and <em>action tools</em> (perform operations). The right combination depends on the agent's purpose. Knowledge tools are grounded in specific data sources — choosing the wrong tool means the agent cannot access its required information. Action tools like Azure Logic Apps triggers and Code Interpreter enable the agent to act on the world.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>Foundry Agent Service primitives</strong>: Conversation/Thread (persists message history), Run (one execution cycle), Run Steps (per-tool-call detail), Agent Version (versioned definition: model, instructions, tools).</li>
+<li><strong>Short-term memory</strong>: conversation context within the current session; automatic truncation to fit model context window.</li>
+<li><strong>Long-term memory</strong>: Memory Store (preview) — persists knowledge across sessions (user preferences, history), queried automatically at the start of each run.</li>
+<li><strong>BYO thread storage</strong>: Standard Agent Setup supports Azure Cosmos DB for NoSQL as bring-your-own thread store — all message data stays in customer resources.</li>
+<li><strong>Knowledge tools</strong>: File Search (RAG over Azure AI Search, Blob Storage, local files), Grounding with Bing Search (live web), Grounding with Bing Custom Search (scoped web), SharePoint (internal docs), Fabric Data Agent (structured Fabric data), Tripadvisor / Morningstar (licensed third-party).</li>
+<li><strong>Action tools</strong>: Code Interpreter, custom function tools, Azure Logic Apps triggers, 1,400+ tools via the tool catalog.</li>
+<li><strong>Tool-level override</strong>: tools can be attached at agent, thread, or run level. Run-level tools override thread-level, which override agent-level.</li>
+<li><strong>One instance per knowledge tool type per run</strong>: e.g., only one File Search and one Bing Grounding tool per run. Use connected agents for multiple index sources.</li>
+<li><strong>Connected agents</strong> (GA May 2025): task-specific sub-agents linked to a primary agent — enables multi-agent patterns without an external orchestrator.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-python"># Create an agent with File Search and a custom function tool
+from azure.ai.projects import AIProjectClient
+from azure.identity import DefaultAzureCredential
+
+project = AIProjectClient(
+    endpoint="https://&lt;resource&gt;.ai.azure.com/api/projects/&lt;project&gt;",
+    credential=DefaultAzureCredential(),
+)
+
+agent = project.agents.create_version(
+    agent_name="support-agent",
+    definition={
+        "model": "gpt-4.1",
+        "instructions": "Answer support questions using the knowledge base. Use lookup_ticket for CRM data.",
+        "tools": [
+            {"type": "file_search"},
+            {
+                "type": "function",
+                "function": {
+                    "name": "lookup_ticket",
+                    "description": "Look up a support ticket by ID.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"ticket_id": {"type": "string"}},
+                        "required": ["ticket_id"],
+                    },
+                },
+            },
+        ],
+    }
+)
+print(f"Agent version created: {agent.id}")
+</code></pre></div>
+
+<div class="callout warn"><b>Gotcha:</b> Only <strong>one instance of each knowledge tool type</strong> is allowed per agent run. If you need to search two separate Azure AI Search indexes, use <strong>connected agents</strong> — each sub-agent can hold its own File Search tool pointed at a different index.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>In-thread memory (short-term) is lost when the session ends; the Memory Store (long-term) persists across sessions — pick based on whether inter-session recall is needed.</li>
+<li>Basic Agent Setup uses Microsoft-managed storage; Standard Agent Setup uses customer-provided Cosmos DB and Storage — critical for compliance scenarios.</li>
+<li>Tool resolution priority: run-level &gt; thread-level &gt; agent-level — know this for conflict scenarios.</li>
+<li>Connected agents (GA) vs. multi-agent with external orchestrator (preview A2A endpoints) — exam may ask which is GA.</li>
+<li>The Fabric Data Agent is the correct tool for structured Q&amp;A over Microsoft Fabric data; it is not the same as File Search or Bing Grounding.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> An agent must remember a user's dietary preferences across multiple separate chat sessions. Which memory capability addresses this requirement?</summary>
+<div class="answer"><b>Answer:</b> Foundry Agent Service Memory Store (long-term memory, preview). <em>Why:</em> In-thread short-term memory is cleared when the session ends. The Memory Store persists extracted knowledge (like user preferences) across sessions and is queried automatically at the start of each new run.</div></details>
+<details class="q"><summary><b>Q2.</b> A single agent run needs to search two separate Azure AI Search indexes. How should the solution be designed?</summary>
+<div class="answer"><b>Answer:</b> Use connected agents — one primary agent plus two sub-agents, each configured with their own File Search tool pointed at a different index. <em>Why:</em> Only one File Search tool instance is allowed per run. Connected agents allow each sub-agent to hold a separate File Search tool, and the primary agent delegates to them.</div></details>
+<details class="q"><summary><b>Q3.</b> A regulatory requirement mandates that all agent conversation history must reside in the customer's own Azure subscription. Which agent setup satisfies this?</summary>
+<div class="answer"><b>Answer:</b> Standard Agent Setup, configured with a customer-owned Azure Cosmos DB for NoSQL as the thread store. <em>Why:</em> Standard Agent Setup provisions all conversation thread data in customer-controlled resources; Basic Agent Setup uses Microsoft-managed multitenant storage.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry">What is Azure AI Foundry?</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture">Azure AI Foundry architecture</a></li>
+</ul></div>
+</section>
+</section><!-- end sg-1-1 -->
+
+<!-- ============================================================ -->
+<section class="skillgroup" id="sg-1-2">
+<h2 id="g-1-2">1.2 Set up AI solutions in Foundry</h2>
+
+<!-- o-1-2-1 -->
+<section class="objective" id="obj-1-2-1" data-skill="infrastructure-design">
+<h3 id="o-1-2-1">1.2.1 Design Azure infrastructure for AI apps and agent-based solutions</h3>
+
+<div class="concept">
+<p>The top-level Azure resource for Foundry solutions is a <code>Microsoft.CognitiveServices/accounts</code> resource with kind <code>AIServices</code>. This resource hosts model deployments, connections to dependent services, security settings, and one or more <strong>Projects</strong>. Projects (<code>Microsoft.CognitiveServices/accounts/projects</code>) are scoped development boundaries — teams build agents, run evaluations, and store artefacts within a project, reusing the parent Foundry resource's deployments and connections.</p>
+<p>Several independent Azure services are linked as <em>connected resources</em>: Azure Storage (artefact and file storage), Azure Key Vault (secrets for API-key-based connections), Azure AI Search (retrieval), and Azure Application Insights (observability). Each connected resource maintains its own governance boundary and access controls. Foundry's managed identity is granted roles on these resources to avoid credential management.</p>
+<p>For the Foundry Agent Service, infrastructure design also determines whether agent thread data lands in Microsoft-managed storage (<strong>Basic Agent Setup</strong>, fastest to start) or in customer-owned Cosmos DB and Storage (<strong>Standard Agent Setup</strong>, required for data isolation and compliance). Network topology choices — customer-managed VNet vs. platform-managed (Managed VNet) — affect connectivity to connected resources and agent compute.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>Resource hierarchy</strong>: Foundry resource → Projects → Project assets (agents, evaluations, files, connections).</li>
+<li><strong>Connected resources</strong>: Azure Storage, Azure Key Vault (one covers all project and resource-level connection secrets), Azure AI Search, Azure Application Insights.</li>
+<li><strong>Hub-based projects (classic)</strong>: AI Hub (<code>Microsoft.MachineLearningServices/workspaces</code>) with AI projects — still supported; required for serverless API and managed compute deployments.</li>
+<li><strong>Basic vs Standard Agent Setup</strong>: Basic = Microsoft-managed multitenant storage (fastest start); Standard = customer-owned Cosmos DB + Storage + AI Search (full data isolation).</li>
+<li><strong>RBAC scoping</strong>: assignments at resource level apply to all projects; assignments at project level are scoped to that project only. Common pattern: assign <em>Foundry User</em> to developers at resource scope.</li>
+<li><strong>Networking options</strong>: Customer-managed VNet (BYO subnet, delegated to <code>Microsoft.App/environments</code>) or Managed VNet (platform-managed). Private endpoints block all public access — portal management then requires SDK/CLI.</li>
+<li><strong>Encryption</strong>: default Microsoft-managed keys (FIPS 140-2, AES-256). CMK (customer-managed keys) requires Key Vault in the same region with soft delete + purge protection, and managed identity with <em>Key Vault Crypto User</em> role.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-bicep">// Foundry resource + project (Bicep)
+resource foundryAccount 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
+  name: 'my-foundry-resource'
+  location: 'eastus'
+  kind: 'AIServices'
+  sku: { name: 'S0' }
+  identity: { type: 'SystemAssigned' }
+  properties: {
+    publicNetworkAccess: 'Disabled'
+    customSubDomainName: 'my-foundry-resource'
+  }
+}
+
+resource foundryProject 'Microsoft.CognitiveServices/accounts/projects@2024-10-01' = {
+  parent: foundryAccount
+  name: 'my-ai-project'
+  location: 'eastus'
+}
+</code></pre></div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>One Key Vault covers secrets for <em>all</em> projects in the Foundry resource — it is not per-project.</li>
+<li>CMK requires Key Vault in the <strong>same region</strong> as the Foundry resource — cross-region CMK is not supported.</li>
+<li>When public access is disabled (private endpoint only), portal management for some settings is unavailable — use CLI or SDK.</li>
+<li>Hub-based projects (classic) are still needed for managed compute and serverless API deployments; the new Foundry resource model does not yet support those.</li>
+<li>Standard Agent Setup must be provisioned at creation time — you cannot migrate a Basic setup to Standard after deployment.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A GDPR-governed application requires that all agent conversation threads remain exclusively within the customer's Azure subscription. Which infrastructure choice is required?</summary>
+<div class="answer"><b>Answer:</b> Standard Agent Setup, with customer-owned Azure Cosmos DB for NoSQL as the thread store and customer-owned Azure Storage. <em>Why:</em> Standard Agent Setup routes all thread and file data through customer-provided resources, whereas Basic Agent Setup stores this data in Microsoft-managed multitenant storage.</div></details>
+<details class="q"><summary><b>Q2.</b> A developer needs to create and manage agents within a specific Foundry project but should not have administrative access to other projects in the same Foundry resource. What role and scope achieves this?</summary>
+<div class="answer"><b>Answer:</b> Assign the <em>Foundry User</em> role at the individual <strong>project</strong> scope (not the resource scope). <em>Why:</em> Role assignments at project scope restrict data-plane access to that project only, preventing the user from interacting with agents or resources in sibling projects.</div></details>
+<details class="q"><summary><b>Q3.</b> A solution needs customer-managed encryption keys for the Foundry resource. What Key Vault configuration is required?</summary>
+<div class="answer"><b>Answer:</b> The Key Vault must be in the same region as the Foundry resource, have soft delete and purge protection enabled, and the Foundry resource's managed identity must be granted the <em>Key Vault Crypto User</em> role. <em>Why:</em> These are all mandatory prerequisites for CMK — missing any one will prevent Foundry from reading the encryption key.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture">Azure AI Foundry architecture</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry">What is Azure AI Foundry?</a></li>
+</ul></div>
+</section>
+
+<!-- o-1-2-2 -->
+<section class="objective" id="obj-1-2-2" data-skill="deployment-options">
+<h3 id="o-1-2-2">1.2.2 Choose appropriate deployment options</h3>
+
+<div class="concept">
+<p>Foundry offers three families of deployment for Azure OpenAI models: <strong>pay-per-token deployments</strong> (Global Standard, Data Zone Standard, Regional Standard), <strong>provisioned deployments</strong> (Global Provisioned, Data Zone Provisioned, Regional Provisioned — all PTU-based), and <strong>Global Batch</strong> for async bulk processing. For partner and community models, <strong>Serverless API</strong> and <strong>Managed Compute</strong> are available via AI Hub (classic).</p>
+<p>The primary trade-offs are cost predictability, throughput guarantees, and data residency. Pay-per-token deployments are flexible and suit variable traffic; provisioned deployments reserve compute capacity (billed hourly per PTU) and suit predictable high-volume production workloads. Data residency requirements determine whether to choose Global (Azure-managed cross-region routing), Data Zone (US or EU zone), or Regional (single-region) variants.</p>
+<p>A key operational feature is <strong>spillover</strong>: when a provisioned deployment is fully utilised, excess requests can automatically overflow to a linked standard deployment in the same Foundry resource — preventing hard failures without manual intervention.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>Global Standard</strong>: pay-per-token; Azure-managed cross-region routing; best for dev/test and variable traffic.</li>
+<li><strong>Data Zone Standard / Provisioned</strong>: data stays within US or EU zone depending on configuration.</li>
+<li><strong>Regional Standard / Provisioned</strong>: strictest single-region data residency.</li>
+<li><strong>Global Provisioned (PTU)</strong>: hourly billing per PTU; cross-region; high-scale production with predictable traffic.</li>
+<li><strong>Global Batch</strong>: discounted batch rate; async, no latency SLA; cross-region.</li>
+<li><strong>Serverless API</strong> (AI Hub): pay-per-token for partner models (Llama, Mistral, Cohere, etc.); no provisioned compute; regional only; does <em>not</em> support keyless auth or custom content filters.</li>
+<li><strong>Managed Compute</strong> (AI Hub): per-core-hour billing; required for Hugging Face, NVIDIA NIMs, industry models, custom models; regional only.</li>
+<li><strong>PTU quota vs. capacity</strong>: PTU quota is a policy limit (no cost); physical compute capacity must also be available at deployment time — having quota does not guarantee capacity.</li>
+<li><strong>PTU sizing</strong>: use the Foundry portal capacity calculator at <code>https://ai.azure.com/resource/calculator</code>.</li>
+<li><strong>Spillover</strong>: provisioned deployment overflow routes to a linked standard deployment; configured per deployment or via <code>x-ms-spillover-deployment</code> request header.</li>
+<li><strong>Azure Reservations</strong>: 1-month or 1-year commitment discounts the hourly PTU meter.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="deployment-options"><figcaption>Foundry model deployment option families: pay-per-token (Standard variants), provisioned PTU (Global/DataZone/Regional), batch, serverless API, and managed compute — with data residency and billing dimensions.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-bash"># Deploy a Global Standard model via Azure CLI
+az cognitiveservices account deployment create \
+  --resource-group myRG \
+  --name myFoundryResource \
+  --deployment-name gpt41-globalstd \
+  --model-name gpt-4.1 \
+  --model-version "2025-04-14" \
+  --model-format OpenAI \
+  --sku-name GlobalStandard \
+  --sku-capacity 50
+</code></pre></div>
+
+<div class="callout warn"><b>Gotcha:</b> Serverless API deployments do <strong>not</strong> support keyless (Entra ID) authentication or custom content filters — use Standard/Foundry-resource deployments for both of those capabilities.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>PTU quota is a <em>policy limit</em> (no charge); PTU <em>capacity</em> is the physical compute — having quota does not guarantee a deployment will succeed.</li>
+<li>Global Batch is the cheapest option but has no latency SLA — only for offline, non-interactive workloads.</li>
+<li>Only Standard/Foundry-resource deployments support custom content filtering and Entra ID keyless auth — not Serverless API.</li>
+<li>Spillover prevents hard 429 errors for provisioned deployments — it is configured on the provisioned deployment, not the standard one.</li>
+<li>Managed Compute requires AI Hub (classic) resources — it is not available in the new Foundry resource model.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A retail company processes one million product description generation requests overnight with no real-time SLA requirement. Which deployment type minimises cost?</summary>
+<div class="answer"><b>Answer:</b> Global Batch deployment. <em>Why:</em> Global Batch provides the lowest per-token rate for asynchronous bulk processing. Since there is no latency SLA requirement, the batch model's async processing model is appropriate.</div></details>
+<details class="q"><summary><b>Q2.</b> An enterprise needs to deploy Llama 3 with pay-per-token pricing and no dedicated compute to manage. Which deployment option is correct?</summary>
+<div class="answer"><b>Answer:</b> Serverless API (via AI Hub). <em>Why:</em> Serverless API provides pay-as-you-go access to partner and community models like Llama without requiring provisioned compute or capacity reservations.</div></details>
+<details class="q"><summary><b>Q3.</b> A provisioned deployment returns 429 errors during peak load. Which feature should be enabled to prevent user-visible failures?</summary>
+<div class="answer"><b>Answer:</b> Spillover, configured to overflow to a linked Standard deployment in the same Foundry resource. <em>Why:</em> Spillover automatically routes excess requests to a standard deployment when provisioned capacity is saturated, preventing hard 429 errors from reaching users.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview">Model deployments in Azure AI Foundry</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput">Provisioned throughput (PTU) in Azure OpenAI</a></li>
+</ul></div>
+</section>
+
+<!-- o-1-2-3 -->
+<section class="objective" id="obj-1-2-3" data-skill="configure-deployments">
+<h3 id="o-1-2-3">1.2.3 Configure model and agent deployments</h3>
+
+<div class="concept">
+<p>Model deployments are created in the Foundry portal under <strong>Deployments → Deploy model → Deploy base model</strong>, or programmatically via Azure CLI, REST API, or Bicep/AVM patterns. Each deployment requires a model name and version, a deployment name, an SKU type (e.g., GlobalStandard, GlobalProvisionedManaged), a TPM capacity value, and optionally a content filter (guardrail) assignment. An <strong>auto-update</strong> policy controls whether the model version advances automatically when the deployed version is retired.</p>
+<p>Agent deployments in the Foundry Agent Service are configuration objects that specify the model deployment to use, the system instructions (persona, scope, constraints), generation parameters (temperature, top_p), the tools list, and an optional guardrail override. Agents can run on-demand via the API or be deployed as <strong>hosted agents</strong> (container-based persistent HTTP endpoints) managed by the Foundry platform. The Foundry VS Code Extension enables deploying and iterating on agents directly from the IDE.</p>
+<p>A critical configuration detail: each model deployment can have one named guardrail assigned. If an agent also has a guardrail assigned, the <strong>agent's guardrail fully overrides the model's guardrail</strong> — the agent-level configuration governs all traffic through that agent, including tool call and tool response scanning.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>Model deployment parameters</strong>: model name + version, deployment name, SKU/type, TPM capacity, content filter name, auto-update policy.</li>
+<li><strong>Auto-update to latest</strong>: when enabled, the deployment advances to the new stable version automatically on retirement; when disabled, the version must be managed explicitly.</li>
+<li><strong>Agent definition parameters</strong>: model deployment name, <code>instructions</code> (system prompt), <code>temperature</code>, <code>top_p</code>, tools list, guardrail assignment.</li>
+<li><strong>Guardrail assignment</strong>: one named guardrail per model deployment; agent guardrail fully overrides model guardrail.</li>
+<li><strong>Hosted agents</strong>: container-based persistent HTTP endpoint; managed by Foundry platform; deployed via <code>azd deploy</code> or Foundry portal.</li>
+<li><strong>VS Code Extension</strong>: allows deploying and configuring agents directly from the IDE without switching to the portal.</li>
+<li><strong>Management API</strong>: <code>CognitiveServicesManagementClient</code> (Python) provides programmatic access to update TPM capacity, retrieve deployment properties, and manage guardrail assignments.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-python"># Create an agent version with specific generation parameters
+from azure.ai.projects import AIProjectClient
+from azure.identity import DefaultAzureCredential
+
+project = AIProjectClient(
+    endpoint="https://&lt;resource&gt;.ai.azure.com/api/projects/&lt;project&gt;",
+    credential=DefaultAzureCredential(),
+)
+
+agent = project.agents.create_version(
+    agent_name="doc-classifier",
+    definition={
+        "model": "gpt-4.1",
+        "instructions": (
+            "Classify the submitted document into one of: Invoice, Contract, Report, or Other. "
+            "Return only the category name."
+        ),
+        "tools": [{"type": "file_search"}],
+        "temperature": 0.0,   # deterministic output for classification
+        "top_p": 1.0,
+    }
+)
+print(f"Agent version: {agent.id}")
+</code></pre></div>
+
+<div class="callout key"><b>Key:</b> The agent's guardrail <strong>fully overrides</strong> the underlying model's guardrail — if an agent needs to scan tool calls and tool responses, those intervention points must be explicitly configured in the <em>agent's</em> guardrail, not the model's.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>Auto-update to latest applies only when the current version is <em>retired</em> — it does not change the version proactively.</li>
+<li>Temperature 0.0 maximises determinism — use for classification and structured-output tasks; use higher temperature for creative tasks.</li>
+<li>Guardrail assignment requires <strong>Foundry Account Owner</strong> role — not Foundry User or Owner.</li>
+<li>Hosted agents (persistent HTTP endpoint) require container deployment via <code>azd deploy</code>; on-demand agents run via the Responses API without a persistent endpoint.</li>
+<li>When no guardrail is explicitly assigned to a deployment, the <code>Microsoft.DefaultV2</code> guardrail applies automatically.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A model deployment's <code>Microsoft.DefaultV2</code> guardrail allows some content that the business requires to be blocked. Who can change the guardrail assignment, and what is the minimum role needed?</summary>
+<div class="answer"><b>Answer:</b> The <em>Foundry Account Owner</em> role is required to modify guardrail assignments on a model deployment. <em>Why:</em> Guardrail configuration is a privileged management action — the Foundry User and Foundry Owner roles have data-plane access but do not include guardrail management.</div></details>
+<details class="q"><summary><b>Q2.</b> An agent is deployed with a custom guardrail, but the underlying model deployment also has a guardrail assigned. Which guardrail applies to traffic through the agent?</summary>
+<div class="answer"><b>Answer:</b> The agent's guardrail fully overrides the model's guardrail for all agent traffic. <em>Why:</em> Foundry is designed so the agent-level guardrail takes complete precedence — this allows agents to apply stricter or different controls than the base model without the model's guardrail interfering.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview">Model deployments in Azure AI Foundry</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview">Guardrails in Azure AI Foundry</a></li>
+</ul></div>
+</section>
+
+<!-- o-1-2-4 -->
+<section class="objective" id="obj-1-2-4" data-skill="cicd-integration">
+<h3 id="o-1-2-4">1.2.4 Integrate Foundry projects with CI/CD pipelines</h3>
+
+<div class="concept">
+<p>The <strong>Azure Developer CLI (<code>azd</code>)</strong> with the <code>microsoft.foundry</code> extension is the recommended tool for automating Foundry agent deployments end-to-end. Running <code>azd pipeline config</code> auto-detects the Git provider (GitHub or Azure DevOps), creates a federated Entra credential, configures repository variables and secrets, and generates the pipeline YAML — eliminating manual setup of service principals and stored secrets.</p>
+<p>A standard pipeline executes two phases: <code>azd provision</code> (creates or updates Azure infrastructure from Bicep templates in the <code>infra/</code> folder) and <code>azd deploy</code> (builds the hosted agent container, pushes it to Azure Container Registry, and creates a new agent version). For model-only deployments (no custom container), the Azure CLI or REST API can be called directly in standard pipeline steps without the Foundry extension.</p>
+<p>Security best practice for GitHub Actions pipelines is to use <strong>OpenID Connect (OIDC)</strong> with a federated Entra credential — the pipeline exchanges a GitHub-issued OIDC token for an Azure access token without storing any long-lived secrets in repository settings.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><code>azd ext install microsoft.foundry</code>: installs the Foundry extension into azd, enabling hosted agent deployment commands.</li>
+<li><code>azd pipeline config</code>: auto-detects Git provider, creates federated credential, sets repository variables, generates workflow YAML.</li>
+<li><strong>Required repository variables</strong>: <code>AZURE_CLIENT_ID</code>, <code>AZURE_TENANT_ID</code>, <code>AZURE_SUBSCRIPTION_ID</code>, <code>FOUNDRY_PROJECT_ENDPOINT</code>.</li>
+<li><strong>Pipeline identity RBAC</strong>: requires <em>Foundry User</em> on the target Foundry project (data plane) and <em>Contributor</em> on the project for code deployment mode; additional ACR roles for container-based deployment.</li>
+<li><strong>OIDC authentication</strong>: no stored secrets; GitHub Actions uses <code>id-token: write</code> permission and the <code>azure/login@v2</code> action with <code>client-id</code>, <code>tenant-id</code>, and <code>subscription-id</code>.</li>
+<li><strong>AML pipelines</strong>: Azure Machine Learning SDK v2 pipelines can automate fine-tuning and evaluation runs within Hub-based Foundry projects.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-yaml"># .github/workflows/azure-dev.yml — generated by azd pipeline config
+name: Deploy Foundry Agent
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # required for OIDC
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Azure/setup-azd@v1
+      - name: Install Foundry extension
+        run: azd ext install microsoft.foundry
+      - name: Azure Login (OIDC — no stored secrets)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Provision infrastructure
+        run: azd provision --no-prompt
+      - name: Deploy hosted agent
+        run: azd deploy --no-prompt
+</code></pre></div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>OIDC with federated credential is the recommended auth method — avoids long-lived client secrets in repository settings.</li>
+<li>The pipeline identity needs both <em>Foundry User</em> (data plane) AND <em>Contributor</em> (management plane for code deployment) on the project — one role alone is insufficient.</li>
+<li>The <code>microsoft.foundry</code> azd extension must be installed before <code>azd deploy</code> can deploy hosted agent containers — it is not bundled with azd by default.</li>
+<li>Model-only deployments (no container) can use the Azure CLI directly within pipeline steps — azd deploy is for agent containers.</li>
+<li><code>azd provision</code> is idempotent — running it multiple times applies incremental changes from Bicep without recreating existing resources.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A team wants to deploy Foundry agents from GitHub Actions without storing any Azure credentials in GitHub Secrets. What authentication mechanism should they use?</summary>
+<div class="answer"><b>Answer:</b> OpenID Connect (OIDC) with a federated Entra ID credential configured via <code>azd pipeline config</code>. <em>Why:</em> OIDC allows GitHub Actions to obtain short-lived Azure tokens dynamically using the workflow's OIDC token — no long-lived secret needs to be stored.</div></details>
+<details class="q"><summary><b>Q2.</b> A CI/CD pipeline fails to deploy a hosted agent container to Foundry. The pipeline identity has the <em>Foundry User</em> role but nothing else. What additional role is needed?</summary>
+<div class="answer"><b>Answer:</b> The <em>Contributor</em> role on the Foundry project (for code deployment mode), plus appropriate ACR roles for container image push. <em>Why:</em> <em>Foundry User</em> grants data-plane access for running agents and evaluations but does not grant the management-plane permissions needed to create or update hosted agent versions.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture">Azure AI Foundry architecture</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry">What is Azure AI Foundry?</a></li>
+</ul></div>
+</section>
+</section><!-- end sg-1-2 -->
+
+<!-- ============================================================ -->
+<section class="skillgroup" id="sg-1-3">
+<h2 id="g-1-3">1.3 Manage, monitor, and secure AI systems</h2>
+
+<!-- o-1-3-1 -->
+<section class="objective" id="obj-1-3-1" data-skill="quotas-scaling">
+<h3 id="o-1-3-1">1.3.1 Manage quotas, scaling, rate limits, and cost footprints for model and agent workloads</h3>
+
+<div class="concept">
+<p><strong>Tokens per Minute (TPM)</strong> is the primary quota unit for Azure OpenAI in Foundry Models. Quota is assigned per subscription, per region, per model, and per deployment type — Global Standard, Data Zone Standard, and Regional Standard each have separate quota pools. When a deployment is created, the assigned TPM directly sets the model's TPM rate limit and a proportional RPM (Requests per Minute) limit. The total TPM allocated across all deployments of the same model in a region cannot exceed the subscription's regional quota.</p>
+<p>For provisioned deployments, <strong>Provisioned Throughput Units (PTUs)</strong> are the reservation unit. PTU quota is a policy limit (no charge); the physical compute capacity must also be available in the chosen region and deployment type at creation time. Having PTU quota is necessary but not sufficient — always verify capacity availability before committing to provisioned reservations, using the Foundry portal capacity calculator.</p>
+<p>Cost management for AI workloads involves tracking pay-per-token consumption (via Microsoft Cost Management) and managing hourly PTU billing. The <strong>Model Router</strong> deployment and spillover configurations are operational mechanisms to control costs — Model Router routes simple queries to cheaper mini/nano variants, while spillover limits the blast radius of provisioned capacity exhaustion.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>TPM quota pools</strong>: separate per subscription, region, model, and deployment type (Global / Data Zone / Regional are independent pools).</li>
+<li><strong>RPM ratio examples</strong>: o4-mini: 1 RPM per 1,000 TPM; older chat models: 6 RPM per 1,000 TPM.</li>
+<li><strong>PTU quota vs. capacity</strong>: quota is a policy limit (no charge); capacity is the compute that must be available at deployment time — distinct concepts.</li>
+<li><strong>Three PTU quota pools</strong>: <code>GlobalProvisionedManaged</code>, <code>DataZoneProvisionedManaged</code>, <code>ProvisionedManaged</code> — each is independent.</li>
+<li><strong>Capacity calculator</strong>: Foundry portal at <code>https://ai.azure.com/resource/calculator</code> — required for PTU sizing.</li>
+<li><strong>Quota increase requests</strong>: submit at <code>https://aka.ms/oai/stuquotarequest</code>; quota increases for partner/community models are not supported.</li>
+<li><strong>Viewing quota</strong>: Foundry portal → Management → Quota. <em>Cognitive Services Usages Reader</em> role (subscription scope) provides minimum permissions to read quota across multiple subscriptions.</li>
+<li><strong>PTU billing</strong>: hourly per PTU regardless of token consumption; reduce cost via Azure Reservations (1-month or 1-year).</li>
+<li><strong>Spillover</strong>: overflow from saturated provisioned deployments routes to a linked standard deployment — prevents hard failures.</li>
+<li><strong>Model Router</strong>: routes simple queries to cheaper model variants at runtime — reduces overall token cost without client-side routing logic.</li>
+<li><strong>Max resources per region</strong>: 30 Azure OpenAI resources per subscription per region.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-bash"># View TPM quota usage for gpt-4 family in East US
+az cognitiveservices usage list \
+  --location eastus \
+  --query "[?contains(name.value, 'gpt-4')]" \
+  --output table
+</code></pre></div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>PTU quota and PTU capacity are <em>different</em> — a common exam trap is assuming quota approval guarantees deployment success.</li>
+<li>The <em>Cognitive Services Usages Reader</em> role must be assigned at <strong>subscription scope</strong> to see quota across all resources in the subscription.</li>
+<li>Each deployment type (Global, Data Zone, Regional) has a separate quota pool — deploying more Global Provisioned does not reduce your Regional Provisioned quota.</li>
+<li>PTU billing continues hourly even when no tokens are consumed — provisioned deployments are a reservation, not a consumption meter.</li>
+<li>Model Router is a deployment-level feature — it requires no client code changes; the routing is transparent to callers.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A subscription holds approved PTU quota in East US, but creating a new GlobalProvisionedManaged deployment fails. What is the most likely cause?</summary>
+<div class="answer"><b>Answer:</b> Physical capacity is unavailable in that region for the GlobalProvisionedManaged deployment type, even though quota exists. <em>Why:</em> PTU quota is a policy limit (no compute charge); actual compute capacity must be available at deployment time, and the two can be out of sync — always verify capacity before purchasing reservations.</div></details>
+<details class="q"><summary><b>Q2.</b> A central platform team needs to audit Azure OpenAI quota consumption across all subscriptions in an organisation without granting admin access. What minimum role is required?</summary>
+<div class="answer"><b>Answer:</b> <em>Cognitive Services Usages Reader</em> role, assigned at subscription scope for each subscription. <em>Why:</em> This built-in role provides read-only access to quota usage data without granting any management or data-plane permissions.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/quota">Manage Azure OpenAI quotas</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput">Provisioned throughput (PTU)</a></li>
+</ul></div>
+</section>
+
+<!-- o-1-3-2 -->
+<section class="objective" id="obj-1-3-2" data-skill="monitor-model-performance">
+<h3 id="o-1-3-2">1.3.2 Monitor model performance, drift, safety events, and grounding quality</h3>
+
+<div class="concept">
+<p>The Foundry portal's <strong>Agent Monitoring Dashboard</strong> (Monitor tab per agent) surfaces key operational signals backed by Azure Monitor Application Insights: token usage, per-call latency, run success rate, and evaluation metric scores. These metrics make it possible to detect degradation early — for example, latency above 10 seconds may indicate model throttling or a complex tool chain, while run success rates below 95% warrant investigation into failed runs.</p>
+<p><strong>Continuous evaluation</strong> rules automate quality sampling in production: a configured rule triggers a chosen evaluator (e.g., Groundedness, Relevance) on each agent response or on a sampled subset. Rules are configured with a maximum hourly run count (default 100) and a filter on agent name, so teams can selectively monitor specific agents without evaluating all traffic. The evaluation results appear in the dashboard alongside operational metrics, enabling correlation between quality and performance signals.</p>
+<p>Drift — the gradual degradation of model output quality due to changing user behaviours or data distribution shifts — is surfaced by continuous evaluation metric trends over time. Scheduled evaluations (preview) run evaluation templates on a schedule to compare current performance against baselines. Red team scans (preview) execute adversarial tests to detect risks such as data leakage or jailbreak vulnerabilities.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>Agent Monitoring Dashboard</strong>: Foundry portal Monitor tab; metrics backed by Azure Application Insights.</li>
+<li><strong>Key dashboard metrics</strong>: token usage, latency, run success rate, evaluation metric scores, red team findings.</li>
+<li><strong>Continuous evaluation rule parameters</strong>: eval object ID, max hourly runs (default 100), event type (<code>RESPONSE_COMPLETED</code>), agent name filter.</li>
+<li><strong>Groundedness evaluator</strong>: 1–5 model-based score — is the response grounded in retrieved context?</li>
+<li><strong>Groundedness Pro</strong> (preview): binary pass/fail using Azure AI Content Safety — <em>no model deployment required</em>.</li>
+<li><strong>Relevance evaluator</strong>: is the response relevant to the query?</li>
+<li><strong>Scheduled evaluations</strong> (preview): run evaluation templates on a schedule for baseline comparison.</li>
+<li><strong>Red team scans</strong> (preview): scheduled adversarial tests for data leakage, jailbreak, and prohibited-action risks.</li>
+<li><strong>Alerts</strong> (preview): configurable on latency, token usage, eval score thresholds, and red team findings.</li>
+<li><strong>Required roles for monitoring</strong>: <em>Log Analytics Reader</em> for log-based views; <em>Privileged Monitoring Data Reader</em> if log tables are protected.</li>
+<li><strong>Custom/external agents</strong>: instrument with OpenTelemetry (Foundry semantic conventions), send to Application Insights, then register in Foundry Control Plane.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="observability"><figcaption>Foundry observability stack: agent runs emit traces and metrics to Application Insights; the Monitoring Dashboard visualises token usage, latency, run success, and evaluation scores; continuous evaluation rules trigger quality sampling.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python"># Set up a continuous groundedness evaluation rule
+from azure.ai.projects import AIProjectClient
+from azure.ai.projects.models import (
+    EvaluationRule, ContinuousEvaluationRuleAction,
+    EvaluationRuleFilter, EvaluationRuleEventType,
+)
+from azure.identity import DefaultAzureCredential
+
+project = AIProjectClient(
+    endpoint="https://&lt;resource&gt;.ai.azure.com/api/projects/&lt;project&gt;",
+    credential=DefaultAzureCredential(),
+)
+
+# 1. Create the evaluation object
+eval_obj = project.evaluations.create(
+    name="prod-groundedness",
+    testing_criteria=[{
+        "type": "azure_ai_evaluator",
+        "name": "groundedness",
+        "evaluator_name": "builtin.groundedness",
+    }],
+)
+
+# 2. Create the continuous rule
+project.evaluation_rules.create_or_update(
+    id="groundedness-prod-rule",
+    evaluation_rule=EvaluationRule(
+        display_name="Groundedness Monitoring",
+        action=ContinuousEvaluationRuleAction(eval_id=eval_obj.id, max_hourly_runs=100),
+        event_type=EvaluationRuleEventType.RESPONSE_COMPLETED,
+        filter=EvaluationRuleFilter(agent_name="my-rag-agent"),
+        enabled=True,
+    ),
+)
+</code></pre></div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li><strong>Groundedness Pro</strong> uses Azure AI Content Safety as its judge — it does <em>not</em> require a generative model deployment, unlike the standard Groundedness evaluator.</li>
+<li>Continuous evaluation samples production traffic — it is not a full evaluation of every response (default cap: 100 runs/hour).</li>
+<li>Drift is detected via evaluation metric <em>trends</em> over time, not from a single snapshot.</li>
+<li>The monitoring dashboard requires the project to be connected to Azure Application Insights — a common setup oversight.</li>
+<li>Red team scans are <em>scheduled adversarial tests</em> — not real-time guardrails. They complement (but do not replace) guardrails.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A team wants to evaluate whether production agent responses are grounded in retrieved context without consuming any generative model quota. Which evaluator should they use?</summary>
+<div class="answer"><b>Answer:</b> Groundedness Pro (preview). <em>Why:</em> Groundedness Pro performs a binary pass/fail groundedness check using Azure AI Content Safety — it does not call a generative model, so it does not consume model token quota.</div></details>
+<details class="q"><summary><b>Q2.</b> The run success rate on an agent's monitoring dashboard drops from 98% to 85% overnight. What is the most productive first investigation step?</summary>
+<div class="answer"><b>Answer:</b> Examine failed run details in the dashboard for tool call errors and latency spikes. <em>Why:</em> Most run failures in agent workloads are caused by tool invocation errors (e.g., API timeouts, quota exhaustion on downstream services) or model throttling — the run-level details in Application Insights pinpoint which step failed.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard">Monitor agents with the Foundry dashboard</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators">Built-in evaluators in Azure AI Foundry</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/trace-agent-concept">Tracing concepts for agents in Foundry</a></li>
+</ul></div>
+</section>
+
+<!-- o-1-3-3 -->
+<section class="objective" id="obj-1-3-3" data-skill="monitor-ingestion-search">
+<h3 id="o-1-3-3">1.3.3 Monitor data ingestion quality, search index health, and relevance performance</h3>
+
+<div class="concept">
+<p>Azure AI Search integrates with Azure Monitor through diagnostic settings — enabling logs and metrics to be routed to a Log Analytics workspace, Azure Storage, or Event Hubs. This integration exposes service-level metrics (query latency, queries per second, throttled query percentage, document count, and storage size) as well as indexer-level run history with granular success, partial-success, and failure details including per-document errors.</p>
+<p>Relevance performance is measured through multiple score dimensions. <strong>BM25 score</strong> (<code>@search.score</code>) reflects lexical keyword overlap. <strong>Vector search score</strong> reflects embedding cosine similarity. <strong>Semantic ranking score</strong> (<code>@search.rerankerScore</code>, range 0–4) reflects intent-level relevance from the cross-encoder re-ranker. Hybrid search fuses BM25 and vector scores via Reciprocal Rank Fusion (RRF) before semantic re-ranking — providing the best combined signal.</p>
+<p>A common operational issue during integrated vectorization is indexer throttling: if the Azure OpenAI embedding model's quota is exhausted while the indexer is processing documents, embedding calls fail and affected documents are skipped. Built-in retry policies handle transient failures, but sustained quota exhaustion requires either a quota increase or a reduction in indexer throughput.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>Diagnostic settings</strong>: enable on the search service to route logs and metrics to Log Analytics workspace, Storage, or Event Hubs.</li>
+<li><strong>Key search metrics via Azure Monitor</strong>: query latency, QPS, throttled queries %, document count, storage size, indexer run success/failure.</li>
+<li><strong>Indexer run status</strong>: success / partial success / failure; details include per-item errors and warnings; accessible via portal (Indexers → run history) or REST API (<code>GET /indexers/{name}/status</code>).</li>
+<li><strong>BM25 score</strong> (<code>@search.score</code>): lexical relevance — statistical keyword overlap.</li>
+<li><strong>Semantic ranking score</strong> (<code>@search.rerankerScore</code>): cross-encoder model score (0–4); top 50 BM25 candidates re-ranked.</li>
+<li><strong>Hybrid search scoring</strong>: BM25 + vector fused via Reciprocal Rank Fusion (RRF) before optional semantic re-ranking.</li>
+<li><strong>Throttling during integrated vectorization</strong>: Azure OpenAI embedding quota exhaustion causes indexer failures; built-in retries handle transient issues.</li>
+<li><strong>Relevance tuning tools</strong>: boosting profiles, scoring profiles, synonyms, semantic configurations; test with Search Explorer in Azure portal.</li>
+<li><strong>Agentic retrieval activity log</strong>: querying the knowledge base returns an <code>activity</code> log showing sub-queries generated, sources retrieved, and re-ranking steps — useful for debugging agentic retrieval quality.</li>
+<li><strong>Foundry Agent Service metrics</strong> (Azure Monitor): number of files indexed for File Search, agent run counts — available since April 2025.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-bash"># Check indexer run status (Azure CLI)
+az search indexer get-status \
+  --service-name mySearchService \
+  --resource-group myRG \
+  --name docs-indexer
+</code></pre></div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>Indexer throttling during integrated vectorization is caused by <em>Azure OpenAI embedding quota exhaustion</em> — not by the search service itself.</li>
+<li><code>@search.rerankerScore</code> (0–4) is produced by semantic ranking and reflects intent-level relevance — not raw keyword overlap.</li>
+<li>Hybrid search uses <strong>RRF</strong> (Reciprocal Rank Fusion) — scores from BM25 and vector search are not simply summed.</li>
+<li>Enable diagnostic settings <em>before</em> you need them — logs are not retroactively available.</li>
+<li>The agentic retrieval <code>activity</code> log (returned with results) is the primary tool for debugging multi-query decomposition quality.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> During integrated vectorization, some documents are not indexed and the indexer run shows partial success. What is the most likely cause?</summary>
+<div class="answer"><b>Answer:</b> The Azure OpenAI embedding model's quota was exhausted during processing, causing embedding calls for those documents to fail. <em>Why:</em> Integrated vectorization calls the embedding API for each document chunk; quota exhaustion causes API failures, which skip affected documents while other documents succeed — resulting in partial success.</div></details>
+<details class="q"><summary><b>Q2.</b> A relevance team notices that keyword-heavy queries return excellent results, but intent-based questions score poorly. Which additional relevance layer should be enabled?</summary>
+<div class="answer"><b>Answer:</b> Semantic ranking (using a semantic configuration). <em>Why:</em> Semantic ranking uses a cross-encoder re-ranker to score the top 50 BM25 candidates by intent relevance, producing <code>@search.rerankerScore</code> — this is specifically designed to improve results for natural-language, intent-based queries where BM25 keyword overlap is insufficient.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search">What is Azure AI Search?</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization">Integrated vectorization in Azure AI Search</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard">Monitor agents with the Foundry dashboard</a></li>
+</ul></div>
+</section>
+
+<!-- o-1-3-4 -->
+<section class="objective" id="obj-1-3-4" data-skill="security-configuration">
+<h3 id="o-1-3-4">1.3.4 Configure security (managed identity, private networking, keyless credentials, role policies)</h3>
+
+<div class="concept">
+<p>Keyless authentication using <strong>Microsoft Entra ID</strong> is the preferred approach over API keys for Foundry solutions. The <code>DefaultAzureCredential</code> class from the <code>azure-identity</code> SDK automatically selects the appropriate credential type — a managed identity when running in Azure, and a developer credential (Azure CLI, VS Code) when running locally. This means the same code works across development and production environments without configuration changes, and no API keys are stored in code or configuration files.</p>
+<p>Foundry resources and their connected services (Azure AI Search, Storage, Key Vault) are secured using <strong>managed identities</strong> (system-assigned or user-assigned). The Foundry resource's managed identity is granted specific roles on each connected resource — for example, <em>Storage Blob Data Contributor</em> on Azure Storage, <em>Search Index Data Contributor</em> on AI Search, and <em>Key Vault Crypto User</em> for customer-managed key access.</p>
+<p>For production environments, network security is enforced by creating <strong>private endpoints</strong> for the Foundry resource and Azure AI Search, routing all traffic through Azure's private networking fabric and blocking public internet access. Azure Policy definitions under the <code>Microsoft.CognitiveServices</code> resource provider can enforce governance standards — such as requiring private endpoints or CMK encryption — across all Foundry resources in an organisation.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>Keyless auth (Entra ID)</strong>: use <code>DefaultAzureCredential</code>; supported only on Standard/Foundry-resource deployments — not on Serverless API endpoints.</li>
+<li><strong>Foundry RBAC roles</strong>:
+  <ul>
+    <li><em>Foundry Account Owner</em>: full management + data plane, including guardrail management.</li>
+    <li><em>Foundry Owner</em>: management + data plane at resource or project scope.</li>
+    <li><em>Foundry User</em>: data plane (build agents, run evals, upload files) at resource or project scope.</li>
+    <li><em>Foundry Project Manager</em>: create and manage projects.</li>
+    <li><em>Cognitive Services Usages Reader</em>: read quota usage (must be at subscription scope).</li>
+  </ul>
+</li>
+<li><strong>Private endpoints</strong>: block all public internet traffic to the Foundry resource or AI Search service; require private DNS zone for name resolution.</li>
+<li><strong>VNet models for agents</strong>: Customer-managed VNet (BYO subnet delegated to <code>Microsoft.App/environments</code>) or Managed VNet (platform-managed).</li>
+<li><strong>Shared private link</strong>: enables Azure AI Search to reach vectorizers/embedding models privately within Azure.</li>
+<li><strong>Azure Policy</strong>: enforce governance using <code>Microsoft.CognitiveServices</code> aliases — require private endpoints, CMK, or restrict allowed model SKUs.</li>
+<li><strong>Microsoft Purview</strong>: apply DLP policies and sensitivity labels to data accessed by agents via Foundry.</li>
+<li><strong>CMK requirements</strong>: Key Vault in same region, soft delete + purge protection enabled, managed identity with <em>Key Vault Crypto User</em> role.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="identity-security"><figcaption>Foundry security model: Entra ID managed identity grants roles on connected resources; private endpoints block public access; Azure Policy enforces governance standards across the organisation.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python"># Keyless authentication with DefaultAzureCredential (production pattern)
+from azure.identity import DefaultAzureCredential
+from azure.ai.projects import AIProjectClient
+
+credential = DefaultAzureCredential()  # managed identity in Azure; dev credential locally
+project = AIProjectClient(
+    endpoint="https://&lt;resource&gt;.ai.azure.com/api/projects/&lt;project&gt;",
+    credential=credential,
+)
+</code></pre></div>
+
+<div class="code"><pre><code class="lang-bash"># Assign Foundry User role to a managed identity at project scope
+az role assignment create \
+  --role "Foundry User" \
+  --assignee-object-id "&lt;managed-identity-object-id&gt;" \
+  --assignee-principal-type ServicePrincipal \
+  --scope "/subscriptions/&lt;sub-id&gt;/resourceGroups/&lt;rg&gt;/providers/Microsoft.CognitiveServices/accounts/&lt;resource&gt;/projects/&lt;project&gt;"
+</code></pre></div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>Keyless (Entra ID) auth is only supported on <strong>Standard/Foundry-resource deployments</strong> — Serverless API uses API keys, not managed identity.</li>
+<li>When private endpoints are enabled and public access is disabled, the Azure portal cannot manage certain settings — use CLI or SDK.</li>
+<li>Control plane (create deployments, projects) and data plane (build agents, evaluate) are distinct in Foundry RBAC — assign only the plane(s) the identity needs.</li>
+<li><em>Foundry Account Owner</em> is required to modify guardrails — <em>Foundry Owner</em> alone is not sufficient for that specific action.</li>
+<li>Private DNS zone for the private endpoint is required for name resolution — creating a private endpoint without it causes connection failures.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> An Azure Function needs to call a Foundry model endpoint without storing any API keys. The function runs in Azure with a system-assigned managed identity. What code pattern should be used?</summary>
+<div class="answer"><b>Answer:</b> Use <code>DefaultAzureCredential()</code> from the <code>azure-identity</code> package to obtain the credential, then pass it to the <code>AIProjectClient</code>. <em>Why:</em> When running in Azure, <code>DefaultAzureCredential</code> automatically uses the system-assigned managed identity — no API key or secret is required in code or configuration.</div></details>
+<details class="q"><summary><b>Q2.</b> A security audit requires that all traffic to an Azure AI Search service used for RAG grounding must travel exclusively over Azure's private network. What must be configured?</summary>
+<div class="answer"><b>Answer:</b> A private endpoint for the Azure AI Search service, plus a private DNS zone to resolve the service's hostname to the private IP. <em>Why:</em> Private endpoints route all network traffic through Azure Private Link, blocking public internet access. The private DNS zone is required so clients resolve the service name to the private endpoint IP rather than the public IP.</div></details>
+<details class="q"><summary><b>Q3.</b> A platform engineer needs to enforce that all Foundry resources in an Azure subscription must have public network access disabled. What is the appropriate mechanism?</summary>
+<div class="answer"><b>Answer:</b> An Azure Policy definition using <code>Microsoft.CognitiveServices</code> resource provider aliases to audit or deny Foundry resources where <code>publicNetworkAccess</code> is not <code>Disabled</code>. <em>Why:</em> Azure Policy is the governance mechanism for enforcing configuration standards across all resources in a subscription or management group — it applies the rule automatically to new and existing resources.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture">Azure AI Foundry architecture</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview">Guardrails in Azure AI Foundry</a></li>
+</ul></div>
+</section>
+</section><!-- end sg-1-3 -->
+
+<!-- ============================================================ -->
+<section class="skillgroup" id="sg-1-4">
+<h2 id="g-1-4">1.4 Implement responsible AI across generative AI and agentic systems</h2>
+
+<!-- o-1-4-1 -->
+<section class="objective" id="obj-1-4-1" data-skill="safety-filters-guardrails">
+<h3 id="o-1-4-1">1.4.1 Configure safety filters, guardrails, risk detection, and content moderation</h3>
+
+<div class="concept">
+<p>In Azure AI Foundry, <strong>guardrails</strong> are named collections of controls that define a three-part policy: the risk category to detect, the point in the conversation flow to intercept (intervention point), and the action to take when the risk is detected. Guardrails are configured at the Foundry resource or project level and then assigned to model deployments or agents. All Foundry Models sold by Azure are assigned the <code>Microsoft.DefaultV2</code> guardrail automatically if no custom guardrail is assigned.</p>
+<p>There are four <strong>intervention points</strong> where scanning can occur: <em>User Input</em> (the prompt sent to the model or agent), <em>Tool Call</em> (preview — the action the agent proposes to send to a tool), <em>Tool Response</em> (preview — content returned from a tool to the agent), and <em>Output</em> (the final completion returned to the caller). The tool-level intervention points are exclusive to agents and enable scanning of the agent's planned actions before they execute.</p>
+<p>Severity levels control how aggressively the filter fires: <strong>Off</strong> (approved customers only, requires Limited Access Review), <strong>Low</strong> (flags at low severity and above), <strong>Medium</strong>, and <strong>High</strong> (flags only the most severe content). When a risk is detected, the action can be <strong>Annotate</strong> (log only, available for models) or <strong>Annotate and block</strong> (returns an error to the caller). Azure AI Content Safety provides the underlying harm-classification models that power guardrail controls and Groundedness Pro evaluation.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>Guardrail structure</strong>: risk category + intervention point + action = one control. Multiple controls form a named guardrail.</li>
+<li><strong>Four intervention points</strong>: User Input (prompt), Tool Call (preview, agents only), Tool Response (preview, agents only), Output (completion).</li>
+<li><strong>Risk categories — both models and agents</strong>: Hate, Sexual, Self-harm, Violence, User Prompt Attacks (jailbreak), Indirect Attacks (XPIA), Protected Material for text/code.</li>
+<li><strong>Risk categories — agents only</strong>: PII (preview), Task Adherence (preview), Prohibited Actions, Sensitive Data Leakage.</li>
+<li><strong>Risk categories — models only</strong>: Groundedness (preview), Spotlighting (preview).</li>
+<li><strong>Severity levels</strong>: Off (Limited Access Review required), Low, Medium, High.</li>
+<li><strong>Actions</strong>: Annotate (log only, models only) or Annotate and block (returns error to caller; both models and agents).</li>
+<li><strong>Default guardrail</strong>: <code>Microsoft.DefaultV2</code> — applied automatically when no custom guardrail is assigned.</li>
+<li><strong>Agent guardrail overrides model guardrail</strong>: completely supersedes the model's guardrail for all agent traffic.</li>
+<li><strong>Role to modify guardrails</strong>: Foundry Account Owner.</li>
+<li><strong>Disabling content filters</strong>: requires submitting the Limited Access Review form (separate form for Azure Government).</li>
+<li><strong>Applies to</strong>: all Foundry Models sold by Azure (except audio models like Whisper); agents in Foundry Agent Service only (not externally registered agents).</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="content-safety"><figcaption>Guardrail enforcement points: User Input → Tool Call (preview) → Tool Response (preview) → Output; each point can be independently configured with risk categories, severity thresholds, and actions (annotate vs block).</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python"># Conceptual: define a strict guardrail via Foundry management API
+import json
+from azure.identity import DefaultAzureCredential
+
+credential = DefaultAzureCredential()
+token = credential.get_token("https://management.azure.com/.default").token
+
+guardrail = {
+    "name": "strict-enterprise-guardrail",
+    "controls": [
+        {
+            "risk": "Hate",
+            "interventionPoint": "UserInput",
+            "severity": "Low",
+            "action": "AnnotateAndBlock",
+        },
+        {
+            "risk": "IndirectAttacks",
+            "interventionPoint": "UserInput",
+            "severity": "Low",
+            "action": "AnnotateAndBlock",
+        },
+        {
+            "risk": "Violence",
+            "interventionPoint": "Output",
+            "severity": "Medium",
+            "action": "AnnotateAndBlock",
+        },
+        {
+            "risk": "ProhibitedActions",   # agents only
+            "interventionPoint": "ToolCall",
+            "severity": "Low",
+            "action": "AnnotateAndBlock",
+        },
+    ],
+}
+# POST guardrail_body to Foundry guardrails endpoint for the project
+print(json.dumps(guardrail, indent=2))
+</code></pre></div>
+
+<div class="callout warn"><b>Gotcha:</b> The <strong>agent's guardrail completely overrides</strong> the model's guardrail. If you only configure the model's guardrail and assign a different (or no) guardrail to the agent, the model's controls do <em>not</em> apply to agent traffic.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>Tool Call and Tool Response intervention points are <strong>agents only</strong> — they do not apply to standalone model deployments.</li>
+<li>To turn content filters <em>completely off</em>, a <strong>Limited Access Review</strong> form must be submitted and approved — this cannot be done unilaterally via the portal.</li>
+<li><em>Annotate</em> action (log only, no block) is available for <strong>model</strong> deployments only — agents always block when the action is triggered.</li>
+<li>Whisper (audio) is exempt from guardrail controls — content safety does not apply to audio transcription output.</li>
+<li>Groundedness and Spotlighting controls are for <strong>model deployments only</strong> — they do not appear in agent-specific guardrail configurations.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> An agent must block harmful content not only from user prompts but also from data returned by a web search tool before it reaches the model. Which intervention point must be configured in the agent's guardrail?</summary>
+<div class="answer"><b>Answer:</b> Tool Response (preview). <em>Why:</em> Tool Response is the intervention point that scans content returned from a tool (such as a web search result) to the agent <em>before</em> the agent processes it further. This prevents poisoned or harmful content retrieved from external sources from influencing the agent's response.</div></details>
+<details class="q"><summary><b>Q2.</b> A business requires that a specific model deployment log potential violations for review but not block any responses. Which action setting achieves this?</summary>
+<div class="answer"><b>Answer:</b> Annotate (log only). <em>Why:</em> The Annotate action records the detected risk without blocking the response — available for model deployments. Note that Annotate is not available for agent guardrails (agents always block on intervention).</div></details>
+<details class="q"><summary><b>Q3.</b> A compliance team wants to completely disable content filters for a research model deployment. What is required beyond changing the guardrail configuration?</summary>
+<div class="answer"><b>Answer:</b> Approval via the Limited Access Review form submitted to Microsoft. <em>Why:</em> Turning off content filters entirely (severity = Off) is a Limited Access feature — it requires an approved application form from Microsoft and cannot be self-served through the portal.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview">Guardrails in Azure AI Foundry</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators">Built-in evaluators in Azure AI Foundry</a></li>
+</ul></div>
+</section>
+
+<!-- o-1-4-2 -->
+<section class="objective" id="obj-1-4-2" data-skill="rai-instrumentation">
+<h3 id="o-1-4-2">1.4.2 Apply responsible AI instrumentation (evaluators, safety evaluations, explanation tooling)</h3>
+
+<div class="concept">
+<p>Azure AI Foundry provides a rich library of <strong>built-in evaluators</strong> that measure different quality and safety dimensions of generative AI outputs. Evaluators are organised into categories: General Purpose (coherence, fluency), Textual Similarity (BLEU, ROUGE, METEOR for n-gram overlap), RAG quality (Groundedness, Relevance, Retrieval, Response Completeness), Risk and Safety (hate, violence, XPIA, code vulnerability), and Agent-specific (Task Adherence, Tool Call Accuracy, Intent Resolution, Customer Satisfaction). Custom evaluators (preview) and the Rubric evaluator allow teams to define business-specific scoring criteria.</p>
+<p>Evaluations can run at two levels: <strong>turn</strong> (individual response — the default) and <strong>conversation</strong> (entire multi-turn interaction). All evaluators in a single run must use the same level. For agent evaluation, conversation-level evaluation is critical when the agent's behaviour depends on earlier turns in the dialogue.</p>
+<p>The Microsoft Responsible AI Standard structures the overall approach into three phases: <strong>Discover</strong> (red-team before deployment, run adversarial tests), <strong>Protect</strong> (guardrails, content filters, tool-access restrictions applied in production), and <strong>Govern</strong> (trace logging, continuous monitoring, and compliance integrations). Safety evaluations can also be run on fine-tuned models before deployment to detect harmful content risks introduced during fine-tuning.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>General purpose evaluators</strong>: Coherence (logical flow), Fluency (natural language quality).</li>
+<li><strong>Textual similarity</strong>: F1 Score, BLEU, GLEU, ROUGE, METEOR — all measure n-gram overlap between response and ground truth; suited for translation and summarisation benchmarks.</li>
+<li><strong>RAG evaluators</strong>: Groundedness (1–5 model-based), Groundedness Pro (binary, uses Content Safety), Relevance, Retrieval, Response Completeness (preview).</li>
+<li><strong>Risk and safety evaluators</strong>: Hate and Unfairness, Sexual, Violence, Self-Harm, Protected Materials, Indirect Attack (XPIA), Code Vulnerability, Ungrounded Attributes, Prohibited Actions, Sensitive Data Leakage.</li>
+<li><strong>Agent evaluators</strong>: Task Adherence, Task Completion, Tool Call Accuracy, Tool Selection, Tool Input Accuracy, Tool Output Utilisation, Tool Call Success, Intent Resolution, Customer Satisfaction (preview, 6 dimensions), Quality Grader (preview, bundles 5 dimensions).</li>
+<li><strong>Evaluation levels</strong>: <code>turn</code> (default, single response) or <code>conversation</code> (full multi-turn interaction) — all evaluators in one run must share the same level.</li>
+<li><strong>RAG recommended evaluator combination</strong>: Retrieval + Groundedness + Relevance + Content Safety.</li>
+<li><strong>Agent recommended evaluator combination</strong>: Tool Call Accuracy + Task Adherence + Intent Resolution + Rubric + Content Safety.</li>
+<li><strong>Custom evaluators</strong> (preview): define custom scoring logic, validation rules, and quality metrics.</li>
+<li><strong>Rubric evaluator</strong> (preview): LLM-as-judge with custom weighted criteria; returns weighted average 0–1 with per-dimension reasoning.</li>
+<li><strong>Safety evaluations on fine-tuned models</strong>: detect harmful content risks introduced during fine-tuning before production deployment.</li>
+<li><strong>Discover → Protect → Govern</strong>: Microsoft RAI Standard three-phase framework.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="rai-governance"><figcaption>Responsible AI governance loop: Discover (red-team, evaluate before deploy), Protect (guardrails, filters in production), Govern (continuous evaluation, trace logging, compliance) — iterating throughout the AI solution lifecycle.</figcaption></figure>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>Groundedness Pro uses Content Safety (not a generative model) — it does not consume model token quota, unlike the standard Groundedness evaluator.</li>
+<li>All evaluators in a single evaluation run must use the <em>same level</em> (turn or conversation) — mixing levels in one run is not supported.</li>
+<li>Textual similarity evaluators (BLEU, ROUGE, etc.) require ground-truth reference answers — they cannot assess open-ended responses without a reference.</li>
+<li>Safety evaluations can be applied to <strong>fine-tuned models</strong> before deployment — important for detecting risks introduced during fine-tuning that didn't exist in the base model.</li>
+<li>The Rubric evaluator allows arbitrary business criteria — use it when no built-in evaluator maps to the organisation's quality definition.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A team wants to evaluate a summarisation model using automated metrics that compare generated summaries against reference human-written summaries. Which evaluator category is most appropriate?</summary>
+<div class="answer"><b>Answer:</b> Textual similarity evaluators (ROUGE, BLEU, METEOR, or F1 Score). <em>Why:</em> These evaluators measure n-gram overlap between the generated output and a reference ground truth — they are specifically designed for tasks like summarisation and translation where a reference answer is available.</div></details>
+<details class="q"><summary><b>Q2.</b> An agent that handles multi-turn customer service conversations must be evaluated holistically across the full conversation, not turn by turn. Which evaluation level should be configured?</summary>
+<div class="answer"><b>Answer:</b> Conversation-level evaluation. <em>Why:</em> Conversation-level evaluation assesses the complete multi-turn interaction, enabling evaluation of agent behaviour that depends on conversational context — turn-level evaluation would miss issues that only emerge across multiple exchanges.</div></details>
+<details class="q"><summary><b>Q3.</b> Before deploying a fine-tuned customer service model to production, a responsible AI review is required. Which evaluation type specifically addresses risks introduced during fine-tuning?</summary>
+<div class="answer"><b>Answer:</b> Safety evaluations run against the fine-tuned model pre-deployment. <em>Why:</em> Fine-tuning can inadvertently amplify harmful patterns from training data. Safety evaluations test for hate, violence, self-harm, and other risks in the fine-tuned model's outputs, identifying issues before the model reaches users.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators">Built-in evaluators in Azure AI Foundry</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard">Monitor agents with the Foundry dashboard</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview">Guardrails in Azure AI Foundry</a></li>
+</ul></div>
+</section>
+
+<!-- o-1-4-3 -->
+<section class="objective" id="obj-1-4-3" data-skill="auditing-tracing">
+<h3 id="o-1-4-3">1.4.3 Implement auditing (trace logging, provenance metadata, approval workflows)</h3>
+
+<div class="concept">
+<p>Foundry tracing is built on <strong>OpenTelemetry (OTel)</strong> — the industry-standard observability framework. Traces are stored in the Azure Monitor Application Insights instance connected to the Foundry project. A <strong>trace</strong> captures the complete journey of a request: user inputs, model outputs, tool invocations and results, token consumption, latency at each step, and retry events. Each trace is composed of <strong>spans</strong> (individual operations, nestable in parent-child hierarchies) and <strong>attributes</strong> (key-value metadata on each span, such as function parameters and return values).</p>
+<p>Foundry follows the OTel semantic conventions for generative AI, using the <code>gen-ai.*</code> namespace for span attributes. For multi-agent systems, standardised span types include <code>execute_task</code>, <code>agent_to_agent_interaction</code>, <code>agent_planning</code>, and <code>agent_state.management</code>. Cross-service trace correlation uses the <strong>W3C Trace Context</strong> standard (the <code>traceparent</code> header), which allows trace IDs to be propagated across calls to different services, SDKs, and agent frameworks (LangChain, LangGraph, OpenAI Agents SDK, Microsoft Agent Framework).</p>
+<p>Trace data serves as the primary audit trail: each agent run's trace links outputs to the exact tool calls, retrieved documents, and model invocations that produced them — enabling lineage tracking. For high-risk agentic actions, Foundry's "Ask AI" approval flow inserts a human review step: the agent proposes the action, the user reviews it in the interface, and only then does execution proceed. Approval scopes (System access vs. none) can be configured per session.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>Tracing stack</strong>: OpenTelemetry → Azure Monitor Application Insights (connected to Foundry project).</li>
+<li><strong>Trace components</strong>: Traces (full request journey), Spans (individual operations, nestable), Attributes (key-value metadata on spans).</li>
+<li><strong>Semantic conventions</strong>: <code>gen-ai.*</code> OTel namespace for generative AI; multi-agent span types: <code>execute_task</code>, <code>agent_to_agent_interaction</code>, <code>agent_planning</code>, <code>agent_state.management</code>.</li>
+<li><strong>Multi-agent trace data per run</strong>: user inputs, agent outputs, tool invocations + results, token consumption, latency, model call spans, evaluation events with name and error type.</li>
+<li><strong>W3C Trace Context</strong>: <code>traceparent</code> header propagates correlation across distributed agent calls and service boundaries.</li>
+<li><strong>Setup</strong>: connect Application Insights to the Foundry project → enable tracing → assign <em>Log Analytics Reader</em> role (+ <em>Privileged Monitoring Data Reader</em> if tables are protected).</li>
+<li><strong>Data retention</strong>: follows Application Insights configuration — review for compliance requirements.</li>
+<li><strong>Approval workflows</strong>: "Ask AI" feature proposes an action, user reviews and approves before execution; pre-approval scopes configurable per session.</li>
+<li><strong>Provenance</strong>: traces link each output to the specific tool calls, retrieved documents, and model calls that produced it.</li>
+<li><strong>PII security</strong>: redact sensitive data from span attributes before it reaches telemetry; do not store credentials or secrets in span attributes.</li>
+<li><strong>Framework integrations</strong>: LangChain, LangGraph, OpenAI Agents SDK, Microsoft Agent Framework — all support the same OTel conventions.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-python"># Enable tracing for all agent runs in a project
+import os
+from azure.identity import DefaultAzureCredential
+from azure.ai.projects import AIProjectClient
+from azure.ai.projects.telemetry import enable_telemetry
+
+project = AIProjectClient(
+    endpoint="https://&lt;resource&gt;.ai.azure.com/api/projects/&lt;project&gt;",
+    credential=DefaultAzureCredential(),
+)
+
+# All subsequent agent runs are traced to Application Insights
+enable_telemetry(
+    project,
+    connection_string=os.environ["APPLICATIONINSIGHTS_CONNECTION_STRING"],
+)
+
+print("Tracing enabled — agent runs will appear in Application Insights.")
+</code></pre></div>
+
+<div class="callout warn"><b>Gotcha:</b> Trace data is stored in Application Insights logs — <strong>PII, credentials, and sensitive prompt content must be redacted</strong> before they enter the telemetry pipeline. Apply the same access controls and retention policies to trace data as you would to production logs.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>W3C Trace Context (<code>traceparent</code> header) is the mechanism for propagating trace correlation across multi-service, multi-agent boundaries.</li>
+<li>Tracing requires the project to be connected to Application Insights — no connection = no traces.</li>
+<li>Approval workflows ("Ask AI") are a <em>human-in-the-loop</em> control, not a guardrail — they pause execution for user review, not filter content.</li>
+<li>Data retention in Application Insights must be explicitly configured for compliance — the default may not meet regulatory retention requirements.</li>
+<li>The <em>Privileged Monitoring Data Reader</em> role is only needed if Log Analytics tables are protected — standard log access uses <em>Log Analytics Reader</em>.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A compliance audit requires that every agent response can be traced back to the exact retrieved documents and tool calls that produced it. Which Foundry capability provides this lineage?</summary>
+<div class="answer"><b>Answer:</b> Foundry Tracing (OpenTelemetry-based) with traces stored in Application Insights. <em>Why:</em> Each agent run generates a trace that links the final output to every span — including tool invocations, retrieved documents, and model calls — providing full provenance for compliance auditing.</div></details>
+<details class="q"><summary><b>Q2.</b> A distributed agent solution spans three separate microservices. An analyst notices traces from different services cannot be correlated. What standard must be implemented to fix this?</summary>
+<div class="answer"><b>Answer:</b> W3C Trace Context — the <code>traceparent</code> header must be propagated across all HTTP calls between services. <em>Why:</em> W3C Trace Context is the standard mechanism for distributed trace correlation. Without it, each service generates independent trace IDs that cannot be joined into a single end-to-end trace.</div></details>
+<details class="q"><summary><b>Q3.</b> An agent's span attributes contain raw customer query text including email addresses. What should be done before the trace data reaches Application Insights?</summary>
+<div class="answer"><b>Answer:</b> Implement PII redaction or scrubbing in the telemetry pipeline before span attributes are emitted to Application Insights. <em>Why:</em> Application Insights logs are accessible to anyone with Log Analytics Reader access — storing PII (email addresses, names, etc.) in traces violates data protection requirements and creates unnecessary privacy risk.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/trace-agent-concept">Tracing concepts for agents in Foundry</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard">Monitor agents with the Foundry dashboard</a></li>
+</ul></div>
+</section>
+
+<!-- o-1-4-4 -->
+<section class="objective" id="obj-1-4-4" data-skill="agent-governance">
+<h3 id="o-1-4-4">1.4.4 Govern agent behavior (oversight modes, constraints, tool-access controls)</h3>
+
+<div class="concept">
+<p>Governing agent behaviour requires applying the Microsoft Responsible AI framework across three phases: <strong>Discover</strong> (red-team and adversarially test agents before deployment to find risks like jailbreaks, data leakage, or scope violations), <strong>Protect</strong> (apply guardrails with tool call and tool response intervention points, restrict tool access to least-privilege, scan proposed agent actions), and <strong>Govern</strong> (maintain trace logs, run continuous evaluation, integrate with compliance and audit systems).</p>
+<p>Tool-access controls enforce the principle of least privilege: each agent should only have access to the specific data sources and tools it needs for its defined function. When an agent acts on behalf of a user, it should inherit the user's permissions — not use broad shared credentials that exceed individual user rights. <strong>Microsoft Entra Agent ID</strong> provides a distinct managed identity for each agent, enabling RBAC-scoped tool access and a per-agent audit trail in Azure activity logs.</p>
+<p>For high-risk or irreversible actions, agents should include human-in-the-loop approval steps — via Azure Logic Apps triggers, custom function tools that pause execution pending approval, or the Foundry "Ask AI" approval flow. System-level constraints are enforced through the agent's <code>instructions</code> field (system prompt), guardrail assignment (controlling what the agent can say and do), and the tool catalog (controlling what actions the agent can take).</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+<li><strong>Discover → Protect → Govern</strong>: Microsoft RAI Standard framework for agent lifecycle; discover risks early, protect in production, govern continuously.</li>
+<li><strong>Least-privilege tool access</strong>: grant each agent access only to the specific data sources it requires for its function.</li>
+<li><strong>User identity inheritance</strong>: when agents access data on behalf of a user, they should pass the user's identity/token to downstream systems — not use broad shared credentials.</li>
+<li><strong>Microsoft Entra Agent ID</strong>: distinct managed identity per agent; enables RBAC-scoped access and per-agent audit trails.</li>
+<li><strong>Human-in-the-loop</strong>: Azure Logic Apps triggers, custom function tools that pause execution, or Foundry "Ask AI" approval flow for high-risk actions.</li>
+<li><strong>Transparency</strong>: disclose AI involvement clearly in agent interfaces; notify users when the agent is acting on their behalf.</li>
+<li><strong>Azure Policy</strong>: enforce infrastructure governance (private endpoints, CMK, allowed model SKUs) using <code>Microsoft.CognitiveServices</code> aliases.</li>
+<li><strong>Microsoft Purview</strong>: apply DLP policies and sensitivity labels to data sources accessed by agents.</li>
+<li><strong>System prompt constraints</strong>: define agent persona, scope, and output format restrictions via the <code>instructions</code> field — the first line of behavioural governance.</li>
+<li><strong>Agent guardrail</strong>: include Tool Call and Tool Response intervention points (preview) to scan the agent's planned actions and inbound tool data.</li>
+<li><strong>Connected agents scope</strong>: use narrowly scoped sub-agents for specific subtasks — reduces blast radius if one agent is compromised or misbehaves.</li>
+<li><strong>Human accountability</strong>: designate a responsible human owner for AI outcomes; use Foundry evaluations (bias, fairness) and continuous monitoring to ensure ongoing compliance.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-python"># Agent with constrained system prompt for governance
+from azure.ai.projects import AIProjectClient
+from azure.identity import DefaultAzureCredential
+
+project = AIProjectClient(
+    endpoint="https://&lt;resource&gt;.ai.azure.com/api/projects/&lt;project&gt;",
+    credential=DefaultAzureCredential(),
+)
+
+agent = project.agents.create_version(
+    agent_name="hr-policy-agent",
+    definition={
+        "model": "gpt-4.1",
+        "instructions": (
+            "You are an HR policy assistant. "
+            "Only answer questions about the company HR policies contained in the knowledge base. "
+            "Do not access, modify, or take actions on any HR systems. "
+            "Do not answer questions outside of HR policy scope. "
+            "If asked to perform any action beyond retrieving policy information, "
+            "respond that you are not authorised to do so and suggest contacting the HR team directly."
+        ),
+        "tools": [{"type": "file_search"}],  # read-only knowledge retrieval only
+    }
+)
+print(f"Constrained HR agent created: {agent.id}")
+</code></pre></div>
+
+<div class="callout key"><b>Key:</b> The agent's <code>instructions</code> field is the <em>first</em> layer of behavioural control — but it is not sufficient alone. Pair it with a guardrail that includes Tool Call and Tool Response intervention points, and restrict the tool catalog to only what the agent needs.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+<li>System prompt constraints can be overridden by adversarial users — they must be backed by guardrails with Tool Call intervention points for robust governance.</li>
+<li>Connected sub-agents with narrow tool sets reduce <em>blast radius</em> — if one agent is compromised, it cannot reach resources outside its assigned scope.</li>
+<li>Entra Agent ID provides a <em>per-agent</em> managed identity — this is important for audit trails when multiple agents share the same Foundry resource.</li>
+<li>Human-in-the-loop approval is critical for <em>irreversible</em> actions (data deletion, financial transactions, system configuration changes) — agents should pause, not proceed, without approval.</li>
+<li>Microsoft Purview DLP policies apply to the <em>data sources</em> accessed by agents — they do not replace guardrails on agent outputs.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> An agent accesses a company SharePoint library using a shared service account with read access to all documents. A user asks the agent about documents they are not supposed to see. What governance principle is being violated?</summary>
+<div class="answer"><b>Answer:</b> User identity inheritance / least-privilege. <em>Why:</em> The agent should pass the requesting user's identity to SharePoint so that access control is enforced at the data layer. Using a broad shared service account allows the agent to surface documents beyond the user's own permissions.</div></details>
+<details class="q"><summary><b>Q2.</b> A financial services agent must confirm with a human operator before executing any wire transfer action. Which mechanism should be implemented in the agent workflow?</summary>
+<div class="answer"><b>Answer:</b> A human-in-the-loop approval step — either using a custom function tool that pauses execution pending human approval, an Azure Logic Apps trigger that routes to an approval workflow, or the Foundry "Ask AI" approval flow. <em>Why:</em> Wire transfers are irreversible high-risk actions; human oversight before execution is a core responsible AI control for such scenarios.</div></details>
+<details class="q"><summary><b>Q3.</b> An organisation wants each of its ten deployed agents to have a distinct audit trail in Azure activity logs. What should be provisioned for each agent?</summary>
+<div class="answer"><b>Answer:</b> A separate Microsoft Entra Agent ID (distinct managed identity) for each agent. <em>Why:</em> Each agent having its own managed identity means Azure activity logs record actions against that specific identity — enabling per-agent audit trails that distinguish which agent performed which action.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview">Guardrails in Azure AI Foundry</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/trace-agent-concept">Tracing concepts for agents in Foundry</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture">Azure AI Foundry architecture</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators">Built-in evaluators in Azure AI Foundry</a></li>
+</ul></div>
+</section>
+</section><!-- end sg-1-4 -->
+
+</section><!-- end domain1 -->

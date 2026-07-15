@@ -1,0 +1,1290 @@
+<section class="domain" id="domain2" data-domain="2">
+<h1 id="d2">Domain 2 — Implement generative AI and agentic solutions <span class="weight">30–35%</span></h1>
+<p class="domain-intro">This domain covers the full implementation lifecycle of generative AI applications and intelligent agents on Azure AI Foundry — from model deployment and RAG pipelines through multi-agent orchestration, safeguards, and production observability. It is the largest domain on the exam (30–35%) and rewards deep, hands-on familiarity with Foundry SDKs, the Responses API, and evaluation tooling.</p>
+
+<!-- ==================== 2.1 Build generative applications ==================== -->
+<section class="skillgroup" id="sg-2-1">
+<h2 id="g-2-1">2.1 Build generative applications by using Foundry</h2>
+
+<!-- o-2-1-1 -->
+<section class="objective" id="obj-2-1-1" data-skill="2.1.1">
+<h3 id="o-2-1-1">2.1.1 Deploy and consume LLMs, small models, code models, and multimodal models</h3>
+
+<div class="concept">
+<p>Azure AI Foundry's <strong>model catalog</strong> consolidates large language models (LLMs), small language models (SLMs), code-generation models, and multimodal models (text, image, and audio) into a single browsable surface. Once you select a model, you choose one of two deployment pathways before your application can call it.</p>
+<p><strong>Serverless API</strong> deployments are pay-per-token, fully managed, and require no provisioned compute infrastructure — ideal for variable or unpredictable workloads. <strong>Managed Compute</strong> deployments run on a dedicated container endpoint, required for custom fine-tuned models, regulatory data-residency isolation, or when predictable throughput matters; autoscaling for managed compute is configured through Azure Machine Learning online endpoint scaling rules.</p>
+<p>Four official SDKs support model inference: the <strong>OpenAI SDK</strong>, the <strong>Azure OpenAI SDK</strong>, the <strong>Azure AI Inference package</strong> (<code>azure-ai-inference</code>), and the <strong>Azure AI Projects package</strong> (<code>azure-ai-projects</code>). The <code>azure-ai-inference</code> package is the recommended cross-model abstraction — it targets the Azure AI Model Inference REST API and lets you swap the underlying model without changing application code.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li>Deployment types: <strong>Serverless API</strong> (pay-per-token, no provisioning) and <strong>Managed Compute</strong> (dedicated endpoint; mandatory for fine-tuned models).</li>
+  <li>Four inference SDKs: OpenAI SDK, Azure OpenAI SDK, <code>azure-ai-inference</code>, <code>azure-ai-projects</code>.</li>
+  <li><code>azure-ai-inference</code> is the recommended cross-model abstraction targeting the Azure AI Model Inference REST API.</li>
+  <li>Project inference endpoint: <code>https://&lt;resource&gt;.services.ai.azure.com/models</code>; OpenAI-compatible endpoint: <code>https://&lt;resource&gt;.openai.azure.com/openai/v1</code>.</li>
+  <li>Multimodal content (images, audio) is passed via <code>image_url</code> or <code>input_audio</code> typed blocks inside the <code>content</code> array of a message.</li>
+  <li>Managed compute autoscaling is configured in Azure Machine Learning online endpoint scaling rules, not the Foundry portal directly.</li>
+  <li>The portal <strong>Test</strong> and <strong>Consume</strong> tabs on a deployment provide ready-to-use code samples and the target endpoint URI.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="deployment-options"><figcaption>Serverless API vs. Managed Compute deployment paths in Azure AI Foundry — two routes from model catalog selection to an application inference endpoint.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python">import os
+from azure.ai.inference import ChatCompletionsClient
+from azure.ai.inference.models import SystemMessage, UserMessage
+from azure.core.credentials import AzureKeyCredential
+
+client = ChatCompletionsClient(
+    endpoint=os.environ["AZURE_INFERENCE_ENDPOINT"],
+    credential=AzureKeyCredential(os.environ["AZURE_INFERENCE_KEY"]),
+)
+
+response = client.complete(
+    model="gpt-4o",
+    messages=[
+        SystemMessage(content="You are a concise technical writer."),
+        UserMessage(content="Explain transformer attention in two sentences."),
+    ],
+    temperature=0.3,
+    max_tokens=256,
+)
+print(response.choices[0].message.content)</code></pre></div>
+
+<div class="callout tip"><b>Tip:</b> Prefer <code>azure-ai-inference</code> for new applications — its model-agnostic interface means you can switch from GPT-4o to a Phi-4 SLM by changing only the <code>model</code> parameter, not the client code.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>Fine-tuned models and regulatory isolation both <em>require</em> Managed Compute — Serverless API cannot host custom weights.</li>
+  <li><code>azure-ai-inference</code> is for cross-model portability; <code>azure-ai-projects</code> is needed for Foundry-native features like agents, evaluations, and connections.</li>
+  <li>Multimodal content uses typed blocks inside the <code>content</code> array — not separate API parameters.</li>
+  <li>Managed compute autoscaling is an Azure Machine Learning concept; don't confuse it with Foundry-level settings.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A team has fine-tuned a GPT-4o model on proprietary data and needs a dedicated endpoint with predictable throughput. Which deployment type should they choose, and why?</summary>
+<div class="answer"><b>Answer:</b> Managed Compute. <em>Why:</em> Serverless API deployments do not support custom fine-tuned model weights. Managed Compute deploys the model on a dedicated container endpoint that can host custom weights and provides consistent throughput through Azure ML scaling rules.</div></details>
+<details class="q"><summary><b>Q2.</b> A developer wants inference code that works against both GPT-4o and a Phi-4 SLM without changing the client class. Which SDK package enables this?</summary>
+<div class="answer"><b>Answer:</b> <code>azure-ai-inference</code> (<code>ChatCompletionsClient</code>). <em>Why:</em> The Azure AI Inference package targets the Azure AI Model Inference REST API, which provides a uniform interface across model families. Only the <code>model</code> parameter changes between calls.</div></details>
+<details class="q"><summary><b>Q3.</b> An application needs to send an image and a text question to a multimodal model. How should the image be included in the request body?</summary>
+<div class="answer"><b>Answer:</b> As an <code>image_url</code> typed block inside the <code>content</code> array of the user message. <em>Why:</em> Multimodal models accept mixed content via typed blocks — <code>image_url</code> for images, <code>input_audio</code> for audio — within the messages content array, not as top-level API parameters.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview">Azure AI Foundry SDK overview</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/foundry-classic/how-to/deploy-models-managed">Deploy models on managed compute</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/model-inference/reference/reference-model-inference-chat-completions">Azure AI Model Inference — Chat Completions API reference</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-1-2 -->
+<section class="objective" id="obj-2-1-2" data-skill="2.1.2">
+<h3 id="o-2-1-2">2.1.2 Implement retrieval-augmented generation (RAG) in an application</h3>
+
+<div class="concept">
+<p>Retrieval-augmented generation (RAG) grounds LLM responses in external knowledge rather than relying solely on training data. The pipeline has three stages: <strong>Retrieve</strong> relevant document chunks from an index, <strong>Augment</strong> the user query by injecting those chunks as context, then <strong>Generate</strong> a grounded response through the LLM. Explicitly instructing the model to answer only from the provided context is the critical guardrail against fabrication.</p>
+<p>Azure AI Foundry integrates with <strong>Azure AI Search</strong> as its primary indexing and retrieval backend. Indexes must have searchable text fields; for semantic similarity, they also need vector fields of type <code>Collection(Edm.Single)</code>. Content preparation capabilities include automatic chunking, 50+ language analyzers, OCR for PDFs and images, and integrated vectorization through Azure OpenAI or Azure Vision.</p>
+<p>Two retrieval approaches are available in Azure AI Search: <strong>Classic RAG</strong> (hybrid search + semantic ranking, generally available, fine-grained control) and <strong>Agentic Retrieval</strong> (LLM-assisted query planning, multi-source, structured response with citations, preview). For managed knowledge bases in the Foundry portal, <strong>Foundry IQ</strong> builds permission-aware knowledge bases on top of Azure AI Search for use by agents.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li>RAG pipeline: <strong>Retrieve → Augment → Generate</strong>.</li>
+  <li>Two retrieval modes: <strong>Classic RAG</strong> (hybrid search + semantic ranking, GA) and <strong>Agentic Retrieval</strong> (LLM-assisted, preview).</li>
+  <li>Best-practice search configuration: <strong>hybrid search</strong> (vector + keyword) plus <strong>semantic ranking</strong> for query-intent reranking.</li>
+  <li>Vector fields in Azure AI Search must be type <code>Collection(Edm.Single)</code>.</li>
+  <li>Code pattern: chunk and index data → create Foundry project connection to search service → retrieve with search SDK → inject context into LLM prompt.</li>
+  <li><strong>Groundedness</strong> evaluator is the primary metric for detecting RAG fabrications; it measures whether responses are supported by retrieved context.</li>
+  <li><strong>Foundry IQ</strong> is the managed knowledge-base layer on top of Azure AI Search, designed for agent-facing knowledge bases.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="rag-pipeline"><figcaption>End-to-end RAG pipeline — from document ingestion and chunking through Azure AI Search retrieval to LLM-grounded generation.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python">import os
+from azure.search.documents import SearchClient
+from azure.core.credentials import AzureKeyCredential
+from azure.ai.inference import ChatCompletionsClient
+from azure.ai.inference.models import SystemMessage, UserMessage
+
+search_client = SearchClient(
+    endpoint=os.environ["SEARCH_ENDPOINT"],
+    index_name="product-docs",
+    credential=AzureKeyCredential(os.environ["SEARCH_KEY"]),
+)
+
+def rag_answer(question: str) -&gt; str:
+    # Retrieve top-3 relevant chunks
+    results = search_client.search(search_text=question, top=3)
+    context = "\n".join(r["content"] for r in results)
+
+    # Augment + Generate
+    chat = ChatCompletionsClient(
+        endpoint=os.environ["AZURE_INFERENCE_ENDPOINT"],
+        credential=AzureKeyCredential(os.environ["AZURE_INFERENCE_KEY"]),
+    )
+    resp = chat.complete(
+        model="gpt-4o",
+        messages=[
+            SystemMessage(content=f"Answer only using the context below.\n\n{context}"),
+            UserMessage(content=question),
+        ],
+    )
+    return resp.choices[0].message.content</code></pre></div>
+
+<div class="callout key"><b>Key:</b> Instruct the LLM explicitly to answer <em>only from the provided context</em>. Without this constraint the model may blend retrieved facts with training data, undermining grounding quality.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>The <strong>Groundedness</strong> evaluator is the correct metric for fabrication detection in RAG — not Relevance or Fluency.</li>
+  <li>Hybrid search (vector + keyword) outperforms either alone; adding semantic ranking further improves intent-based reranking.</li>
+  <li>Vector fields in Azure AI Search must be <code>Collection(Edm.Single)</code> — a common index configuration mistake is using the wrong field type.</li>
+  <li>Agentic Retrieval is still preview; Classic RAG (hybrid + semantic) is GA and the safer default for production scenarios.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A RAG application returns answers that include facts not present in any retrieved document. Which evaluator should you run to measure and detect this problem?</summary>
+<div class="answer"><b>Answer:</b> Groundedness evaluator. <em>Why:</em> Groundedness measures whether each claim in a response is supported by the provided context. A low score identifies fabrication — content generated from model training data rather than retrieved chunks.</div></details>
+<details class="q"><summary><b>Q2.</b> A team wants the best out-of-box relevance for RAG queries over a mixed document corpus. What Azure AI Search configuration should they use?</summary>
+<div class="answer"><b>Answer:</b> Hybrid search (vector + keyword) with semantic ranking enabled. <em>Why:</em> Hybrid search combines BM25 keyword matching with vector similarity for broad recall; semantic ranking reorders results by query intent, improving precision beyond what either method achieves alone.</div></details>
+<details class="q"><summary><b>Q3.</b> After chunking and indexing documents in Azure AI Search, what must be done in the Foundry project before an agent tool can query that index?</summary>
+<div class="answer"><b>Answer:</b> Create a project connection from the Foundry project to the Azure AI Search service. <em>Why:</em> Foundry agents access external services through configured connections. Without a connection, the agent tool cannot authenticate or query the index.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/foundry/concepts/retrieval-augmented-generation">RAG concepts in Azure AI Foundry</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview">Retrieval-augmented generation in Azure AI Search</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/training/modules/develop-rag-solution-azure-ai-foundry/">Develop a RAG solution with Azure AI Foundry (Learn module)</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-1-3 -->
+<section class="objective" id="obj-2-1-3" data-skill="2.1.3">
+<h3 id="o-2-1-3">2.1.3 Design workflows, tool-augmented flows, and multistep reasoning pipelines</h3>
+
+<div class="concept">
+<p>Tool-augmented flows extend an LLM beyond text generation by coupling reasoning with external actions — search queries, code execution, API calls. The model emits a structured tool-call request; application code executes the tool and returns the result; the model continues reasoning with the new information. This request–execute–continue loop repeats until the model produces a final response with no pending tool calls.</p>
+<p>The current recommended entry point for Foundry workflow orchestration is the <strong>Responses API</strong>, which handles streaming, multi-turn conversation management, and the complete tool-call lifecycle. <strong>Prompt flow</strong>, the earlier Foundry workflow surface, is now deprecated with retirement scheduled for <strong>April 20, 2027</strong>; new development should migrate to the Microsoft Agent Framework and the Responses API.</p>
+<p>Multiple orchestration frameworks integrate natively with the Foundry project endpoint: the <strong>Agent Framework</strong> for hosted code-based agents, <strong>LangGraph</strong>, the <strong>OpenAI Agents SDK</strong>, and <strong>Semantic Kernel</strong>. The <strong>Foundry Toolbox</strong> feature lets teams define, version, and expose a curated set of tools through a single MCP-compatible endpoint, making those tools consumable by any of these frameworks without per-framework integration work.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li><strong>Prompt flow is deprecated</strong> — retirement April 20, 2027; migrate to the Agent Framework and Responses API.</li>
+  <li>The <strong>Responses API</strong> is the single recommended entry point for Foundry agent and tool orchestration; supports streaming and multi-turn management.</li>
+  <li>Compatible orchestration frameworks: Agent Framework, LangGraph, OpenAI Agents SDK, Semantic Kernel.</li>
+  <li>Built-in platform tools via the Responses API: file search, code interpreter, web search, memory, SharePoint, WorkIQ, Fabric IQ, remote MCP servers.</li>
+  <li>Rule of thumb: <strong>single agent + multiple tools</strong> for sequential tasks; <strong>multi-agent</strong> pattern for parallel or specialized subtasks.</li>
+  <li><strong>Foundry Toolbox</strong> versions and publishes tools via a single MCP-compatible endpoint; no per-framework integration needed.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="function-calling"><figcaption>Tool-augmented flow — the model emits a tool-call request, application code executes the function, and the result is returned so the model can continue its reasoning chain.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python">import os
+from openai import AzureOpenAI
+
+client = AzureOpenAI(
+    azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
+    api_key=os.environ["AZURE_OPENAI_KEY"],
+    api_version="2025-01-01-preview",
+)
+
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "get_inventory",
+        "description": "Return current stock count for a product SKU.",
+        "parameters": {
+            "type": "object",
+            "properties": {"sku": {"type": "string"}},
+            "required": ["sku"],
+        },
+    },
+}]
+
+messages = [{"role": "user", "content": "Is SKU-42 in stock?"}]
+response = client.chat.completions.create(
+    model="gpt-4o", messages=messages, tools=tools
+)
+# When finish_reason == "tool_calls", execute the function, append result, and re-call</code></pre></div>
+
+<div class="callout warn"><b>Gotcha:</b> Prompt flow is deprecated. Exam questions about production best practices for new workflows should favor the Agent Framework and Responses API, not prompt flow.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>Know prompt flow's retirement date (April 20, 2027) and its replacement (Agent Framework + Responses API).</li>
+  <li>Tool-augmented flows require an explicit execution loop — detect <code>finish_reason == "tool_calls"</code>, execute, append result, and re-invoke the model.</li>
+  <li>The Responses API — not the Completions API — is the recommended orchestration entry point for Foundry agents.</li>
+  <li>Foundry Toolbox's MCP-compatible endpoint eliminates per-framework tool integration code.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A team built an orchestration pipeline using Prompt flow. What should they migrate to, and by when must they act?</summary>
+<div class="answer"><b>Answer:</b> Migrate to the Microsoft Agent Framework and Responses API before April 20, 2027. <em>Why:</em> Prompt flow is officially deprecated with retirement on April 20, 2027. The Agent Framework and Responses API are its designated replacements in Azure AI Foundry.</div></details>
+<details class="q"><summary><b>Q2.</b> An application calls a weather API and a database query tool in a multi-step reasoning loop. When should the application re-invoke the model?</summary>
+<div class="answer"><b>Answer:</b> After each tool execution — append the tool result as a tool-role message, then call the model again. <em>Why:</em> The LLM emits a tool-call request and produces <code>finish_reason == "tool_calls"</code>. The application must execute the tool, append the result, and re-invoke the model so it can continue reasoning with the new data.</div></details>
+<details class="q"><summary><b>Q3.</b> Five internal tools need to be available to LangGraph, Semantic Kernel, and a custom agent without separate integration per framework. What Foundry feature solves this?</summary>
+<div class="answer"><b>Answer:</b> Foundry Toolbox. <em>Why:</em> Foundry Toolbox publishes versioned tools behind a single MCP-compatible endpoint. Any MCP-compatible framework can consume the tools without custom per-framework wiring.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview">Azure AI Foundry Agents overview</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/quickstarts/responses-api">Responses API quickstart</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/toolbox">Foundry Toolbox</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-1-4 -->
+<section class="objective" id="obj-2-1-4" data-skill="2.1.4">
+<h3 id="o-2-1-4">2.1.4 Evaluate models and apps, including detecting fabrications, relevance, quality, and safety</h3>
+
+<div class="concept">
+<p>The Foundry <strong>Evaluation service</strong> runs model or agent outputs against built-in or custom evaluators and surfaces scores in the portal's Evaluations tab. Evaluations can be triggered from the portal, the SDK, or on a schedule. The service supports four evaluation targets: individual <strong>Model</strong> turns, full <strong>Agent</strong> conversations or individual agent turns, pre-computed <strong>Datasets</strong>, and historical <strong>Traces</strong> from Application Insights.</p>
+<p>Evaluators fall into three categories. <strong>Quality evaluators</strong> are AI-assisted (they require a judge model, such as <code>gpt-4.1-mini</code>) and measure properties like groundedness, relevance, coherence, fluency, response completeness, customer satisfaction, and task completion. <strong>Safety evaluators</strong> detect harmful content categories — violence, sexual, self-harm, and hate/unfairness — and apply only to individual turns. <strong>Agent evaluators</strong> measure tool usage effectiveness: intent resolution, task adherence, tool call success, tool selection accuracy, tool output utilization, and tool input accuracy.</p>
+<p>Programmatic evaluation uses the <code>azure-ai-projects</code> SDK: create an evaluation run targeting a dataset or trace store, poll for completion, then retrieve the <code>report_url</code> to review per-sample scores. Simulated data generation can create synthetic multi-turn conversations from scenario descriptions when production traffic is unavailable.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li>Evaluation targets: <strong>Model</strong> (individual turn), <strong>Agent</strong> (conversation or turn), <strong>Dataset</strong> (pre-computed outputs), <strong>Traces</strong> (Application Insights).</li>
+  <li>Quality evaluators require a judge model (e.g., <code>gpt-4.1-mini</code>): Groundedness, Relevance, Coherence, Fluency, Response Completeness, Customer Satisfaction, Task Completion.</li>
+  <li><strong>Groundedness</strong> is the primary metric for detecting RAG fabrications — it measures whether responses are supported by provided context.</li>
+  <li>Safety evaluators (individual turns only): Violence, Sexual, Self-harm, Hate/Unfairness.</li>
+  <li>Agent evaluators: Intent Resolution, Task Adherence, Tool Call Success, Tool Selection Accuracy, Tool Output Utilization, Tool Input Accuracy.</li>
+  <li>Simulated (synthetic) multi-turn conversations can be generated from scenario descriptions for evaluation data coverage.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="evaluation-flow"><figcaption>Foundry evaluation flow — model or agent outputs are scored by quality, safety, and agent evaluators, with results surfaced in the Evaluations tab.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python">import os
+from azure.ai.projects import AIProjectClient
+from azure.identity import DefaultAzureCredential
+
+project_client = AIProjectClient(
+    endpoint=os.environ["PROJECT_ENDPOINT"],
+    credential=DefaultAzureCredential(),
+)
+
+# Trigger an evaluation run with quality evaluators; judge model must be deployed
+eval_run = project_client.evals.runs.create(
+    evaluation_id="&lt;eval-config-id&gt;",
+    data_source={"type": "dataset", "dataset_id": "&lt;dataset-id&gt;"},
+    evaluators=["groundedness", "relevance", "coherence"],
+)
+print(f"Evaluation run ID: {eval_run.id}")
+# Poll until complete, then open eval_run.report_url in the portal</code></pre></div>
+
+<div class="callout key"><b>Key:</b> Safety evaluators operate on <strong>individual turns only</strong>, not full conversation threads. For conversation-level safety analysis, evaluate each turn independently or use agent evaluators for tool-usage safety.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>AI-assisted quality evaluators <em>require</em> a judge model — a common misconfiguration is running them without a deployed judge.</li>
+  <li>Safety evaluators are restricted to individual turns; they cannot evaluate a full conversation thread as a single unit.</li>
+  <li>Groundedness is correct for fabrication detection; Relevance measures topical fit, not grounding support.</li>
+  <li>Agent evaluators (Tool Call Success, Intent Resolution, Task Adherence) are distinct from quality evaluators and need agent trace data, not just model outputs.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> Your RAG agent generates answers that reference facts not found in any retrieved document. Which evaluator measures this problem?</summary>
+<div class="answer"><b>Answer:</b> Groundedness evaluator. <em>Why:</em> Groundedness measures whether each claim in a response is supported by the provided context. Low groundedness scores identify fabrication — content sourced from the model's training data rather than retrieved chunks.</div></details>
+<details class="q"><summary><b>Q2.</b> A compliance team needs to verify no generated content contains self-harm language before deployment. Which evaluator category applies?</summary>
+<div class="answer"><b>Answer:</b> Safety evaluators — specifically the Self-harm safety evaluator. <em>Why:</em> Safety evaluators detect harmful content categories (Violence, Sexual, Self-harm, Hate/Unfairness) and are designed for content policy validation. They operate on individual turns.</div></details>
+<details class="q"><summary><b>Q3.</b> An evaluation run using the Groundedness evaluator throws an error about a missing model. What is misconfigured?</summary>
+<div class="answer"><b>Answer:</b> No judge model is specified or deployed. <em>Why:</em> AI-assisted quality evaluators (including Groundedness) use a judge LLM to score outputs. A model such as <code>gpt-4.1-mini</code> must be deployed and referenced in the evaluation configuration.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/evaluate-generative-ai-app">Evaluate generative AI applications</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/evaluation-metrics-built-in">Built-in evaluation metrics</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/cloud-evaluation">Cloud evaluation in Azure AI Foundry</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-1-5 -->
+<section class="objective" id="obj-2-1-5" data-skill="2.1.5">
+<h3 id="o-2-1-5">2.1.5 Integrate generative workflows into applications by using Foundry SDKs and connectors</h3>
+
+<div class="concept">
+<p>The <strong>Foundry SDK</strong> (<code>azure-ai-projects</code> ≥ 2.0.0) is the core thin-client package that wraps the Foundry project endpoint. It is the foundation on which higher-level sub-clients — agents, evaluations, inference, connections — are built. The <code>AIProjectClient</code> class is the primary entry point, exposing all Foundry-native operations through a single authenticated session.</p>
+<p><strong>Connections</strong> link external services to a Foundry project. They can be created via the Foundry portal (Management Center → Connected resources), via the Azure CLI (<code>az ml connection create</code>), or via the <code>azure-ai-ml</code> Python package. Supported connector types include Azure AI Search, Azure Blob Storage, Azure OpenAI, custom HTTPS endpoints, and third-party APIs via OpenAPI definitions. An agent cannot access any external service that does not have a corresponding configured connection.</p>
+<p>Streaming responses are supported through the Responses API and the OpenAI SDK's <code>stream=True</code> parameter; partial message deltas arrive as server-sent events. The Foundry <strong>MCP server</strong> integration exposes Foundry tools and agents to any MCP-compatible client, removing the need for per-framework SDK integration code.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li>SDK selection: <strong><code>azure-ai-projects</code></strong> for agents, evaluations, and Foundry-native features; <strong>OpenAI SDK</strong> for maximum OpenAI API compatibility or lowest latency; <strong>Agent Framework</strong> package for hosted multi-agent systems; Foundry Tools SDKs for Vision, Speech, Content Safety.</li>
+  <li><code>AIProjectClient</code> provides sub-clients: agents, evaluations, connections, inference — all through one authenticated session.</li>
+  <li>Connection types: Azure AI Search, Azure Blob Storage, Azure OpenAI, custom HTTPS, third-party APIs via OpenAPI.</li>
+  <li>Connections created via portal, <code>az ml connection create</code> CLI, or <code>azure-ai-ml</code> package.</li>
+  <li>Streaming uses server-sent events; the response is an iterator of partial delta chunks.</li>
+  <li>Foundry MCP server exposes Foundry tools and agents to any MCP-compatible client without custom integration code.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="foundry-topology"><figcaption>Foundry project topology — AIProjectClient wraps the project endpoint and provides sub-clients for agents, models, evaluations, and connections to external services.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python">import os
+from azure.ai.projects import AIProjectClient
+from azure.identity import DefaultAzureCredential
+
+project_client = AIProjectClient(
+    endpoint=os.environ["PROJECT_ENDPOINT"],
+    credential=DefaultAzureCredential(),
+)
+
+# List all connections configured in the project
+connections = project_client.connections.list()
+for conn in connections:
+    print(f"{conn.name}  type={conn.type}")
+
+# Get an OpenAI-compatible client scoped to this project with streaming
+openai_client = project_client.inference.get_azure_openai_client(
+    api_version="2025-01-01-preview"
+)
+stream = openai_client.chat.completions.create(
+    model=os.environ["MODEL_DEPLOYMENT_NAME"],
+    messages=[{"role": "user", "content": "Summarize the quarterly report."}],
+    stream=True,
+)
+for chunk in stream:
+    print(chunk.choices[0].delta.content or "", end="")</code></pre></div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>Use <code>azure-ai-projects</code> when you need connections listing, agents, or evaluations; use the <code>openai</code> package when you only need raw chat completions.</li>
+  <li>Missing connections are a common deployment failure — every external service an agent tool references needs a configured connection in the project.</li>
+  <li>The MCP server integration removes custom per-framework tool integration code — one endpoint for all MCP-compatible consumers.</li>
+  <li>Streaming responses are iterators of partial delta chunks, not complete message objects — handle <code>None</code> content in each chunk.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer needs to list all connections in a Foundry project and obtain an OpenAI-compatible client in the same session. Which class provides both capabilities?</summary>
+<div class="answer"><b>Answer:</b> <code>AIProjectClient</code> from <code>azure-ai-projects</code>. <em>Why:</em> <code>AIProjectClient</code> wraps the project endpoint and exposes sub-clients for connections (<code>project_client.connections.list()</code>) and inference (<code>project_client.inference.get_azure_openai_client()</code>) within a single authenticated session.</div></details>
+<details class="q"><summary><b>Q2.</b> An enterprise wants Foundry agents consumable by a third-party orchestration tool that uses the MCP protocol. What Foundry capability enables this?</summary>
+<div class="answer"><b>Answer:</b> The Foundry MCP server integration. <em>Why:</em> The MCP server exposes Foundry tools and agents via the MCP protocol, allowing any MCP-compatible client to invoke them without writing custom SDK integration code for each consumer.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview">Azure AI Foundry SDK overview</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/python/api/overview/azure/ai-projects-readme">azure-ai-projects package reference</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/connections-add">Add connections to a Foundry project</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-1-6 -->
+<section class="objective" id="obj-2-1-6" data-skill="2.1.6">
+<h3 id="o-2-1-6">2.1.6 Configure an application to connect to a Foundry project</h3>
+
+<div class="concept">
+<p>Every Foundry project exposes a single, stable <strong>project endpoint</strong> in the format <code>https://&lt;resource-name&gt;.services.ai.azure.com/api/projects/&lt;project-name&gt;</code>. All Foundry-native operations — agents, evaluations, inference, and connections — flow through this endpoint. Applications that use the OpenAI SDK directly connect via the OpenAI-compatible route (<code>/openai/v1</code>) on the same resource.</p>
+<p>Authentication defaults to <strong>DefaultAzureCredential</strong> from <code>azure-identity</code>, which chains through credential providers automatically — Managed Identity in Azure-hosted environments, a service principal via environment variables in CI/CD, and the <code>az login</code> token in local development — all without any code changes between environments. API keys can be used for the <code>/openai/v1</code> routes but are secondary to credential-based auth.</p>
+<p>Access is governed by Foundry RBAC roles. <strong>Foundry User</strong> is the least-privilege role for inference and agent invocation; <strong>Foundry Project Manager</strong> is needed for project administration. Enabling full prompt and response content recording in traces requires setting the environment variable <code>AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED=true</code>, which is off by default due to potential PII exposure.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li>Project endpoint format: <code>https://&lt;resource-name&gt;.services.ai.azure.com/api/projects/&lt;project-name&gt;</code>.</li>
+  <li><strong>DefaultAzureCredential</strong> selects: Managed Identity (Azure hosting), service principal (CI/CD via env vars), or <code>az login</code> token (local dev) — zero code changes across environments.</li>
+  <li>RBAC roles: <strong>Foundry User</strong> (least-privilege: inference + invocation), <strong>Foundry Project Manager</strong> (admin), <strong>Foundry Owner</strong>, <strong>Foundry Account Owner</strong>.</li>
+  <li>Key environment variables: <code>PROJECT_ENDPOINT</code>, <code>AZURE_OPENAI_ENDPOINT</code>, <code>APPLICATION_INSIGHTS_CONNECTION_STRING</code>, <code>MODEL_DEPLOYMENT_NAME</code>.</li>
+  <li>Set <code>AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED=true</code> to capture prompt and response text in traces (disabled by default — may expose PII).</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-python">import os
+from azure.ai.projects import AIProjectClient
+from azure.identity import DefaultAzureCredential
+
+# DefaultAzureCredential: Managed Identity (Azure), service principal (CI),
+# or az login token (local dev) — no code changes across environments.
+project_client = AIProjectClient(
+    endpoint=os.environ["PROJECT_ENDPOINT"],
+    credential=DefaultAzureCredential(),
+)
+
+# Obtain an OpenAI-compatible client scoped to the Foundry project
+openai_client = project_client.inference.get_azure_openai_client(
+    api_version="2025-01-01-preview"
+)
+response = openai_client.chat.completions.create(
+    model=os.environ["MODEL_DEPLOYMENT_NAME"],
+    messages=[{"role": "user", "content": "Hello from Foundry!"}],
+)
+print(response.choices[0].message.content)</code></pre></div>
+
+<div class="callout tip"><b>Tip:</b> Store <code>PROJECT_ENDPOINT</code> and <code>MODEL_DEPLOYMENT_NAME</code> as environment variables or Azure App Configuration entries — never hard-code them. This makes the same application binary work across dev, staging, and production Foundry projects.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li><strong>DefaultAzureCredential</strong> is the recommended auth mechanism; API keys are secondary and reduce audit traceability.</li>
+  <li>The <strong>Foundry User</strong> role is sufficient for most developer tasks — do not over-grant Project Manager or Owner to developers.</li>
+  <li>Content recording (<code>AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED=true</code>) is off by default because it may capture PII in prompt and response text.</li>
+  <li>The Foundry project endpoint (<code>.../api/projects/&lt;name&gt;</code>) is distinct from the raw resource endpoint used directly by the OpenAI SDK.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> An app must authenticate with az login on a developer laptop, a service principal in GitHub Actions, and Managed Identity in Azure App Service — all using the same code. What credential class should it use?</summary>
+<div class="answer"><b>Answer:</b> <code>DefaultAzureCredential</code> from <code>azure-identity</code>. <em>Why:</em> <code>DefaultAzureCredential</code> chains through credential providers in priority order (environment variables → workload identity → managed identity → CLI token), automatically selecting the right credential for the current environment.</div></details>
+<details class="q"><summary><b>Q2.</b> What is the minimum RBAC role a developer needs to invoke an agent in a Foundry project?</summary>
+<div class="answer"><b>Answer:</b> Foundry User. <em>Why:</em> Foundry User is the least-privilege role granting inference and agent invocation rights. Foundry Project Manager and Owner are for administration tasks and should not be assigned to application developers by default.</div></details>
+<details class="q"><summary><b>Q3.</b> An operations team needs to capture full prompt and response text in distributed traces for debugging. What change is required?</summary>
+<div class="answer"><b>Answer:</b> Set the environment variable <code>AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED=true</code>. <em>Why:</em> By default, traces capture span metadata (timestamps, token counts, model name) but not actual content, to avoid PII exposure. This variable opts in to full content recording.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview">Azure AI Foundry SDK overview</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-foundry">RBAC roles in Azure AI Foundry</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential">DefaultAzureCredential class reference</a></li>
+</ul></div>
+</section>
+
+</section><!-- end sg-2-1 -->
+
+<!-- ==================== 2.2 Build agents ==================== -->
+<section class="skillgroup" id="sg-2-2">
+<h2 id="g-2-2">2.2 Build agents by using Foundry</h2>
+
+<!-- o-2-2-1 -->
+<section class="objective" id="obj-2-2-1" data-skill="2.2.1">
+<h3 id="o-2-2-1">2.2.1 Define agent roles, goals, conversation-tracking approach, and tool schemas</h3>
+
+<div class="concept">
+<p>A Foundry agent is defined by three components: a <strong>model</strong> (selected from the catalog), <strong>instructions</strong> (role, constraints, scope, escalation rules, and tone), and <strong>tools</strong> (capabilities such as search, code execution, APIs, or custom functions). Two agent types exist: <strong>Prompt agents</strong> (fully managed, no runtime code to maintain, authored in the portal or via SDK) and <strong>Hosted agents</strong> (your code packaged as a container, with Foundry providing the endpoint, scaling, and identity).</p>
+<p><strong>Threads</strong> represent persistent conversation state. A thread holds the ordered message history between a user and an agent across multiple turns, eliminating the need for the application to track and resend message history manually. Each new user message is appended to the thread before starting a run; each agent response is automatically added as well.</p>
+<p>Tool schemas follow the <strong>JSON Schema</strong> format: each tool has a <code>name</code>, <code>description</code>, and <code>parameters</code> object with typed properties and a <code>required</code> list. The model relies entirely on the <code>description</code> field to decide when and why to call a tool — precise, specific descriptions dramatically improve tool selection accuracy. Agents can be published to stable <strong>Agent Application</strong> endpoints and given a dedicated <strong>Microsoft Entra identity</strong> for RBAC-governed downstream resource access without shared keys.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li>Agent components: <strong>model</strong> + <strong>instructions</strong> + <strong>tools</strong>.</li>
+  <li>Agent types: <strong>Prompt agents</strong> (fully managed, portal/SDK-authored) and <strong>Hosted agents</strong> (containerized code, Foundry-managed endpoint).</li>
+  <li><strong>Threads</strong> hold ordered message history across turns — no manual history tracking in application code.</li>
+  <li>Tool schemas use JSON Schema: <code>name</code>, <code>description</code>, <code>parameters</code> (object with typed properties + <code>required</code> list).</li>
+  <li>The model uses the <code>description</code> field to decide when to invoke a tool — quality of descriptions directly affects tool selection accuracy.</li>
+  <li>Agents can be published as <strong>Agent Applications</strong> with stable endpoints and a dedicated Microsoft Entra identity.</li>
+  <li>The <strong>Agents Playground</strong> in the portal enables interactive testing of agent behavior, tool connectivity, and prompt variations.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="agent-anatomy"><figcaption>Agent anatomy — a Foundry agent combines a model, system instructions, and a set of tool definitions; threads track conversation state across turns.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python">import os
+from azure.ai.projects import AIProjectClient
+from azure.identity import DefaultAzureCredential
+
+project_client = AIProjectClient(
+    endpoint=os.environ["PROJECT_ENDPOINT"],
+    credential=DefaultAzureCredential(),
+)
+
+# Create a prompt agent with role, goal, and a tool schema
+agent = project_client.agents.create_agent(
+    model=os.environ["MODEL_DEPLOYMENT_NAME"],
+    name="inventory-agent",
+    instructions=(
+        "You are an inventory assistant. Answer questions about stock levels. "
+        "Use get_inventory for any SKU lookup. Never fabricate quantities."
+    ),
+    tools=[{
+        "type": "function",
+        "function": {
+            "name": "get_inventory",
+            "description": "Return current stock count for a product SKU.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "sku": {"type": "string", "description": "Product SKU identifier"}
+                },
+                "required": ["sku"],
+            },
+        },
+    }],
+)
+print(f"Agent ID: {agent.id}")
+
+# Create a thread to track conversation across turns
+thread = project_client.agents.threads.create()
+print(f"Thread ID: {thread.id}")</code></pre></div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>Prompt agents require no custom runtime code — Foundry hosts the execution environment; hosted agents require your containerized code.</li>
+  <li>Threads manage history automatically — do not pass the full message history manually when using threads.</li>
+  <li>Tool <code>description</code> quality directly determines whether the model invokes a tool correctly; vague descriptions cause poor tool selection.</li>
+  <li>Agent Applications give agents a stable URL and Entra identity — required for production deployments with downstream RBAC.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> An agent is repeatedly calling the wrong tool for a user's question even though the correct tool exists. What is the most likely cause?</summary>
+<div class="answer"><b>Answer:</b> The tool's <code>description</code> field is vague or ambiguous. <em>Why:</em> The model uses tool descriptions to decide when and why to call each tool. Poor descriptions lead to incorrect or missed tool invocations. Improve descriptions to be specific about the tool's purpose and when it applies.</div></details>
+<details class="q"><summary><b>Q2.</b> A developer is building a multi-turn chatbot and does not want to manually track and resend the conversation history on each user message. What Foundry construct handles this automatically?</summary>
+<div class="answer"><b>Answer:</b> Threads. <em>Why:</em> A thread holds the ordered message history across turns. Adding new messages to the thread and starting a run is sufficient — the Foundry service manages context automatically.</div></details>
+<details class="q"><summary><b>Q3.</b> A production agent needs to call an Azure SQL Database using RBAC without storing connection strings. What should the agent be given?</summary>
+<div class="answer"><b>Answer:</b> A dedicated Microsoft Entra identity (via Agent Application publishing). <em>Why:</em> Agent Applications can be assigned a Microsoft Entra identity, allowing them to access downstream Azure resources using RBAC role assignments without shared keys or connection strings.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview">Azure AI Foundry Agents overview</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/development-lifecycle">Agent development lifecycle</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/agent-applications">Agent Applications</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-2-2 -->
+<section class="objective" id="obj-2-2-2" data-skill="2.2.2">
+<h3 id="o-2-2-2">2.2.2 Build agents that integrate retrieval, function-calling, and conversation memory</h3>
+
+<div class="concept">
+<p><strong>Function calling</strong> enables an agent to emit structured tool-call requests (<code>tool_calls</code> in the run response) that your application code must execute and return. When the agent needs a function result, the run enters <code>requires_action</code> status and waits. The application polls for this status, executes the function locally, submits the outputs via <code>submit_tool_outputs</code>, and then continues polling to completion. Tool outputs <strong>expire 10 minutes after run creation</strong> — results must be submitted within this window.</p>
+<p>For document retrieval without custom code, the <strong>file search</strong> built-in tool indexes uploaded PDFs, Word documents, and text files, allowing the agent to retrieve and cite content during a conversation. For persistent cross-session state, the <strong>Memory</strong> tool (preview) stores and retrieves key facts scoped to a user or session, eliminating the need for a custom database.</p>
+<p>Conversation continuity across turns is maintained automatically within a <strong>thread</strong> — each turn's user message and agent response are appended to the thread's ordered history. The agent has full visibility of this history on every run without the application sending it explicitly.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li>Function calling lifecycle: define schema → create agent with tool → create thread + message → start run → poll status → detect <code>requires_action</code> → execute function → submit <code>tool_outputs</code> → poll to completion.</li>
+  <li>Run enters <strong><code>requires_action</code></strong> status when the agent needs a function result; the application must act before the 10-minute expiry window.</li>
+  <li><strong>Tool outputs expire 10 minutes after run creation</strong> — submit function results before this deadline or the run fails.</li>
+  <li><strong>File search</strong>: built-in tool that indexes uploaded documents; the agent retrieves and cites content during conversation.</li>
+  <li><strong>Memory</strong> (preview): platform tool for persisting key facts across sessions without custom database code.</li>
+  <li>Conversation memory within a session is maintained automatically via threads — no manual history management required.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-python">import json, time
+from azure.ai.projects.models import MessageRole, RunStatus
+
+# Add user message to existing thread
+project_client.agents.messages.create(
+    thread_id=thread.id, role=MessageRole.USER, content="Is SKU-42 in stock?"
+)
+
+# Start a run and poll until complete or requires_action
+run = project_client.agents.runs.create(thread_id=thread.id, agent_id=agent.id)
+
+while run.status in (RunStatus.QUEUED, RunStatus.IN_PROGRESS, RunStatus.REQUIRES_ACTION):
+    time.sleep(1)
+    run = project_client.agents.runs.get(thread_id=thread.id, run_id=run.id)
+    if run.status == RunStatus.REQUIRES_ACTION:
+        tool_calls = run.required_action.submit_tool_outputs.tool_calls
+        outputs = []
+        for tc in tool_calls:
+            args = json.loads(tc.function.arguments)
+            # Execute function locally; submit result before 10-minute expiry
+            result = {"sku": args["sku"], "quantity": 150}
+            outputs.append({"tool_call_id": tc.id, "output": json.dumps(result)})
+        run = project_client.agents.runs.submit_tool_outputs(
+            thread_id=thread.id, run_id=run.id, tool_outputs=outputs
+        )
+
+# Retrieve the final agent response
+msg = project_client.agents.messages.get_last_message_by_role(
+    thread_id=thread.id, role=MessageRole.AGENT
+)
+print(msg.text_messages[0].text.value)</code></pre></div>
+
+<div class="callout warn"><b>Gotcha:</b> Tool outputs expire <strong>10 minutes after run creation</strong>. If your function takes longer than that, the run will fail. Design functions to complete quickly or implement a timeout-and-retry strategy.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>The run status sequence is: <code>queued</code> → <code>in_progress</code> → <code>requires_action</code> (if tool needed) → back to <code>in_progress</code> → <code>completed</code> (or <code>failed</code>).</li>
+  <li>Tool outputs have a hard <strong>10-minute expiry</strong> from run creation — not from when <code>requires_action</code> is detected.</li>
+  <li>File search indexes uploaded files for retrieval; use it when documents are known ahead of time. Use function calling for real-time or dynamic data.</li>
+  <li>Memory tool (preview) persists cross-session state; within a single session, threads already maintain conversation continuity.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> An agent run enters <code>requires_action</code> status and the application submits tool outputs 15 minutes after the run started. What happens?</summary>
+<div class="answer"><b>Answer:</b> The run fails because tool outputs expire 10 minutes after run creation. <em>Why:</em> The Foundry service enforces a 10-minute expiry window for tool output submission, measured from run creation time. Submissions after this window are rejected and the run transitions to a failed state.</div></details>
+<details class="q"><summary><b>Q2.</b> An agent needs to answer questions from a static PDF knowledge base without the developer writing retrieval code. Which built-in tool should be used?</summary>
+<div class="answer"><b>Answer:</b> File search. <em>Why:</em> File search is a built-in platform tool that automatically indexes uploaded documents (PDFs, Word, text) and enables the agent to retrieve and cite content during conversation — no custom retrieval code required.</div></details>
+<details class="q"><summary><b>Q3.</b> How does a Foundry agent maintain conversation context across multiple user turns without the application re-sending message history each time?</summary>
+<div class="answer"><b>Answer:</b> Through threads. A thread stores the ordered message history; appending new messages and starting a run is sufficient. The Foundry service provides the full thread context to the model on each run automatically.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/function-calling">Function calling in Foundry agents</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/file-search">File search tool</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/memory">Memory tool</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-2-3 -->
+<section class="objective" id="obj-2-2-3" data-skill="2.2.3">
+<h3 id="o-2-2-3">2.2.3 Integrate agent tools, including APIs, knowledge stores, search, content understanding, and custom functions</h3>
+
+<div class="concept">
+<p>Foundry agents support a rich ecosystem of tool integrations. The <strong>OpenAPI tool</strong> accepts an OpenAPI 3.0 or 3.1 specification and allows the agent to call external HTTP services without custom code, supporting three authentication modes: anonymous, API key, and managed identity. For knowledge retrieval, the <strong>Azure AI Search tool</strong> connects the agent to an existing Azure AI Search index for keyword, semantic, vector, or hybrid search — requiring a configured Foundry project connection to the search service.</p>
+<p>When using the Azure AI Search tool, the connection name in the Foundry project <em>must match the index name</em>; this is a common misconfiguration. Each tool instance supports only one index — to fan out queries across multiple indexes, use connected agents (see 2.2.4). The <strong>Code Interpreter</strong> is a built-in sandboxed tool that lets agents write and execute Python code for data analysis, chart generation, and file manipulation — output files are accessible via a download URI.</p>
+<p><strong>Azure Functions</strong> and <strong>MCP servers</strong> extend the tool ecosystem for custom backend logic. Azure Functions integrate via a queue-based pattern and the <code>AzureFunctionTool</code> definition in <code>azure-ai-projects</code>. MCP servers can be registered from the Foundry portal tool catalog and exposed to agents as remote tools. <strong>Content Understanding</strong> (via Azure AI Content Understanding in Foundry Tools) enables multimodal RAG by extracting structured metadata from documents, images, audio, and video before indexing.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li><strong>OpenAPI tool</strong>: accepts OpenAPI 3.0/3.1 spec; auth modes: anonymous, API key, managed identity.</li>
+  <li><strong>Azure AI Search tool</strong>: requires a Foundry project connection; connection name must match the index name.</li>
+  <li>Azure AI Search tool limitation: one index per tool instance — use connected agents for multi-index fan-out.</li>
+  <li>Search types supported: Simple, Semantic, Vector, Hybrid, Hybrid+Semantic.</li>
+  <li><strong>Code Interpreter</strong>: built-in sandboxed Python execution for data analysis and file manipulation.</li>
+  <li><strong>Azure Functions</strong>: queue-based integration via <code>AzureFunctionTool</code> definition.</li>
+  <li><strong>Content Understanding</strong>: extracts structured metadata from documents, images, audio, and video for multimodal RAG.</li>
+  <li>MCP servers can be registered from the Foundry portal tool catalog for use as remote tools.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-python">import os
+from azure.ai.agents.models import AzureAISearchTool, AzureAISearchQueryType
+
+# Attach Azure AI Search tool with hybrid+semantic search
+search_tool = AzureAISearchTool(
+    index_connection_id=os.environ["SEARCH_CONNECTION_ID"],
+    index_name="product-index",
+    query_type=AzureAISearchQueryType.VECTOR_SEMANTIC_HYBRID,
+    top_k=5,
+)
+
+agent = project_client.agents.create_agent(
+    model=os.environ["MODEL_DEPLOYMENT_NAME"],
+    name="knowledge-agent",
+    instructions="Answer questions grounded in the product knowledge base.",
+    tools=search_tool.definitions,
+    tool_resources=search_tool.resources,
+)</code></pre></div>
+
+<div class="callout warn"><b>Gotcha:</b> The Azure AI Search tool connection name in the Foundry project <strong>must match the index name</strong>. A mismatch causes silent retrieval failures — the tool appears attached but returns no results.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>OpenAPI tool supports three auth modes — anonymous, API key, managed identity; know which is appropriate for compliance scenarios (managed identity).</li>
+  <li>The Azure AI Search tool supports only one index per instance; multi-index retrieval requires the connected agents pattern.</li>
+  <li>Content Understanding is for <em>pre-processing</em> multimodal content before it enters the index — it is not a retrieval tool itself.</li>
+  <li>Code Interpreter runs in a sandboxed environment — it cannot access external networks or persistent storage outside of the file download pattern.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> An agent needs to query three separate Azure AI Search indexes for different product categories. How should this be architectured?</summary>
+<div class="answer"><b>Answer:</b> Use the connected agents pattern — create three specialized subagents each configured with one Azure AI Search tool instance, then wire them to a main agent as connected tools. <em>Why:</em> Each Azure AI Search tool instance supports only one index. Multi-index retrieval requires multiple tool instances, which is best implemented via connected/specialized subagents.</div></details>
+<details class="q"><summary><b>Q2.</b> An agent is configured with an Azure AI Search tool but returns no results despite data being in the index. The connection is created. What else should be verified?</summary>
+<div class="answer"><b>Answer:</b> Verify that the Foundry project connection name matches the index name exactly. <em>Why:</em> The Azure AI Search tool requires the connection name to match the index name. A mismatch prevents retrieval even when the connection is otherwise valid.</div></details>
+<details class="q"><summary><b>Q3.</b> A team wants an agent to call an existing internal REST API described by an OpenAPI 3.0 spec, authenticated with the agent's managed identity. Which tool type supports this?</summary>
+<div class="answer"><b>Answer:</b> The OpenAPI tool, configured with managed identity authentication. <em>Why:</em> The OpenAPI tool accepts OpenAPI 3.0/3.1 specs and supports three auth modes including managed identity, allowing the agent to call external HTTP APIs securely without storing credentials.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/azure-ai-search">Azure AI Search tool for agents</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/openapi-spec">OpenAPI tool for agents</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/code-interpreter">Code Interpreter tool</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-2-4 -->
+<section class="objective" id="obj-2-2-4" data-skill="2.2.4">
+<h3 id="o-2-2-4">2.2.4 Implement orchestrated multi-agent solutions</h3>
+
+<div class="concept">
+<p>The <strong>Connected Agents</strong> pattern (classic API <code>2025-05-15-preview</code>) implements a primary/subagent hierarchy: a main orchestrating agent delegates tasks to specialized subagents using natural language routing — no hardcoded decision logic. The <code>ConnectedAgentTool</code> wraps a subagent and registers it as a callable tool on the main agent. The main agent decides which subagent to invoke based on the tool's <code>description</code>; responses flow back to the main agent, which synthesizes a final answer for the user.</p>
+<p>The connected agents pattern enforces a <strong>maximum depth of 2</strong>: a main agent can have multiple sibling subagents, but subagents cannot themselves have subagents. Exceeding this depth produces an <code>Assistant Tool Call Depth Error</code>. The <code>name</code> field for a connected agent tool must use only letters and underscores — no spaces or special characters.</p>
+<p>For production deployments, publish connected agents and the main agent separately as <strong>Agent Applications</strong>, each with its own stable endpoint and Entra identity. The newer <strong>Workflows API</strong> (<code>2025-11-15-preview</code>) is the emerging recommended approach for declarative multi-agent orchestration; for code-based graph topologies, <strong>LangGraph</strong> and the <strong>OpenAI Agents SDK</strong> integrate with the Foundry Responses API.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li><code>ConnectedAgentTool</code> requires: <code>id</code> (subagent ID), <code>name</code> (letters and underscores only), <code>description</code> (routing guidance for the main agent).</li>
+  <li><strong>Maximum depth is 2</strong>: main agent → subagents; subagents cannot have their own subagents. Violation produces <code>Assistant Tool Call Depth Error</code>.</li>
+  <li>Connected agent responses go to the main agent only — the main agent synthesizes the final user-facing response.</li>
+  <li>Production pattern: publish each agent as an Agent Application with its own stable endpoint and Entra identity.</li>
+  <li>The <strong>Workflows API</strong> (<code>2025-11-15-preview</code>) is the newer recommended approach for declarative multi-agent orchestration.</li>
+  <li>LangGraph and OpenAI Agents SDK integrate with the Foundry Responses API for code-based graph topologies.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="multi-agent"><figcaption>Connected agents pattern — a main orchestrating agent delegates to specialized subagents via ConnectedAgentTool; maximum hierarchy depth is 2.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python">import os
+from azure.ai.projects import AIProjectClient
+from azure.ai.agents.models import ConnectedAgentTool, MessageRole
+from azure.identity import DefaultAzureCredential
+
+project_client = AIProjectClient(
+    endpoint=os.environ["PROJECT_ENDPOINT"],
+    credential=DefaultAzureCredential(),
+)
+
+# Create specialized subagent
+stock_agent = project_client.agents.create_agent(
+    model=os.environ["MODEL_DEPLOYMENT_NAME"],
+    name="stock_price_bot",
+    instructions="Return the current stock price for a given company ticker symbol.",
+)
+
+# Wire subagent into the main agent via ConnectedAgentTool
+connected_tool = ConnectedAgentTool(
+    id=stock_agent.id,
+    name="stock_price_bot",          # letters and underscores only
+    description="Gets the current stock price of a company given its ticker.",
+)
+
+main_agent = project_client.agents.create_agent(
+    model=os.environ["MODEL_DEPLOYMENT_NAME"],
+    name="research_agent",
+    instructions="You are a financial research assistant. Delegate stock lookups to available tools.",
+    tools=connected_tool.definitions,
+)
+
+thread = project_client.agents.threads.create()
+project_client.agents.messages.create(
+    thread_id=thread.id, role=MessageRole.USER, content="What is Microsoft's stock price?"
+)
+run = project_client.agents.runs.create_and_process(
+    thread_id=thread.id, agent_id=main_agent.id
+)
+print(f"Run status: {run.status}")</code></pre></div>
+
+<div class="callout warn"><b>Gotcha:</b> The maximum hierarchy depth is <strong>2</strong>. If a subagent attempts to call its own subagent, the run fails with <code>Assistant Tool Call Depth Error</code>. Flatten your architecture — all specialization should be at the subagent level.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>The <code>name</code> field in <code>ConnectedAgentTool</code> must use only letters and underscores — spaces or hyphens cause validation errors.</li>
+  <li>Maximum depth is 2; violating it causes an <code>Assistant Tool Call Depth Error</code> — memorize this limit.</li>
+  <li>Subagent responses are returned to the main agent only — the end user never interacts with a subagent directly.</li>
+  <li>The Workflows API (<code>2025-11-15-preview</code>) is the newer recommended approach; know it exists even if connected agents is still commonly used.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer configures a three-tier hierarchy: orchestrator → subagent A → subagent B. When the orchestrator invokes subagent A and subagent A tries to call subagent B, what happens?</summary>
+<div class="answer"><b>Answer:</b> The run fails with an <code>Assistant Tool Call Depth Error</code>. <em>Why:</em> The connected agents pattern enforces a maximum depth of 2 (main agent to its direct subagents). Subagents cannot themselves invoke subagents.</div></details>
+<details class="q"><summary><b>Q2.</b> A <code>ConnectedAgentTool</code> is created with <code>name="stock price bot"</code>. What error will occur?</summary>
+<div class="answer"><b>Answer:</b> A validation error — the name contains spaces, which are not allowed. <em>Why:</em> The <code>name</code> field for <code>ConnectedAgentTool</code> must use only letters and underscores. Use <code>"stock_price_bot"</code> instead.</div></details>
+<details class="q"><summary><b>Q3.</b> In a connected agents setup, how does the end user receive the final answer — from which agent?</summary>
+<div class="answer"><b>Answer:</b> From the main orchestrating agent. <em>Why:</em> Subagent responses are returned only to the main agent; the main agent synthesizes them into a single cohesive response that is delivered to the user. Users never interact directly with subagents.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/connected-agents">Connected agents in Azure AI Foundry</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/workflow">Agent Workflows API concepts</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/agent-applications">Agent Applications</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-2-5 -->
+<section class="objective" id="obj-2-2-5" data-skill="2.2.5">
+<h3 id="o-2-2-5">2.2.5 Build autonomous or semiautonomous workflows with safeguards and approval flow controls</h3>
+
+<div class="concept">
+<p>Fully autonomous agents carry risk when they take irreversible or high-impact actions without human oversight. The <strong>Human-in-the-Loop (HITL)</strong> pattern, implemented via the <strong>AG-UI protocol</strong>, addresses this: the agent generates tool calls, the server sends approval requests to the client UI, the user approves or rejects, and the server proceeds accordingly. Two tool-level approval modes govern this: <code>always_require</code> (every invocation needs explicit human sign-off) and <code>never_require</code> (fully autonomous, no approval).</p>
+<p>The <strong>Task Adherence</strong> guardrail (preview) provides automated reflection at the tool-call level, detecting when tool invocations deviate from user intent — wrong tool, incorrect inputs, or misaligned responses — and producing a signal to block the invocation or escalate to HITL review. <strong>Foundry guardrails</strong> apply input/output content filtering across four severity dimensions (Violence, Sexual, Self-harm, Hate/Unfairness) and include <strong>Spotlighting</strong> to mitigate prompt injection, including cross-prompt injection attacks (XPIA). If no guardrail is explicitly assigned to an agent, the model's default guardrail applies.</p>
+<p>Network-level isolation is available for compliance-sensitive workflows: virtual network injection for hosted agents and private endpoints for prompt agents provide full network isolation. RBAC further restricts who can create, invoke, or modify agents: <strong>Foundry User</strong> for invocation, <strong>Foundry Project Manager</strong> for management.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li><strong>AG-UI protocol</strong>: implements HITL — agent generates tool calls → server sends approval request → user approves/rejects → server proceeds.</li>
+  <li>Tool approval modes: <code>always_require</code> (every invocation needs human approval) and <code>never_require</code> (fully autonomous).</li>
+  <li>Use <code>always_require</code> for irreversible or high-risk actions (deletions, payments, external emails).</li>
+  <li><strong>Task Adherence</strong> (preview): automated guardrail detecting misaligned tool invocations — wrong tool, bad inputs, or intent mismatch.</li>
+  <li>Foundry guardrails filter: Violence, Sexual, Self-harm, Hate/Unfairness (four severity dimensions).</li>
+  <li><strong>Spotlighting</strong>: guardrail technique to mitigate prompt injection and cross-prompt injection attacks (XPIA).</li>
+  <li>If no guardrail is assigned to an agent, the model's default guardrail applies automatically.</li>
+  <li>Network isolation: VNet injection (hosted agents), private endpoints (prompt agents).</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-python"># AG-UI Human-in-the-Loop pattern (requires AG-UI server-side library)
+from agui import tool, ToolApprovalMode
+
+@tool(approval_mode=ToolApprovalMode.ALWAYS_REQUIRE)
+def delete_record(record_id: str) -&gt; str:
+    """Delete a customer record. ALWAYS requires human approval before execution."""
+    return f"Record {record_id} deleted."
+
+@tool(approval_mode=ToolApprovalMode.NEVER_REQUIRE)
+def read_record(record_id: str) -&gt; dict:
+    """Read a customer record — read-only, safe to run autonomously."""
+    return {"id": record_id, "name": "Example Customer"}</code></pre></div>
+
+<div class="callout key"><b>Key:</b> Apply <code>always_require</code> approval to any tool whose action is irreversible or has external impact (deletions, financial transactions, outbound communications). Use <code>never_require</code> only for read-only, low-risk operations.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>Know the two HITL approval modes: <code>always_require</code> (human sign-off every invocation) vs. <code>never_require</code> (fully autonomous).</li>
+  <li>Task Adherence is a <em>preview</em> guardrail for automated tool-call alignment checking — distinct from content safety filtering.</li>
+  <li>Spotlighting mitigates XPIA (cross-prompt injection attacks) — a specific guardrail technique, not a general content filter.</li>
+  <li>If no guardrail is explicitly assigned, the default model guardrail applies — verify assignment when debugging unexpected content filter behavior.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> An agent has a tool that sends an email to a customer. The team wants a human to approve every invocation. What approval mode should be set on that tool?</summary>
+<div class="answer"><b>Answer:</b> <code>always_require</code>. <em>Why:</em> <code>always_require</code> sends an approval request to the user interface via the AG-UI protocol for every invocation, regardless of context. This is appropriate for outbound communications that are external and potentially irreversible.</div></details>
+<details class="q"><summary><b>Q2.</b> An agent is invoking the wrong tool for certain user requests even though the correct tool is available. Which preview guardrail signal would surface this deviation?</summary>
+<div class="answer"><b>Answer:</b> Task Adherence. <em>Why:</em> Task Adherence (preview) detects misaligned tool invocations — including wrong tool selection, incorrect inputs, and responses inconsistent with user intent — providing a signal to block or escalate.</div></details>
+<details class="q"><summary><b>Q3.</b> A security audit finds that an agent's content guardrail is not blocking expected harmful content. The agent has no guardrail explicitly assigned. What is the active guardrail?</summary>
+<div class="answer"><b>Answer:</b> The model's default guardrail. <em>Why:</em> If no guardrail is explicitly assigned to an agent, the underlying model's default guardrail is automatically applied. Verify whether the default guardrail covers the required severity thresholds and assign a custom one if not.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/human-in-the-loop-agui">Human-in-the-loop with AG-UI</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview">Foundry guardrails overview</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/agentic-workflows-task-adherence">Task Adherence monitoring</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-2-6 -->
+<section class="objective" id="obj-2-2-6" data-skill="2.2.6">
+<h3 id="o-2-2-6">2.2.6 Integrate monitoring into deployed agents, evaluate agent behavior, and perform error analysis</h3>
+
+<div class="concept">
+<p>Effective agent monitoring in production requires two connected components: an <strong>Application Insights</strong> resource linked to the Foundry project, and the <strong>Agent Monitoring Dashboard</strong> (Foundry portal → Build → select agent → Monitor tab). All agent run traces stream automatically to Application Insights when this connection is active, and they appear in both the Foundry Tracing UI and Azure Monitor for cross-service correlation.</p>
+<p>The Agent Monitoring Dashboard organizes metrics into four groups: <strong>Summary</strong> (high-level KPIs), <strong>Evaluation scores</strong> (quality metrics over time), <strong>Run success rates</strong>, and <strong>Token usage per model</strong>. Key evaluators for ongoing monitoring include Intent Resolution, Task Adherence, Tool Call Success, Customer Satisfaction, and Groundedness. <strong>Continuous evaluation</strong> (preview) automatically scores ongoing agent traffic against configured metrics on a schedule, feeding results back into the dashboard.</p>
+<p>Error analysis follows a structured path: check the run <code>status</code> for <code>failed</code>, inspect <code>last_error.message</code> for the failure reason, then review distributed trace spans in Application Insights to identify exactly which tool call or model step caused the failure. The <strong>AI Red Teaming Agent</strong> (preview) can be scheduled from the monitoring dashboard to periodically probe deployed agents for safety and security vulnerabilities.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li>Monitoring requires <strong>Application Insights</strong> connected to the Foundry project — traces from all runs stream automatically.</li>
+  <li>Agent Monitoring Dashboard groups: Summary, Evaluation scores, Run success rates, Token usage per model.</li>
+  <li>Key monitoring evaluators: Intent Resolution, Task Adherence, Tool Call Success, Customer Satisfaction, Groundedness.</li>
+  <li><strong>Continuous evaluation</strong> (preview): automatically scores live agent traffic on a schedule; results appear in the dashboard.</li>
+  <li>Error analysis path: check run <code>status == "failed"</code> → inspect <code>last_error.message</code> → review trace spans in Application Insights.</li>
+  <li><strong>AI Red Teaming Agent</strong> (preview): schedules periodic safety and security probes against deployed agents from the monitoring dashboard.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="observability"><figcaption>Agent observability stack — runs generate OpenTelemetry traces that flow to Application Insights; the Agent Monitoring Dashboard surfaces KPIs, evaluation scores, and token usage.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python">import os
+from azure.ai.projects import AIProjectClient
+from azure.identity import DefaultAzureCredential
+from azure.monitor.opentelemetry import configure_azure_monitor
+from opentelemetry import trace
+
+project_client = AIProjectClient(
+    endpoint=os.environ["PROJECT_ENDPOINT"],
+    credential=DefaultAzureCredential(),
+)
+
+# Wire Application Insights to the Foundry project for agent monitoring
+app_insights_conn_str = project_client.telemetry.get_connection_string()
+configure_azure_monitor(connection_string=app_insights_conn_str)
+
+tracer = trace.get_tracer(__name__)
+with tracer.start_as_current_span("agent-invocation"):
+    run = project_client.agents.runs.create_and_process(
+        thread_id=os.environ["THREAD_ID"],
+        agent_id=os.environ["AGENT_ID"],
+    )
+    if run.status == "failed":
+        print(f"Run failed: {run.last_error}")</code></pre></div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>The Agent Monitoring Dashboard is <em>not</em> available without Application Insights connected — missing this connection is a common monitoring gap.</li>
+  <li>Use <code>run.last_error</code> for run-level failure diagnosis; use Application Insights trace spans to isolate which tool or model step failed.</li>
+  <li>Continuous evaluation (preview) automates quality scoring on live traffic — it is distinct from scheduled manual evaluations.</li>
+  <li>AI Red Teaming Agent probes for safety and security vulnerabilities — it is a monitoring/testing tool, not a guardrail.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> The Agent Monitoring Dashboard is empty despite agents being actively invoked. What is the most likely configuration gap?</summary>
+<div class="answer"><b>Answer:</b> Application Insights is not connected to the Foundry project. <em>Why:</em> Agent run traces stream to Application Insights and the monitoring dashboard requires this connection to function. Without it, no telemetry is captured and the dashboard has nothing to display.</div></details>
+<details class="q"><summary><b>Q2.</b> An agent run has <code>status == "failed"</code>. What is the first programmatic step for diagnosing the root cause?</summary>
+<div class="answer"><b>Answer:</b> Inspect <code>run.last_error.message</code>. <em>Why:</em> The <code>last_error</code> property on a failed run contains the error code and message describing why the run failed. After reading this, review Application Insights trace spans to identify the specific step that caused the failure.</div></details>
+<details class="q"><summary><b>Q3.</b> A team wants ongoing automated scoring of their production agent's quality without triggering manual evaluation runs. What feature enables this?</summary>
+<div class="answer"><b>Answer:</b> Continuous evaluation (preview). <em>Why:</em> Continuous evaluation automatically scores live agent traffic against configured quality metrics on a schedule, feeding results into the Agent Monitoring Dashboard without any manual triggering.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard">Agent Monitoring Dashboard</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/evaluate-agents">Evaluate agent behavior</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/trace-agent-concept">Agent tracing concepts</a></li>
+</ul></div>
+</section>
+
+</section><!-- end sg-2-2 -->
+
+<!-- ==================== 2.3 Optimize and operationalize ==================== -->
+<section class="skillgroup" id="sg-2-3">
+<h2 id="g-2-3">2.3 Optimize and operationalize generative AI systems</h2>
+
+<!-- o-2-3-1 -->
+<section class="objective" id="obj-2-3-1" data-skill="2.3.1">
+<h3 id="o-2-3-1">2.3.1 Tune generation behavior, such as prompt engineering and adjusting model parameters</h3>
+
+<div class="concept">
+<p>The <strong>system message</strong> is the single most impactful lever for shaping model output — it defines the model's persona, response style, scope constraints, and format requirements — and should be tuned before adjusting any numeric parameters. Prompt engineering techniques include role assignment ("You are a…"), few-shot examples (providing input/output pairs directly in the prompt), explicit format constraints ("Respond in JSON"), and chain-of-thought triggering ("Think step by step before answering").</p>
+<p>Numeric generation parameters control output diversity and length. <strong>Temperature</strong> (range 0–2, default 1) governs randomness: lower values (0.1–0.3) produce deterministic, focused responses; higher values (0.7–1.0) increase creativity and diversity. <strong>top_p</strong> (nucleus sampling, 0–1) restricts generation to the smallest token set whose cumulative probability exceeds the threshold — an alternative randomness control that should <em>not</em> be adjusted simultaneously with temperature. <strong>max_tokens</strong> sets the hard upper limit on response length in tokens.</p>
+<p>Structured output enforces valid JSON in the response: activate with <code>response_format={"type": "json_object"}</code> for any valid JSON, or <code>{"type": "json_schema", "json_schema": {...}}</code> for strict schema adherence in newer API versions. For code generation models, use lower temperature (0.0–0.2) and include language and style constraints in the system message.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li><strong>System message</strong> is the most impactful output-shaping lever; tune it before touching numeric parameters.</li>
+  <li><strong>Temperature</strong>: range 0–2, default 1. Low (0.1–0.3) = deterministic; high (0.7–1.0) = creative.</li>
+  <li><strong>top_p</strong>: range 0–1 (nucleus sampling). Alternative randomness control — <strong>do not adjust both temperature and top_p simultaneously</strong>.</li>
+  <li><strong>max_tokens</strong> (<code>max_completion_tokens</code>): hard upper limit on response length; one token ≈ 4 English characters.</li>
+  <li>GPT-4-class context window: up to 128,000 tokens shared across prompt and response.</li>
+  <li>Structured output: <code>response_format={"type": "json_object"}</code> for any valid JSON; <code>json_schema</code> for strict schema enforcement.</li>
+  <li>Prompt engineering techniques: role assignment, few-shot examples, format constraints, chain-of-thought triggering.</li>
+</ul>
+</div>
+
+<figure class="diagram" data-svg="generation-params"><figcaption>Model generation parameters — temperature and top_p control output diversity; max_tokens caps response length. Adjust temperature or top_p, not both simultaneously.</figcaption></figure>
+
+<div class="code"><pre><code class="lang-python">import os
+from openai import AzureOpenAI
+
+client = AzureOpenAI(
+    azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
+    api_key=os.environ["AZURE_OPENAI_KEY"],
+    api_version="2025-01-01-preview",
+)
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": (
+            "You are a concise financial analyst. "
+            "Answer in exactly three bullet points."
+        )},
+        {"role": "user", "content": "What are the key risks of rising interest rates?"},
+    ],
+    temperature=0.3,                             # low randomness for factual consistency
+    top_p=1.0,                                   # full nucleus; not adjusted alongside temp
+    max_tokens=300,                              # cap response length
+    response_format={"type": "json_object"},     # force valid JSON output
+)</code></pre></div>
+
+<div class="callout warn"><b>Gotcha:</b> Never adjust <strong>both</strong> <code>temperature</code> and <code>top_p</code> simultaneously. They are alternative randomness controls — tuning both at once produces unpredictable compounding effects. Pick one to tune; leave the other at its default.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>Temperature range is 0–2 (default 1); top_p range is 0–1 — know the defaults and ranges.</li>
+  <li>Adjusting temperature AND top_p simultaneously is explicitly discouraged — a common gotcha on the exam.</li>
+  <li>The system message is the first thing to tune for output quality — not temperature or top_p.</li>
+  <li>GPT-4-class models share a context window (up to 128 k tokens) across prompt + response — large prompts leave less room for responses.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer sets <code>temperature=0.9</code> and <code>top_p=0.5</code> simultaneously. Why is this configuration problematic?</summary>
+<div class="answer"><b>Answer:</b> Temperature and top_p are both randomness controls and should not be adjusted simultaneously. <em>Why:</em> Both parameters independently restrict the token distribution; combining them produces compounding, unpredictable effects. Best practice is to adjust one and leave the other at its default (temperature at 1, top_p at 1).</div></details>
+<details class="q"><summary><b>Q2.</b> An agent is generating responses with too much variation — similar questions get very different answers. What parameter change would produce more consistent outputs?</summary>
+<div class="answer"><b>Answer:</b> Lower the <code>temperature</code> value (e.g., 0.1–0.3). <em>Why:</em> Lower temperature restricts the model to higher-probability token choices, producing more deterministic and consistent responses. Temperature 0 produces near-identical outputs for the same input.</div></details>
+<details class="q"><summary><b>Q3.</b> An application requires the model to always return a specific JSON structure. What <code>response_format</code> value enforces this?</summary>
+<div class="answer"><b>Answer:</b> <code>{"type": "json_schema", "json_schema": {...}}</code> for strict schema enforcement, or <code>{"type": "json_object"}</code> for any valid JSON. <em>Why:</em> JSON mode forces the model to emit syntactically valid JSON. Using <code>json_schema</code> additionally validates against a specific schema definition in newer API versions.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering">Prompt engineering techniques</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/reference">Azure OpenAI API reference (parameters)</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/json-mode">JSON mode in Azure OpenAI</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-3-2 -->
+<section class="objective" id="obj-2-3-2" data-skill="2.3.2">
+<h3 id="o-2-3-2">2.3.2 Implement model reflection, chain-of-thought evaluations, and self-critique loops</h3>
+
+<div class="concept">
+<p><strong>Chain-of-thought (CoT)</strong> prompting instructs the model to reason through intermediate steps before producing a final answer, significantly improving accuracy on multi-step tasks. Common triggers include the phrase "Think step by step before answering" or providing few-shot examples that include explicit reasoning traces. This technique is most effective for math, logic, and multi-condition decision problems where intermediate reasoning steps matter.</p>
+<p><strong>Reasoning models</strong> (the <code>o1</code>, <code>o3</code>, and <code>o4-mini</code> series) perform internal multi-step reasoning without needing explicit CoT prompting — they are optimized for math, code, and complex inference tasks. For standard GPT-class models, CoT must be explicitly triggered in the prompt. <strong>Self-critique loops</strong> implement reflection programmatically: a model generates an initial response, a second call asks the model to identify errors or improvements in that response, and a final call incorporates the critique. This can be implemented as a multi-turn conversation or separate API calls.</p>
+<p>For RAG applications specifically, a <strong>self-grounding check</strong> after generation prompts the model to identify which retrieved chunks support each claim in its response. Claims without supporting chunks are surfaced as potential hallucinations for correction or removal before the response reaches the user.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li>CoT triggering phrases: "Think step by step before answering" or few-shot examples with explicit reasoning traces.</li>
+  <li><strong>Reasoning models</strong> (<code>o1</code>, <code>o3</code>, <code>o4-mini</code> series): perform internal multi-step reasoning; no explicit CoT needed — best for math, logic, code.</li>
+  <li><strong>Self-critique loop</strong>: (1) generate initial response, (2) critique the response with a second LLM call, (3) revise based on critique.</li>
+  <li>Self-critique can be implemented as a multi-turn conversation or three sequential API calls.</li>
+  <li><strong>Agentic reflection</strong>: agent calls a validation tool or evaluator function after generating output, then revises before responding to the user.</li>
+  <li><strong>Task Adherence</strong> (Foundry guardrail): provides automated reflection at the tool-call level for agents.</li>
+  <li>RAG self-grounding check: after generation, prompt the model to map each claim to a retrieved chunk — unmapped claims indicate potential hallucination.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-python">import os
+from azure.ai.inference import ChatCompletionsClient
+from azure.ai.inference.models import SystemMessage, UserMessage
+from azure.core.credentials import AzureKeyCredential
+
+client = ChatCompletionsClient(
+    endpoint=os.environ["AZURE_INFERENCE_ENDPOINT"],
+    credential=AzureKeyCredential(os.environ["AZURE_INFERENCE_KEY"]),
+)
+
+# Step 1: Initial response with chain-of-thought trigger
+r1 = client.complete(
+    model="gpt-4o",
+    messages=[
+        SystemMessage(content="Think step by step, then provide a final answer."),
+        UserMessage(content="How many prime numbers exist below 50?"),
+    ],
+    temperature=0.0,
+)
+initial = r1.choices[0].message.content
+
+# Step 2: Self-critique — identify any errors in the first response
+r2 = client.complete(
+    model="gpt-4o",
+    messages=[
+        SystemMessage(content="You are a meticulous reviewer. Identify errors and provide a corrected answer."),
+        UserMessage(content=f"Review this response:\n{initial}"),
+    ],
+    temperature=0.0,
+)
+print(r2.choices[0].message.content)</code></pre></div>
+
+<div class="callout tip"><b>Tip:</b> Use reasoning models (<code>o1</code>, <code>o3</code>, <code>o4-mini</code>) when the task requires deep inference (math proofs, complex code logic). For straightforward generation, standard GPT-class models with CoT prompting are more cost-effective.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>CoT requires an explicit trigger for GPT-class models; reasoning models (<code>o1</code>, <code>o3</code>, <code>o4-mini</code>) perform internal reasoning automatically.</li>
+  <li>Self-critique loops are multi-call patterns — two or three API calls per user request; understand the tradeoff between quality and latency/cost.</li>
+  <li>Self-grounding check (for RAG): post-generation step, not pre-retrieval — it validates output alignment with retrieved chunks.</li>
+  <li>Task Adherence (agent-level) is Foundry's automated form of reflection for tool calls — it is a guardrail, not a prompt technique.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A team wants the model to catch its own arithmetic errors before responding. What pattern should they implement?</summary>
+<div class="answer"><b>Answer:</b> A self-critique loop. <em>Why:</em> The self-critique pattern generates an initial response, then makes a second LLM call asking the model to identify and correct errors, and optionally a third call to produce the revised final answer. This catches reasoning mistakes before the user sees the response.</div></details>
+<details class="q"><summary><b>Q2.</b> An application needs to solve advanced mathematical proofs. Should it use a GPT-4o model with CoT prompting or an o3 reasoning model?</summary>
+<div class="answer"><b>Answer:</b> An o3 reasoning model. <em>Why:</em> Reasoning models (o1, o3, o4-mini) perform internal multi-step reasoning without explicit CoT prompting and are specifically optimized for math, logic, and complex inference. GPT-4o with CoT prompting can help but is less reliable for advanced proof tasks.</div></details>
+<details class="q"><summary><b>Q3.</b> In a RAG application, how can a self-grounding check reduce hallucinations in the final response?</summary>
+<div class="answer"><b>Answer:</b> After generating a response, prompt the model to identify which retrieved chunks support each claim. Claims with no chunk support are flagged as potential hallucinations and can be removed or corrected before delivery. <em>Why:</em> Self-grounding provides a post-generation validation step that surfaces unsupported claims, enabling targeted correction rather than rewriting the entire response.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering">Prompt engineering techniques (CoT)</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/o1-o3-chain-of-thought">o1/o3 chain-of-thought reasoning models</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/agent-optimizer-overview">Agent optimizer and reflection overview</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-3-3 -->
+<section class="objective" id="obj-2-3-3" data-skill="2.3.3">
+<h3 id="o-2-3-3">2.3.3 Set up observability by implementing tracing, token analytics, safety signals, and latency breakdowns</h3>
+
+<div class="concept">
+<p>Foundry observability is built on <strong>OpenTelemetry (OTeL)</strong>. Every model call, tool invocation, and agent decision generates a <strong>span</strong> within a distributed trace. These spans carry attributes such as model name, token counts, latency, and tool call results, and are exportable to <strong>Application Insights</strong> or any OTeL-compatible backend. Configure the Python stack with <code>opentelemetry-sdk</code>, <code>azure-core-tracing-opentelemetry</code>, and the <code>azure-monitor-opentelemetry</code> package (which bundles exporter and configuration).</p>
+<p>To export to Application Insights: retrieve the connection string from <code>project_client.telemetry.get_connection_string()</code> and pass it to <code>configure_azure_monitor()</code>. The <strong>Foundry Tracing UI</strong> (portal → project → Tracing) provides a visual trace explorer — filter and inspect individual spans, view model inputs and outputs, token counts, latencies per span, and tool call results. Set <code>AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED=true</code> to capture actual prompt and response text in spans (disabled by default due to potential PII).</p>
+<p><strong>Token analytics</strong> are available in the Agent Monitoring Dashboard, broken down per model, per run, and over time — essential for cost attribution and quota planning. <strong>Safety signals</strong> (content filter hits, guardrail activations, XPIA detections) appear as span attributes in traces and as aggregate counts in the monitoring dashboard. <strong>Latency breakdowns</strong> use span start/end timestamps to identify which pipeline step — retrieval, model inference, function execution — contributes most to end-to-end latency.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li>Foundry observability is built on <strong>OpenTelemetry (OTeL)</strong>; every call becomes a span within a distributed trace.</li>
+  <li>Python OTeL packages: <code>opentelemetry-sdk</code>, <code>azure-core-tracing-opentelemetry</code>, <code>azure-monitor-opentelemetry</code> (all-in-one).</li>
+  <li>Connection string for Application Insights: <code>project_client.telemetry.get_connection_string()</code>.</li>
+  <li>Set <code>AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED=true</code> to record prompt/response text in spans (disabled by default — may capture PII).</li>
+  <li><strong>Foundry Tracing UI</strong>: portal → project → Tracing; filter and inspect spans with token counts, latencies, and tool call results.</li>
+  <li><strong>Safety signals</strong> (filter hits, guardrail activations, XPIA detections) appear as span attributes and as dashboard aggregate counts.</li>
+  <li><strong>Latency breakdowns</strong>: span timestamps identify which step (retrieval, inference, function) dominates end-to-end latency.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-python">import os
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
+
+# Configure OTeL to export spans to Application Insights
+exporter = AzureMonitorTraceExporter(
+    connection_string=os.environ["APPLICATION_INSIGHTS_CONNECTION_STRING"]
+)
+provider = TracerProvider()
+provider.add_span_processor(BatchSpanProcessor(exporter))
+trace.set_tracer_provider(provider)
+
+tracer = trace.get_tracer("rag-app")
+
+with tracer.start_as_current_span("rag-pipeline") as span:
+    span.set_attribute("user_query", "What is the refund policy?")
+    # ... retrieval and generation calls happen here ...
+    span.set_attribute("retrieved_chunks", 3)
+    span.set_attribute("completion_tokens", 142)
+    span.set_attribute("latency_ms", 850)</code></pre></div>
+
+<div class="callout warn"><b>Gotcha:</b> <code>AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED=true</code> records actual prompt and response text in traces. This can expose PII — it is disabled by default and should only be enabled in environments with appropriate data handling controls.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>Foundry tracing is OTeL-native — know the required Python packages and how to retrieve the Application Insights connection string.</li>
+  <li>Content recording is off by default because it may capture PII — know the environment variable that enables it.</li>
+  <li>Latency breakdowns require no special configuration — span timestamps are captured automatically; query them in Application Insights.</li>
+  <li>Safety signals (filter hits, XPIA) appear as span attributes — use Application Insights queries to aggregate them across runs.</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A team wants to view full prompt and response text in the Foundry Tracing UI for debugging. What must they configure?</summary>
+<div class="answer"><b>Answer:</b> Set the environment variable <code>AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED=true</code>. <em>Why:</em> By default, traces capture span metadata but not content text. Enabling this variable opts in to full content recording. Teams should ensure appropriate data handling controls are in place since prompts may contain PII.</div></details>
+<details class="q"><summary><b>Q2.</b> A Python application needs to send agent run spans to Application Insights. What is the correct way to retrieve the Application Insights connection string in Foundry?</summary>
+<div class="answer"><b>Answer:</b> Call <code>project_client.telemetry.get_connection_string()</code> and pass the result to <code>configure_azure_monitor()</code>. <em>Why:</em> The AIProjectClient exposes a telemetry sub-client that retrieves the Application Insights connection string configured for the Foundry project, ensuring you connect to the correct monitoring resource.</div></details>
+<details class="q"><summary><b>Q3.</b> End-to-end latency for a RAG pipeline is high. How would you use observability tooling to identify the slowest step?</summary>
+<div class="answer"><b>Answer:</b> Inspect the distributed trace spans in the Foundry Tracing UI or Application Insights. Each span has start and end timestamps, enabling you to compare retrieval span duration vs. LLM inference span duration vs. function execution duration and pinpoint the bottleneck. <em>Why:</em> OTeL spans capture individual step latencies; comparing span durations identifies which component dominates end-to-end latency without code changes.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/trace-agents">Trace agent runs in Azure AI Foundry</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/observability-overview">Observability concepts in Azure AI Foundry</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview">Azure Application Insights overview</a></li>
+</ul></div>
+</section>
+
+<!-- o-2-3-4 -->
+<section class="objective" id="obj-2-3-4" data-skill="2.3.4">
+<h3 id="o-2-3-4">2.3.4 Orchestrate multiple models, flows, or hybrid LLM and rules engines</h3>
+
+<div class="concept">
+<p>The <strong>Model Router</strong> is a deployable Foundry model that selects the optimal underlying LLM <em>per turn</em> based on query complexity, cost, and capability — exposed as a single named deployment endpoint. Applications call the model router deployment just as they would any other model; the router invisibly dispatches to the best underlying model. Three routing modes are available: <strong>Quality</strong> (frontier models for complex tasks), <strong>Balanced</strong> (mixed capability/cost), and <strong>Cost</strong> (fast, inexpensive models for classification or triage). The actual model selected is available in <code>response.model</code>.</p>
+<p>For code-based graph topologies, <strong>Semantic Kernel</strong> and <strong>LangGraph</strong> both integrate with the Foundry Responses API, enabling different graph nodes to invoke different models, tools, or rule engines. A cost-efficient multi-model pattern uses a small model (e.g., <code>gpt-4.1-mini</code>) for intent classification and routing, then a larger frontier model only for tasks requiring deep reasoning or generation.</p>
+<p><strong>Hybrid LLM + rules engine</strong> patterns combine deterministic guards with LLM calls: keyword or regex checks before the LLM call block off-topic or prohibited queries; schema or business rule validation after the LLM call ensures outputs conform to downstream system requirements. The declarative <strong>Workflows API</strong> (<code>2025-11-15-preview</code>) supports visual composition of model steps, tool calls, and branching logic in the Foundry portal for teams who prefer a configuration-driven approach.</p>
+</div>
+
+<div class="facts">
+<h4>Key facts</h4>
+<ul>
+  <li><strong>Model Router</strong>: single deployment endpoint; auto-selects the optimal model per turn; no routing code in the application.</li>
+  <li>Model Router routing modes: <strong>Quality</strong> (frontier), <strong>Balanced</strong> (mixed), <strong>Cost</strong> (fast, cheap).</li>
+  <li>The selected model is returned in <code>response.model</code> — useful for cost attribution and debugging.</li>
+  <li>Model Router integrates with agents: assign a model router deployment as the agent's model; the router picks cheaper models for simple turns.</li>
+  <li>Semantic Kernel and LangGraph integrate with the Foundry Responses API for graph-based multi-model orchestration.</li>
+  <li>Hybrid pattern: deterministic guard (keyword/regex/schema) before LLM call → LLM generation → output validation against business rules.</li>
+  <li><strong>Workflows API</strong> (<code>2025-11-15-preview</code>): declarative multi-agent and multi-model orchestration in the Foundry portal.</li>
+</ul>
+</div>
+
+<div class="code"><pre><code class="lang-python">import os
+from openai import AzureOpenAI
+
+client = AzureOpenAI(
+    azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
+    api_key=os.environ["AZURE_OPENAI_KEY"],
+    api_version="2025-01-01-preview",
+)
+
+def smart_complete(user_message: str) -&gt; str:
+    """Single call to model-router deployment; it auto-selects the best model."""
+    response = client.chat.completions.create(
+        model="model-router",                    # model router deployment name
+        messages=[{"role": "user", "content": user_message}],
+    )
+    print(f"Routed to: {response.model}")        # reveals which model was chosen
+    return response.choices[0].message.content
+
+# Hybrid: keyword guard + LLM generation
+BLOCKED = {"competitor", "lawsuit"}
+def safe_complete(user_message: str) -&gt; str:
+    if any(kw in user_message.lower() for kw in BLOCKED):
+        return "I cannot assist with that topic."
+    return smart_complete(user_message)</code></pre></div>
+
+<div class="callout tip"><b>Tip:</b> When using Model Router with agents, assign the model router deployment as the agent's model. The router will automatically select cheaper models for greeting turns and frontier models for complex reasoning or tool-calling chains — reducing cost without changing code.</div>
+
+<div class="tips">
+<h4>Exam tips &amp; gotchas</h4>
+<ul>
+  <li>Model Router requires no routing code in the application — the routing decision is made server-side by the Foundry service.</li>
+  <li>Know the three routing modes: Quality, Balanced, Cost — and which scenarios each targets.</li>
+  <li><code>response.model</code> returns the <em>actual</em> model selected by the router — useful for cost attribution dashboards.</li>
+  <li>Hybrid LLM + rules: apply guards <em>before</em> the LLM call (reduce unnecessary compute) and <em>after</em> (validate output correctness).</li>
+</ul>
+</div>
+
+<div class="practice">
+<h4>Practice</h4>
+<details class="q"><summary><b>Q1.</b> A developer wants to reduce inference costs by automatically using cheaper models for simple classification turns and frontier models for complex reasoning — without writing routing logic. What Foundry feature enables this?</summary>
+<div class="answer"><b>Answer:</b> Model Router. <em>Why:</em> Model Router is a deployable Foundry model that selects the optimal underlying LLM per turn based on complexity, cost, and capability. The application calls a single deployment endpoint; all routing decisions are made server-side.</div></details>
+<details class="q"><summary><b>Q2.</b> An application uses the Model Router deployment and needs to log which underlying model was selected for cost attribution. Where is this information available?</summary>
+<div class="answer"><b>Answer:</b> In <code>response.model</code> of the API response. <em>Why:</em> The Model Router returns the name of the actual underlying model selected in the <code>model</code> field of the response object. Log this value for per-turn cost attribution.</div></details>
+<details class="q"><summary><b>Q3.</b> A customer service application must never send LLM calls for messages containing competitor names (a compliance rule). How should this be implemented in a hybrid LLM + rules pattern?</summary>
+<div class="answer"><b>Answer:</b> Add a keyword/regex guard <em>before</em> the LLM call. If any blocked term is detected, return a canned response immediately without invoking the model. <em>Why:</em> Deterministic pre-LLM guards eliminate unnecessary compute costs and ensure compliance rules are enforced before any model invocation, regardless of how the model might respond.</div></details>
+</div>
+
+<div class="learn-more"><b>Learn more</b>
+<ul>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/model-router">Model Router concepts</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/model-router">How to use Model Router</a></li>
+  <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/use-model-router-with-agents">Use Model Router with agents</a></li>
+</ul></div>
+</section>
+
+</section><!-- end sg-2-3 -->
+
+</section><!-- end domain2 -->

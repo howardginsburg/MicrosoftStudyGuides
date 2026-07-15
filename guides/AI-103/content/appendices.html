@@ -1,0 +1,144 @@
+<section class="domain appendices" id="appendix" data-domain="9">
+  <h1 id="d9">Appendices — Quick Reference &amp; Cheat Sheets</h1>
+  <p class="domain-intro">Fast-recall material for the final days before the exam. Skim these until the distinctions between similar Azure AI services are automatic.</p>
+
+  <section class="skillgroup" id="apx-models">
+    <h2 id="g-9-1">A. Model selection quick-reference</h2>
+    <table class="cmp">
+      <thead><tr><th>Model type</th><th>Best for</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td><b>Large language model (LLM)</b></td><td>Complex reasoning, broad knowledge, long context, high-quality generation</td><td>Higher latency and cost per token</td></tr>
+        <tr><td><b>Small language model (SLM)</b></td><td>Low-latency, high-volume, cost-sensitive, or edge/on-device tasks</td><td>Less capable on hard reasoning</td></tr>
+        <tr><td><b>Reasoning model</b></td><td>Multi-step problem solving, planning, math/code with deliberate "thinking"</td><td>Slower, more tokens spent reasoning</td></tr>
+        <tr><td><b>Multimodal model</b></td><td>Inputs that mix text with images (or audio) — captioning, visual Q&amp;A</td><td>Larger, pricier than text-only</td></tr>
+        <tr><td><b>Embedding model</b></td><td>Vectorizing text for vector/hybrid search and RAG grounding</td><td>Not a generator — pair with an LLM</td></tr>
+        <tr><td><b>Image / video model</b></td><td>Generating or editing images and video from prompts and reference media</td><td>Content-safety and provenance apply</td></tr>
+        <tr><td><b>Foundry Tool / AI service</b></td><td>Prebuilt skills: speech, translation, document/content understanding, search</td><td>Less flexible than a raw model</td></tr>
+      </tbody>
+    </table>
+    <div class="callout key"><b>Decider:</b> Need a prebuilt capability (speech, OCR, translation)? → a <b>Foundry Tool / AI service</b>. Need to search your own data? → an <b>embedding model + Azure AI Search</b>. Everything else is a size/quality trade-off between <b>SLM</b> and <b>LLM</b> (or a <b>reasoning</b> model for hard multi-step work).</div>
+  </section>
+
+  <section class="skillgroup" id="apx-deploy">
+    <h2 id="g-9-2">B. Deployment options quick-reference</h2>
+    <table class="cmp">
+      <thead><tr><th></th><th>Standard</th><th>Global / DataZone</th><th>Provisioned (PTU)</th><th>Managed compute</th></tr></thead>
+      <tbody>
+        <tr><td><b>Billing</b></td><td>Per token</td><td>Per token</td><td>Reserved throughput units</td><td>Per hour of VM/SKU</td></tr>
+        <tr><td><b>Capacity</b></td><td>Shared, regional</td><td>Shared, broad routing</td><td>Dedicated, reserved</td><td>Dedicated instances you size</td></tr>
+        <tr><td><b>Latency</b></td><td>Variable</td><td>Variable, best availability</td><td>Predictable</td><td>Depends on your SKU</td></tr>
+        <tr><td><b>Best for</b></td><td>Dev / variable load</td><td>Production with elastic load</td><td>Steady high-volume production</td><td>Open / custom models not offered serverless</td></tr>
+        <tr><td><b>Data residency</b></td><td>Region</td><td>Choose global vs data-zone</td><td>Region</td><td>Region</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><b>Tip:</b> Choose <b>provisioned (PTU)</b> when you need predictable latency and cost at steady high volume; choose <b>pay-per-token</b> (standard/global) for spiky or exploratory workloads; choose <b>managed compute</b> only when a model isn't available as a serverless deployment.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-which">
+    <h2 id="g-9-3">C. Which grounding / extraction service?</h2>
+    <table class="cmp">
+      <thead><tr><th>Service</th><th>Use it for</th><th>Signature output</th></tr></thead>
+      <tbody>
+        <tr><td><b>Azure AI Search</b></td><td>Indexing your corpus and retrieving relevant chunks (keyword + vector + semantic) for RAG</td><td>Ranked search results / grounding data</td></tr>
+        <tr><td><b>Azure AI Document Intelligence</b></td><td>Structured extraction from forms/documents — OCR, layout, tables, key-value fields</td><td>Structured JSON of fields &amp; tables</td></tr>
+        <tr><td><b>Azure AI Content Understanding</b></td><td>Turning any modality (doc, image, audio, video) into clean structured or markdown output via analyzers</td><td>Analyzer results (JSON / markdown)</td></tr>
+        <tr><td><b>Foundry Agent Service</b></td><td>Orchestrating a model with tools, memory (threads), and knowledge sources</td><td>Agent responses + tool calls</td></tr>
+        <tr><td><b>Azure AI Content Safety</b></td><td>Screening prompts and outputs (text &amp; images) for harmful content and prompt-injection</td><td>Category + severity verdicts</td></tr>
+      </tbody>
+    </table>
+    <div class="callout key"><b>Decider:</b> Retrieval over many docs → <b>AI Search</b>. Pull fields from a form → <b>Document Intelligence</b>. Normalize mixed media into grounding data → <b>Content Understanding</b>. Orchestrate tools + memory → <b>Agent Service</b>.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-agenttools">
+    <h2 id="g-9-4">D. Agent tools cheat-sheet</h2>
+    <table class="cmp">
+      <thead><tr><th>Tool</th><th>What it adds</th><th>Typical use</th></tr></thead>
+      <tbody>
+        <tr><td><b>Function calling</b></td><td>Model emits a structured call to your code</td><td>Business logic, live data, actions</td></tr>
+        <tr><td><b>Knowledge / file search</b></td><td>Grounds answers on uploaded or indexed content</td><td>RAG over documents</td></tr>
+        <tr><td><b>Azure AI Search tool</b></td><td>Retrieval from an existing search index</td><td>Enterprise RAG at scale</td></tr>
+        <tr><td><b>OpenAPI tool</b></td><td>Calls a REST API described by an OpenAPI spec</td><td>Integrating external services</td></tr>
+        <tr><td><b>Code interpreter</b></td><td>Runs code in a sandbox</td><td>Data analysis, file transforms</td></tr>
+        <tr><td><b>Connected agents</b></td><td>Delegates a sub-task to another agent</td><td>Multi-agent orchestration</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><b>Tip:</b> Threads carry conversation memory across turns; tool schemas (name + JSON parameter definitions) tell the model when and how to call each tool.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-rai">
+    <h2 id="g-9-5">E. Responsible AI &amp; safety layers</h2>
+    <table class="cmp">
+      <thead><tr><th>Layer</th><th>Controls</th><th>Where</th></tr></thead>
+      <tbody>
+        <tr><td><b>Content filters</b></td><td>Hate, sexual, violence, self-harm categories at severity thresholds; prompt shields for jailbreak/indirect injection; protected-material detection</td><td>Azure AI Content Safety / model deployment filters</td></tr>
+        <tr><td><b>Evaluators</b></td><td>Groundedness, relevance, coherence, fluency, similarity, and risk/safety scores</td><td>Foundry evaluations (SDK &amp; portal)</td></tr>
+        <tr><td><b>Auditing</b></td><td>Trace logging, provenance metadata, approval workflows for sensitive actions</td><td>Tracing + Azure Monitor</td></tr>
+        <tr><td><b>Agent oversight</b></td><td>Human-in-the-loop approval, constraints, and tool-access restrictions</td><td>Agent configuration</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><b>Gotcha:</b> Content filtering covers <b>both</b> the input prompt and the generated output. Indirect prompt injection can hide instructions inside retrieved documents or text embedded in images — prompt shields and grounding hygiene mitigate it.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-sec">
+    <h2 id="g-9-6">F. Security cheat-sheet</h2>
+    <table class="cmp">
+      <thead><tr><th>Control</th><th>What it does</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td><b>Managed identity</b></td><td>Gives the app/agent an Entra identity — no secrets in code</td><td>Eliminates leaked API keys</td></tr>
+        <tr><td><b>Keyless auth (Entra ID)</b></td><td>Access via Entra tokens + RBAC instead of API keys</td><td>Rotatable, auditable, least-privilege</td></tr>
+        <tr><td><b>Private endpoints</b></td><td>Reaches the service over a private network address</td><td>Keeps traffic off the public internet</td></tr>
+        <tr><td><b>RBAC role policies</b></td><td>Grants only the roles each principal needs</td><td>Blast-radius reduction</td></tr>
+      </tbody>
+    </table>
+    <div class="callout key"><b>Decider:</b> When a question offers "API key in config" vs "managed identity + RBAC," the secure/best-practice answer is almost always <b>managed identity (keyless)</b>.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-rapid">
+    <h2 id="g-9-7">G. "Which one when?" rapid-fire</h2>
+    <div class="facts"><h4>Snap decisions</h4>
+      <ul>
+        <li><b>Need up-to-date answers grounded on your data?</b> → RAG with Azure AI Search (don't fine-tune just for knowledge).</li>
+        <li><b>Need the model to take an action or call a system?</b> → function calling / OpenAPI tool in an agent.</li>
+        <li><b>Combine keyword precision with semantic recall?</b> → hybrid search, then semantic reranking.</li>
+        <li><b>Extract fixed fields from invoices/forms?</b> → Document Intelligence.</li>
+        <li><b>Normalize PDFs, images, audio, video into grounding data?</b> → Content Understanding analyzers.</li>
+        <li><b>Predictable latency at steady high volume?</b> → provisioned (PTU) deployment.</li>
+        <li><b>Reduce hallucinations you can measure?</b> → groundedness evaluator + stronger retrieval.</li>
+        <li><b>Voice agent?</b> → Speech to text in, LLM reasoning, text to speech out (speech translation for other languages).</li>
+        <li><b>Block harmful prompts and outputs?</b> → content filters + prompt shields on the deployment.</li>
+        <li><b>No secrets in code?</b> → managed identity + Entra RBAC (keyless).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="skillgroup" id="apx-glossary">
+    <h2 id="g-9-8">H. Glossary</h2>
+    <div class="facts"><h4>Key terms</h4>
+      <ul>
+        <li><b>Azure AI Foundry</b> — the platform (portal + SDK) for building, deploying, and managing AI apps and agents; organized into a Foundry resource with projects.</li>
+        <li><b>Foundry project</b> — a workspace that owns model deployments, connections, agents, and evaluations.</li>
+        <li><b>Foundry Agent Service</b> — managed service that runs agents (model + instructions + tools + threads).</li>
+        <li><b>Thread</b> — the stateful conversation an agent uses to remember prior turns.</li>
+        <li><b>Tool schema</b> — the name + JSON parameter definition that tells a model how to call a function/tool.</li>
+        <li><b>RAG</b> — retrieval-augmented generation: retrieve relevant context and add it to the prompt before generating.</li>
+        <li><b>Embedding</b> — a numeric vector representing text/media meaning, used for vector search.</li>
+        <li><b>Hybrid search</b> — combining keyword (BM25) and vector search, often fused with RRF and re-ranked.</li>
+        <li><b>Semantic ranker</b> — a re-ranking step that reorders top results by deeper relevance.</li>
+        <li><b>Skillset</b> — an Azure AI Search enrichment pipeline (OCR, splitting, embedding, custom skills).</li>
+        <li><b>Integrated vectorization</b> — generating embeddings inside the indexing pipeline automatically.</li>
+        <li><b>Content Understanding analyzer</b> — a configured extractor that turns a modality into structured/markdown output.</li>
+        <li><b>PTU</b> — provisioned throughput units: reserved capacity for predictable latency and cost.</li>
+        <li><b>TPM</b> — tokens per minute, the rate-limit/quota unit for pay-per-token deployments.</li>
+        <li><b>Prompt shield</b> — a filter that detects jailbreak and indirect prompt-injection attempts.</li>
+        <li><b>Groundedness</b> — an evaluator measuring whether an answer is supported by the provided context.</li>
+        <li><b>Managed identity</b> — an Entra identity for a resource so it can authenticate without stored secrets.</li>
+      </ul>
+    </div>
+    <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/ai-foundry/">Azure AI Foundry documentation</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ai-103">Official AI-103 study guide (Skills Measured)</a></li>
+      </ul>
+    </div>
+  </section>
+</section>

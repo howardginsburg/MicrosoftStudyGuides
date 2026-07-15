@@ -1,7 +1,23 @@
 {
   "generated": "2026-07-14",
-  "count": 1,
+  "count": 2,
   "guides": [
+    {
+      "exam": "AI-103",
+      "title": "Developing AI Apps and Agents on Azure",
+      "description": "Plan, build, and operate generative AI and agentic solutions on Microsoft Foundry — models, RAG, agents, vision, speech, text analysis, and information extraction.",
+      "weights": {
+        "Plan and manage an Azure AI solution": "25–30%",
+        "Implement generative AI and agentic solutions": "30–35%",
+        "Implement computer vision solutions": "10–15%",
+        "Implement text analysis solutions": "10–15%",
+        "Implement information extraction solutions": "10–15%"
+      },
+      "official_url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/ai-103",
+      "status": "complete",
+      "last_refreshed": "2026-07-14",
+      "file": "AI-103.html"
+    },
     {
       "exam": "DP-600",
       "title": "Implementing Analytics Solutions Using Microsoft Fabric",
