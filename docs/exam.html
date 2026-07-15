@@ -132,7 +132,10 @@
   // ---------- start screen ----------
   function renderStart(){
     var exams = CATALOG.exams || [];
-    var examOpts = exams.map(function(e){ return "<option value='"+esc(e.file)+"'>"+esc(e.exam)+" — "+esc(e.title)+" ("+e.total+" Q)</option>"; }).join("");
+    var examOpts = exams.map(function(e){
+      var sel = (BANK && e.exam===BANK.exam) ? " selected" : "";
+      return "<option value='"+esc(e.file)+"'"+sel+">"+esc(e.exam)+" — "+esc(e.title)+" ("+e.total+" Q)</option>";
+    }).join("");
     var domains = (BANK.domains||[]).map(function(d){
       return "<label><input type='checkbox' class='dchk' value='"+d.domain+"' checked> "+
         "<span>D"+d.domain+" &middot; "+esc(d.title)+" <span class='muted'>("+d.count+" Q)</span></span></label>";
@@ -175,7 +178,12 @@
       b.onclick=function(){ app.querySelectorAll("[data-len]").forEach(function(x){x.classList.remove("sel");}); b.classList.add("sel"); len=parseInt(b.getAttribute("data-len"),10); };
     });
     var examSel = document.getElementById("examSel");
-    if(examSel){ examSel.onchange=function(){ startLoad(examSel.value); }; }
+    if(examSel){ examSel.onchange=function(){
+      var opt=examSel.options[examSel.selectedIndex];
+      var code=opt?opt.textContent.split(" ")[0]:"";
+      try{ history.replaceState(null,"","exam.html?exam="+encodeURIComponent(code)); }catch(e){}
+      startLoad(examSel.value);
+    }; }
 
     document.getElementById("startBtn").onclick=function(){
       var doms = Array.prototype.map.call(app.querySelectorAll(".dchk:checked"),function(c){return parseInt(c.value,10);});
@@ -437,10 +445,16 @@
     app.innerHTML="<div class='error'>Couldn&rsquo;t load the practice exam data. "+
       "If you opened this file directly, run it from a local server or view it on GitHub&nbsp;Pages.<br><small>"+esc(err.message)+"</small></div>";
   }
+  function wantedExam(){
+    try { return (new URLSearchParams(location.search).get("exam")||"").toUpperCase(); }
+    catch(e){ return ""; }
+  }
   loadCatalog().then(function(cat){
     CATALOG=cat;
     if(!cat.exams||!cat.exams.length){ app.innerHTML="<div class='error'>No practice exams are published yet.</div>"; return; }
-    startLoad(cat.exams[0].file);
+    var want=wantedExam();
+    var match=want && cat.exams.filter(function(e){ return (e.exam||"").toUpperCase()===want; })[0];
+    startLoad((match||cat.exams[0]).file);
   }).catch(fail);
 })();
 </script>

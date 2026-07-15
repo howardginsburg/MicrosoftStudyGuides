@@ -101,7 +101,7 @@
     var refreshed = g.last_refreshed ? ("Updated "+esc(g.last_refreshed)) : "";
     var exam = EXAMS[g.exam];
     var examLink = exam
-      ? "<a class='go-exam' href='exam.html'>Practice exam ("+exam.total+" Q) &rarr;</a>" : "";
+      ? "<a class='go-exam' href='exam.html?exam="+encodeURIComponent(g.exam)+"'>Practice exam ("+exam.total+" Q) &rarr;</a>" : "";
     return ""+
       "<div class='card'>"+
         "<span class='code'>"+esc(g.exam)+"</span>"+
