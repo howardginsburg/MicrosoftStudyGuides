@@ -1,0 +1,95 @@
+{
+  "generated": "2026-07-15",
+  "count": 3,
+  "exams": [
+    {
+      "exam": "AI-103",
+      "title": "Developing AI Apps and Agents on Azure",
+      "file": "AI-103.json",
+      "total": 106,
+      "domains": [
+        {
+          "domain": 1,
+          "title": "Plan and manage an Azure AI solution",
+          "count": 30
+        },
+        {
+          "domain": 2,
+          "title": "Implement generative AI and agentic solutions",
+          "count": 34
+        },
+        {
+          "domain": 3,
+          "title": "Implement computer vision solutions",
+          "count": 14
+        },
+        {
+          "domain": 4,
+          "title": "Implement text analysis solutions",
+          "count": 14
+        },
+        {
+          "domain": 5,
+          "title": "Implement information extraction solutions",
+          "count": 14
+        }
+      ]
+    },
+    {
+      "exam": "DP-420",
+      "title": "Designing and Implementing Cloud-Native Applications Using Microsoft Azure Cosmos DB",
+      "file": "DP-420.json",
+      "total": 128,
+      "domains": [
+        {
+          "domain": 1,
+          "title": "Design and implement data models",
+          "count": 48
+        },
+        {
+          "domain": 2,
+          "title": "Design and implement data distribution",
+          "count": 10
+        },
+        {
+          "domain": 3,
+          "title": "Integrate an Azure Cosmos DB solution",
+          "count": 10
+        },
+        {
+          "domain": 4,
+          "title": "Optimize an Azure Cosmos DB solution",
+          "count": 24
+        },
+        {
+          "domain": 5,
+          "title": "Maintain an Azure Cosmos DB solution",
+          "count": 36
+        }
+      ]
+    },
+    {
+      "exam": "DP-600",
+      "title": "Implementing Analytics Solutions Using Microsoft Fabric",
+      "file": "DP-600.json",
+      "total": 120,
+      "domains": [
+        {
+          "domain": 1,
+          "title": "Maintain a data analytics solution",
+          "count": 32
+        },
+        {
+          "domain": 2,
+          "title": "Prepare data",
+          "count": 56
+        },
+        {
+          "domain": 3,
+          "title": "Implement and manage semantic models",
+          "count": 32
+        }
+      ]
+    }
+  ]
+}

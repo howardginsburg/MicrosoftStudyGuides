@@ -1,0 +1,440 @@
+{
+  "domain": 1,
+  "domain_title": "Plan and manage an Azure AI solution",
+  "questions": [
+    {
+      "id": "q1-001",
+      "objective": "1.1.1",
+      "type": "single",
+      "stem": "A team must run inference entirely on a battery-powered sensor with 2 GB of RAM and no network connection. Which model category fits this constraint?",
+      "options": [
+        {"id": "a", "text": "A frontier reasoning model such as an o-series model"},
+        {"id": "b", "text": "A small language model such as Phi-4 Mini Instruct"},
+        {"id": "c", "text": "A large multimodal model such as GPT-4o"},
+        {"id": "d", "text": "A Model Router deployment"}
+      ],
+      "answer": "b",
+      "explanation": "Small language models are designed for on-device and edge scenarios with tight compute budgets, making an SLM the only realistic fit for severely constrained hardware. Frontier, multimodal, and router deployments all assume far more compute or connectivity than the sensor provides.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry", "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview"]
+    },
+    {
+      "id": "q1-002",
+      "objective": "1.1.1",
+      "type": "single",
+      "stem": "An application serves users whose query complexity varies widely and wants cheaper models used automatically for simple prompts, all behind one endpoint with no client-side selection logic. What should be deployed?",
+      "options": [
+        {"id": "a", "text": "A separate deployment for every candidate model, chosen in code"},
+        {"id": "b", "text": "An embedding model deployment"},
+        {"id": "c", "text": "A Model Router deployment"},
+        {"id": "d", "text": "A managed compute endpoint for a fine-tuned model"}
+      ],
+      "answer": "c",
+      "explanation": "A Model Router deployment dispatches each incoming prompt at runtime to the most cost-effective capable model and exposes a single Chat Completions endpoint, so the caller does not implement routing logic. The other options require manual selection or serve a single fixed model.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview", "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"]
+    },
+    {
+      "id": "q1-003",
+      "objective": "1.1.1",
+      "type": "multi",
+      "stem": "Which model choices are appropriate for edge or resource-constrained deployments? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Phi-4 Mini Instruct"},
+        {"id": "b", "text": "Meta Llama 1B/3B"},
+        {"id": "c", "text": "An o-series extended-reasoning model for the same edge device"},
+        {"id": "d", "text": "A frontier GPT-5 model running on the device itself"}
+      ],
+      "answer": ["a", "b"],
+      "explanation": "Phi-4 Mini Instruct and small Llama variants are built for on-device and edge inference. o-series reasoning models trade latency for depth and are not edge-optimized, and a frontier GPT-5 model cannot run within tight on-device compute budgets.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry", "https://learn.microsoft.com/en-us/azure/ai-foundry/foundry-models/concepts/models-sold-directly-by-azure"]
+    },
+    {
+      "id": "q1-004",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "A legal team needs an agent that answers questions grounded in contract libraries stored in the organization's internal SharePoint. Which Foundry capability should be configured?",
+      "options": [
+        {"id": "a", "text": "Grounding with Bing Search"},
+        {"id": "b", "text": "The SharePoint tool in the Foundry Agent Service"},
+        {"id": "c", "text": "The Fabric Data Agent"},
+        {"id": "d", "text": "The Code Interpreter tool"}
+      ],
+      "answer": "b",
+      "explanation": "The SharePoint tool connects an agent directly to organizational SharePoint document libraries without a manual export or indexing step. Bing grounding targets live public web content, the Fabric Data Agent targets structured Fabric data, and Code Interpreter runs sandboxed code.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry", "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture"]
+    },
+    {
+      "id": "q1-005",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "A solution must classify user-uploaded images for harmful content before they are stored. Which Foundry capability provides this?",
+      "options": [
+        {"id": "a", "text": "Azure AI Search"},
+        {"id": "b", "text": "Azure AI Content Safety"},
+        {"id": "c", "text": "Foundry IQ"},
+        {"id": "d", "text": "The Responses API"}
+      ],
+      "answer": "b",
+      "explanation": "Azure AI Content Safety performs real-time harm classification for both text and images and can act as a guardrail on the input path. Search and Foundry IQ handle retrieval, and the Responses API orchestrates agent runs rather than moderating content.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture", "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"]
+    },
+    {
+      "id": "q1-006",
+      "objective": "1.1.2",
+      "type": "tf",
+      "stem": "Azure AI Search is the underlying retrieval engine for both Foundry IQ and the agent File Search tool.",
+      "answer": "true",
+      "explanation": "Azure AI Search provides the indexing and retrieval layer that both Foundry IQ and the File Search tool are built on, which is why index configuration decisions affect both features.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search", "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture"]
+    },
+    {
+      "id": "q1-007",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "After a RAG deployment, keyword searches return accurate results but semantic, intent-based queries perform poorly. What is the most likely cause?",
+      "options": [
+        {"id": "a", "text": "The index uses too many replicas"},
+        {"id": "b", "text": "The query-time vectorizer does not use the same embedding model as the indexing skillset"},
+        {"id": "c", "text": "Semantic ranking is scoring too many candidates"},
+        {"id": "d", "text": "The indexer schedule interval is too short"}
+      ],
+      "answer": "b",
+      "explanation": "Cosine similarity is only meaningful when the query and document vectors come from the same embedding model with matching dimensions. A vectorizer that differs from the indexing model silently degrades vector relevance while leaving keyword matching intact.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization", "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search"]
+    },
+    {
+      "id": "q1-008",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "A team wants the highest combined recall and precision for a RAG retrieval step without manually choosing keyword or vector mode per query. Which configuration should they use?",
+      "options": [
+        {"id": "a", "text": "BM25 keyword search only"},
+        {"id": "b", "text": "Pure vector search only"},
+        {"id": "c", "text": "Hybrid search with Reciprocal Rank Fusion plus semantic ranking"},
+        {"id": "d", "text": "Exhaustive KNN over the full index for every query"}
+      ],
+      "answer": "c",
+      "explanation": "Hybrid search fuses BM25 and vector results with Reciprocal Rank Fusion, and semantic ranking then re-scores the top candidates by intent, giving the best overall relevance for most RAG workloads. Single-mode retrieval trades off recall or precision.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search", "https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization"]
+    },
+    {
+      "id": "q1-009",
+      "objective": "1.1.3",
+      "type": "multi",
+      "stem": "Which statements about integrated vectorization in Azure AI Search are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "It requires an indexer and cannot be used with the direct push API"},
+        {"id": "b", "text": "A skillset splits text and calls an embedding model during indexing"},
+        {"id": "c", "text": "The query-time vectorizer must use the same embedding model as the skillset"},
+        {"id": "d", "text": "It removes the need for any vector field in the index schema"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Integrated vectorization runs inside an indexer pipeline where a skillset chunks and embeds content, and the query-time vectorizer must match the indexing embedding model. A vector field is still required in the index schema to store the embeddings.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization", "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search"]
+    },
+    {
+      "id": "q1-010",
+      "objective": "1.1.4",
+      "type": "single",
+      "stem": "An agent must recall a user's stated dietary preferences across separate chat sessions that occur days apart. Which capability meets this need?",
+      "options": [
+        {"id": "a", "text": "In-thread short-term memory"},
+        {"id": "b", "text": "The Foundry Agent Service Memory Store"},
+        {"id": "c", "text": "A larger model context window"},
+        {"id": "d", "text": "The Code Interpreter tool"}
+      ],
+      "answer": "b",
+      "explanation": "Short-term memory lives only within an active thread and is lost when the session ends. The Memory Store persists extracted knowledge such as preferences across sessions and is consulted at the start of each new run.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry", "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture"]
+    },
+    {
+      "id": "q1-011",
+      "objective": "1.1.4",
+      "type": "single",
+      "stem": "A single agent run must search two separate Azure AI Search indexes. Because only one File Search tool instance is allowed per run, how should the solution be designed?",
+      "options": [
+        {"id": "a", "text": "Attach two File Search tools to the same agent"},
+        {"id": "b", "text": "Merge both indexes into one at query time inside the model prompt"},
+        {"id": "c", "text": "Use connected agents, giving each sub-agent its own File Search tool pointed at one index"},
+        {"id": "d", "text": "Increase the run timeout so both indexes can be scanned sequentially"}
+      ],
+      "answer": "c",
+      "explanation": "The run limit of one instance per knowledge tool type means a single agent cannot hold two File Search tools. Connected agents let a primary agent delegate to sub-agents, each carrying its own File Search tool bound to a different index.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture", "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"]
+    },
+    {
+      "id": "q1-012",
+      "objective": "1.1.4",
+      "type": "single",
+      "scenario_id": "s-rag",
+      "stem": "In the Northwind Health scenario, compliance requires that every agent conversation thread stay inside the company's own subscription. Which agent setup satisfies this?",
+      "options": [
+        {"id": "a", "text": "Basic Agent Setup with Microsoft-managed storage"},
+        {"id": "b", "text": "Standard Agent Setup with a customer-owned Azure Cosmos DB for NoSQL thread store"},
+        {"id": "c", "text": "Any setup, because thread data is always customer-owned"},
+        {"id": "d", "text": "A larger context window so history is never persisted"}
+      ],
+      "answer": "b",
+      "explanation": "Standard Agent Setup routes conversation thread data through customer-provided resources such as Azure Cosmos DB for NoSQL, keeping it inside the customer subscription. Basic Agent Setup stores threads in Microsoft-managed multitenant storage.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture", "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"]
+    },
+    {
+      "id": "q1-013",
+      "objective": "1.2.1",
+      "type": "single",
+      "stem": "A solution needs customer-managed keys (CMK) for a Foundry resource. Which Key Vault requirement must be satisfied?",
+      "options": [
+        {"id": "a", "text": "The Key Vault must be in any region as long as it is in the same subscription"},
+        {"id": "b", "text": "The Key Vault must be in the same region and have soft delete and purge protection enabled"},
+        {"id": "c", "text": "The Key Vault must disable soft delete to allow key rotation"},
+        {"id": "d", "text": "A separate Key Vault is required for every project in the resource"}
+      ],
+      "answer": "b",
+      "explanation": "CMK requires a Key Vault in the same region as the Foundry resource with soft delete and purge protection enabled, and the resource's managed identity granted Key Vault Crypto User. One Key Vault covers secrets for all projects in the resource.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture", "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"]
+    },
+    {
+      "id": "q1-014",
+      "objective": "1.2.1",
+      "type": "single",
+      "stem": "A developer should be able to build and manage agents inside one Foundry project but must not gain data-plane access to sibling projects in the same resource. What assignment achieves this?",
+      "options": [
+        {"id": "a", "text": "Foundry User at the resource scope"},
+        {"id": "b", "text": "Foundry Account Owner at the resource scope"},
+        {"id": "c", "text": "Foundry User at the individual project scope"},
+        {"id": "d", "text": "Owner at the subscription scope"}
+      ],
+      "answer": "c",
+      "explanation": "A role assignment scoped to a single project restricts data-plane access to that project only. Assigning at the resource scope would apply across all projects, and broader roles grant far more than needed.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture", "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"]
+    },
+    {
+      "id": "q1-015",
+      "objective": "1.2.2",
+      "type": "single",
+      "stem": "A retailer generates one million product descriptions overnight with no real-time latency requirement and wants the lowest per-token cost. Which deployment type fits?",
+      "options": [
+        {"id": "a", "text": "Global Standard"},
+        {"id": "b", "text": "Global Provisioned (PTU)"},
+        {"id": "c", "text": "Global Batch"},
+        {"id": "d", "text": "Regional Standard"}
+      ],
+      "answer": "c",
+      "explanation": "Global Batch offers the cheapest per-token rate for asynchronous bulk processing and has no latency SLA, which suits an overnight, non-interactive workload. The standard and provisioned options are priced for interactive traffic.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview", "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput"]
+    },
+    {
+      "id": "q1-016",
+      "objective": "1.2.2",
+      "type": "single",
+      "stem": "An enterprise wants to run a partner model such as Llama with pay-per-token pricing and no dedicated compute to manage. Which deployment option is correct?",
+      "options": [
+        {"id": "a", "text": "Managed Compute"},
+        {"id": "b", "text": "Serverless API"},
+        {"id": "c", "text": "Global Provisioned (PTU)"},
+        {"id": "d", "text": "Regional Provisioned (PTU)"}
+      ],
+      "answer": "b",
+      "explanation": "Serverless API provides pay-as-you-go access to partner and community models without provisioning compute. Managed Compute requires a dedicated endpoint, and provisioned options reserve capacity billed hourly.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview", "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput"]
+    },
+    {
+      "id": "q1-017",
+      "objective": "1.2.2",
+      "type": "multi",
+      "stem": "Which limitations apply to Serverless API deployments compared with Standard or Foundry-resource deployments? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "They do not support keyless Entra ID authentication"},
+        {"id": "b", "text": "They do not support custom content filters"},
+        {"id": "c", "text": "They require a provisioned PTU reservation"},
+        {"id": "d", "text": "They operate under third-party terms for partner and community models"}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Serverless API endpoints use API keys rather than keyless Entra ID auth, do not support custom content filters, and serve partner or community models under third-party terms. They are pay-per-token and do not require a PTU reservation.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview", "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput"]
+    },
+    {
+      "id": "q1-018",
+      "objective": "1.2.3",
+      "type": "single",
+      "stem": "An agent classifies documents into fixed categories and must return the same category for the same input every time. Which generation setting best supports this?",
+      "options": [
+        {"id": "a", "text": "temperature set to 1.0"},
+        {"id": "b", "text": "temperature set to 0.0"},
+        {"id": "c", "text": "A higher max_tokens value"},
+        {"id": "d", "text": "top_p set to 0.5 while also raising temperature"}
+      ],
+      "answer": "b",
+      "explanation": "A temperature of 0.0 maximizes determinism, which is ideal for classification and structured-output tasks. Raising temperature or combining it with top_p adjustments increases variability.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview", "https://learn.microsoft.com/en-us/azure/ai-services/openai/reference"]
+    },
+    {
+      "id": "q1-019",
+      "objective": "1.2.3",
+      "type": "tf",
+      "stem": "When both an agent and its underlying model deployment have a guardrail assigned, the agent's guardrail fully overrides the model's guardrail for all traffic through that agent.",
+      "answer": "true",
+      "explanation": "Foundry gives the agent-level guardrail complete precedence over the model deployment's guardrail, so any scanning of tool calls and responses must be configured in the agent's guardrail.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview", "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview"]
+    },
+    {
+      "id": "q1-020",
+      "objective": "1.2.4",
+      "type": "single",
+      "stem": "A team wants to deploy Foundry agents from GitHub Actions without storing any long-lived Azure credentials in repository secrets. Which authentication approach should they use?",
+      "options": [
+        {"id": "a", "text": "A stored client secret referenced by the workflow"},
+        {"id": "b", "text": "OpenID Connect with a federated Entra credential"},
+        {"id": "c", "text": "A personal access token for the deploying developer"},
+        {"id": "d", "text": "A shared account key committed to the repository"}
+      ],
+      "answer": "b",
+      "explanation": "OpenID Connect lets the pipeline exchange a short-lived GitHub-issued token for an Azure access token through a federated credential, so no long-lived secret is stored. Stored secrets and keys are exactly what OIDC is meant to eliminate.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture", "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"]
+    },
+    {
+      "id": "q1-021",
+      "objective": "1.2.4",
+      "type": "single",
+      "stem": "A pipeline fails to deploy a hosted agent container. The pipeline identity holds only the Foundry User role on the project. What additional role is most likely required?",
+      "options": [
+        {"id": "a", "text": "Cognitive Services Usages Reader at subscription scope"},
+        {"id": "b", "text": "Contributor on the project (plus ACR roles for image push)"},
+        {"id": "c", "text": "Reader on the resource group"},
+        {"id": "d", "text": "Key Vault Crypto User on the connected Key Vault"}
+      ],
+      "answer": "b",
+      "explanation": "Foundry User grants data-plane access for running agents but not the management-plane rights to create or update hosted agent versions. Code deployment mode also needs Contributor on the project plus container registry roles.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture", "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-foundry"]
+    },
+    {
+      "id": "q1-022",
+      "objective": "1.3.1",
+      "type": "single",
+      "stem": "A subscription holds approved PTU quota in a region, but creating a new provisioned deployment fails. What is the most likely explanation?",
+      "options": [
+        {"id": "a", "text": "The subscription exceeded its number of pay-per-token deployments"},
+        {"id": "b", "text": "Physical capacity for that deployment type is unavailable even though quota exists"},
+        {"id": "c", "text": "TPM and PTU quotas share a single pool that is now empty"},
+        {"id": "d", "text": "Model Router must be enabled before any provisioned deployment"}
+      ],
+      "answer": "b",
+      "explanation": "PTU quota is a policy limit with no charge; actual compute capacity must also be available at deployment time. Having quota does not guarantee that capacity exists, so a deployment can still fail.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput", "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/quota"]
+    },
+    {
+      "id": "q1-023",
+      "objective": "1.3.1",
+      "type": "tf",
+      "stem": "Once PTU quota is approved for a region, a provisioned deployment in that region is guaranteed to succeed.",
+      "answer": "false",
+      "explanation": "PTU quota is only a policy limit. The physical compute capacity must also be available at deployment time, so approved quota does not guarantee that a provisioned deployment will succeed.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput", "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/quota"]
+    },
+    {
+      "id": "q1-024",
+      "objective": "1.3.2",
+      "type": "single",
+      "stem": "A team wants to confirm that production agent responses are grounded in retrieved context without consuming generative model token quota. Which evaluator fits?",
+      "options": [
+        {"id": "a", "text": "The standard Groundedness evaluator"},
+        {"id": "b", "text": "Groundedness Pro, which uses Azure AI Content Safety"},
+        {"id": "c", "text": "The Fluency evaluator"},
+        {"id": "d", "text": "The Relevance evaluator"}
+      ],
+      "answer": "b",
+      "explanation": "Groundedness Pro returns a binary pass/fail using Azure AI Content Safety and requires no generative model deployment, so it does not consume model token quota. The standard Groundedness evaluator uses a judge model, and Fluency and Relevance measure different properties.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators", "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard"]
+    },
+    {
+      "id": "q1-025",
+      "objective": "1.3.3",
+      "type": "single",
+      "stem": "During integrated vectorization, an indexer run reports partial success and some documents are missing. What is the most likely cause?",
+      "options": [
+        {"id": "a", "text": "The search service ran out of replicas"},
+        {"id": "b", "text": "The Azure OpenAI embedding model quota was exhausted, so embedding calls for some documents failed"},
+        {"id": "c", "text": "Semantic ranking was disabled on the index"},
+        {"id": "d", "text": "The schedule interval was set below five minutes"}
+      ],
+      "answer": "b",
+      "explanation": "Integrated vectorization calls the embedding API for each chunk. When embedding quota is exhausted mid-run, those calls fail and the affected documents are skipped while others succeed, producing a partial-success result.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization", "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search"]
+    },
+    {
+      "id": "q1-026",
+      "objective": "1.3.4",
+      "type": "single",
+      "stem": "An Azure Function with a system-assigned managed identity must call a Foundry endpoint without storing any API key. Which approach is recommended?",
+      "options": [
+        {"id": "a", "text": "Read an API key from application settings"},
+        {"id": "b", "text": "Use DefaultAzureCredential, which uses the managed identity when running in Azure"},
+        {"id": "c", "text": "Embed a shared secret in the deployment package"},
+        {"id": "d", "text": "Use a Serverless API deployment with a stored key"}
+      ],
+      "answer": "b",
+      "explanation": "DefaultAzureCredential automatically uses the managed identity when the code runs in Azure and a developer credential locally, so no key is stored in code or configuration. The other options all rely on stored secrets.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture", "https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential"]
+    },
+    {
+      "id": "q1-027",
+      "objective": "1.4.1",
+      "type": "single",
+      "scenario_id": "s-govern",
+      "stem": "In the Adatum scenario, an agent must block harmful content returned by a web search tool before that content reaches the model. Which guardrail intervention point must be configured?",
+      "options": [
+        {"id": "a", "text": "User Input"},
+        {"id": "b", "text": "Output"},
+        {"id": "c", "text": "Tool Response"},
+        {"id": "d", "text": "Model auto-update"}
+      ],
+      "answer": "c",
+      "explanation": "The Tool Response intervention point scans content returned from a tool to the agent before the agent processes it, blocking poisoned or harmful retrieved content. User Input scans the prompt and Output scans the final completion.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview", "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators"]
+    },
+    {
+      "id": "q1-028",
+      "objective": "1.4.1",
+      "type": "multi",
+      "stem": "Which guardrail intervention points apply only to agents and not to standalone model deployments? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Tool Call"},
+        {"id": "b", "text": "Tool Response"},
+        {"id": "c", "text": "User Input"},
+        {"id": "d", "text": "Output"}
+      ],
+      "answer": ["a", "b"],
+      "explanation": "Tool Call and Tool Response are agent-only intervention points that scan the agent's planned actions and the content returned to it. User Input and Output apply to both model deployments and agents.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview", "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators"]
+    },
+    {
+      "id": "q1-029",
+      "objective": "1.4.2",
+      "type": "multi",
+      "stem": "Which evaluators require a reference ground-truth answer to produce a meaningful score? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "ROUGE"},
+        {"id": "b", "text": "BLEU"},
+        {"id": "c", "text": "Groundedness Pro"},
+        {"id": "d", "text": "Coherence"}
+      ],
+      "answer": ["a", "b"],
+      "explanation": "Textual similarity evaluators such as ROUGE and BLEU measure n-gram overlap against a reference answer, so they require ground truth. Groundedness Pro judges against retrieved context and Coherence judges internal logical flow, neither of which needs a reference.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators", "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"]
+    },
+    {
+      "id": "q1-030",
+      "objective": "1.4.3",
+      "type": "single",
+      "stem": "A regulated solution must produce an audit trail linking each agent output to the exact tool calls and retrieved documents that produced it. Which foundation provides this in Foundry?",
+      "options": [
+        {"id": "a", "text": "OpenTelemetry traces stored in the connected Application Insights instance"},
+        {"id": "b", "text": "Increasing the model context window"},
+        {"id": "c", "text": "A larger PTU reservation"},
+        {"id": "d", "text": "Enabling Model Router"}
+      ],
+      "answer": "a",
+      "explanation": "Foundry tracing is built on OpenTelemetry, storing spans in the connected Application Insights instance. Each trace links an output to the tool calls, retrieved documents, and model invocations that produced it, providing lineage for auditing.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/trace-agent-concept", "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/trace-agents"]
+    }
+  ]
+}

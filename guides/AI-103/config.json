@@ -13,6 +13,7 @@
     "Implement text analysis solutions": "10–15%",
     "Implement information extraction solutions": "10–15%"
   },
+  "passing_note": "AI-103 passes at 700/1000. Microsoft does not publish the raw-score mapping, so the readiness estimate below is unofficial and based on percent correct only.",
   "status": "complete",
   "last_refreshed": "2026-07-14",
   "fragments": ["frontmatter.html", "domain1.html", "domain2.html", "domain3.html", "domain4.html", "domain5.html", "appendices.html"],

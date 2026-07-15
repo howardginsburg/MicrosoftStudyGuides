@@ -1,0 +1,4021 @@
+{
+  "exam": "DP-600",
+  "title": "Implementing Analytics Solutions Using Microsoft Fabric",
+  "generated": "2026-07-15",
+  "weights": {
+    "Maintain a data analytics solution": "25–30%",
+    "Prepare data": "45–50%",
+    "Implement and manage semantic models": "25–30%"
+  },
+  "passing_note": "DP-600 passes at 700/1000. Microsoft does not publish the raw-score mapping, so the readiness estimate below is unofficial and based on percent correct only.",
+  "readiness_bands": [
+    {
+      "min": 75,
+      "label": "Ready",
+      "note": "Consistently strong — you're tracking well above the pass line."
+    },
+    {
+      "min": 60,
+      "label": "Approaching",
+      "note": "Close — shore up weaker domains before test day."
+    },
+    {
+      "min": 0,
+      "label": "Not ready yet",
+      "note": "Keep studying — focus on your lowest-scoring domains."
+    }
+  ],
+  "scenarios": {
+    "s-medallion": "A retail analytics team is building a lakehouse that follows the medallion pattern. Raw point-of-sale extracts land as CSV in a Bronze layer, PySpark notebooks clean and conform them into Silver Delta tables, and business-ready star-schema tables are published to a Gold layer that feeds a Direct Lake semantic model. The team must keep ingestion incremental, enforce data quality, and expose the Gold tables to report authors in other workspaces.",
+    "s-perf": "An enterprise BI group owns a widely used semantic model whose reports have become slow since the underlying fact table grew to tens of gigabytes. Analysts complain that several visuals take many seconds to render, some measures recompute the same prior-period value repeatedly, and refreshes are taking too long. The group has been asked to diagnose the bottlenecks and tune both the model and the report without changing the business logic the reports expose.",
+    "s-governance": "A central platform team is rolling out governed self-service analytics across several business units. They must promote content through Development, Test, and Production workspaces, keep every stage pointed at the correct data source, put semantic models and reports under source control, and make sure only approved data assets are surfaced as trusted to consumers. Different business units require different connection strings in each stage.",
+    "s-dataprep": "A data engineering team is standing up a new subject area and must decide, step by step, how to prepare each dataset. Some sources are on-premises relational databases, some are large Parquet extracts already in a data lake, and some are high-volume streaming events. The team needs to pick the right ingestion mechanism, the right store, and the right transformation tool for each case while minimizing data duplication and refresh cost."
+  },
+  "domains": [
+    {
+      "domain": 1,
+      "title": "Maintain a data analytics solution",
+      "count": 32
+    },
+    {
+      "domain": 2,
+      "title": "Prepare data",
+      "count": 56
+    },
+    {
+      "domain": 3,
+      "title": "Implement and manage semantic models",
+      "count": 32
+    }
+  ],
+  "questions": [
+    {
+      "id": "q1-001",
+      "objective": "1.1.1",
+      "type": "single",
+      "stem": "An analyst must be able to create and run notebooks and pipelines against a Lakehouse and schedule refreshes, but must not be allowed to delete the workspace or change who belongs to it. Which workspace role is the least-privilege fit?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Viewer"
+        },
+        {
+          "id": "b",
+          "text": "Contributor"
+        },
+        {
+          "id": "c",
+          "text": "Member"
+        },
+        {
+          "id": "d",
+          "text": "Admin"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Contributor can create, run, and delete items and read Lakehouse data through OneLake APIs and Spark, which covers notebooks, pipelines, and scheduled refresh. It cannot manage workspace membership or delete the workspace, so it is the smallest role that satisfies the requirement. Member and Admin grant more than is needed.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/roles-workspaces",
+        "https://learn.microsoft.com/en-us/fabric/security/permission-model"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-002",
+      "objective": "1.1.1",
+      "type": "single",
+      "stem": "A user connects to a Lakehouse SQL analytics endpoint from a client tool. They hold only the Viewer workspace role and no OneLake data-access role. What can they do with the data?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Read data through T-SQL over the endpoint, but not through Spark or OneLake APIs"
+        },
+        {
+          "id": "b",
+          "text": "Nothing — Viewers cannot query data at all"
+        },
+        {
+          "id": "c",
+          "text": "Read and write data through both T-SQL and Spark"
+        },
+        {
+          "id": "d",
+          "text": "Read data only through Spark notebooks"
+        }
+      ],
+      "answer": "a",
+      "explanation": "All four workspace roles, including Viewer, can connect to the SQL analytics endpoint and read data with T-SQL (ReadData over the TDS endpoint). Reading through OneLake APIs or Spark (ReadAll) requires Contributor or higher, so a Viewer is limited to T-SQL reads.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/roles-workspaces",
+        "https://learn.microsoft.com/en-us/fabric/security/permission-model"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-003",
+      "objective": "1.1.1",
+      "type": "multi",
+      "stem": "Which actions require at least the Member workspace role (that is, a Contributor cannot perform them)? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Adding a Contributor to the workspace"
+        },
+        {
+          "id": "b",
+          "text": "Editing OneLake security roles"
+        },
+        {
+          "id": "c",
+          "text": "Creating and running a notebook"
+        },
+        {
+          "id": "d",
+          "text": "Reading Lakehouse data through Spark"
+        },
+        {
+          "id": "e",
+          "text": "Adding another Member to the workspace"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "e"
+      ],
+      "explanation": "Adding Members or lower roles and editing OneLake security roles require Admin or Member; a Contributor can do neither, and adding Members is limited to Admin and Member. Creating and running items and reading data through Spark are Contributor-level capabilities.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/roles-workspaces",
+        "https://learn.microsoft.com/en-us/fabric/security/permission-model"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-004",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "A business analyst in a different workspace needs to build brand-new reports on a published semantic model, but must not be able to edit the model or browse the source workspace. What is the minimum permission to grant on the model?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Read"
+        },
+        {
+          "id": "b",
+          "text": "Write"
+        },
+        {
+          "id": "c",
+          "text": "Build"
+        },
+        {
+          "id": "d",
+          "text": "Reshare"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Build permission lets a consumer author new reports and dashboards on a shared semantic model without exposing the source workspace or allowing model edits. Read alone cannot create new reports, and Write would allow modifying the model definition.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-share",
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-permissions"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-005",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "A user is granted item-level Read on a report backed by a Direct Lake semantic model. The report opens but every visual is empty. What is the most likely missing permission?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Build permission on the report"
+        },
+        {
+          "id": "b",
+          "text": "A OneLake data-access permission on the underlying Delta tables"
+        },
+        {
+          "id": "c",
+          "text": "Reshare permission on the semantic model"
+        },
+        {
+          "id": "d",
+          "text": "The Admin workspace role"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Direct Lake reads Parquet directly from OneLake, so item-level Read on the report does not by itself grant storage access. The user also needs a OneLake data-access role that allows Read on the relevant Delta tables for data to appear.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/security/permission-model",
+        "https://learn.microsoft.com/en-us/fabric/onelake/security/data-access-control-model"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-006",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "An administrator removes a user's item-level share on a semantic model, but the user still has the Viewer workspace role. Can the user still reach the model?",
+      "options": [
+        {
+          "id": "a",
+          "text": "No — removing the share always fully revokes access"
+        },
+        {
+          "id": "b",
+          "text": "Yes — the Viewer workspace role still grants access, so both layers must be removed"
+        },
+        {
+          "id": "c",
+          "text": "No — Viewer roles cannot see semantic models"
+        },
+        {
+          "id": "d",
+          "text": "Yes, but only for 30 days after the share is removed"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Workspace roles and item permissions are evaluated independently. A Viewer can already see every item in the workspace, so revoking only the item-level share leaves workspace access intact. Both the item permission and the workspace role must be removed to block access.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/security/permission-model",
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-share"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-007",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "A report must show each salesperson only the rows for their own territory, driven automatically by who signs in, using a single role definition for everyone. Which DAX function underpins this dynamic pattern?",
+      "options": [
+        {
+          "id": "a",
+          "text": "SELECTEDVALUE()"
+        },
+        {
+          "id": "b",
+          "text": "USERPRINCIPALNAME()"
+        },
+        {
+          "id": "c",
+          "text": "ALLEXCEPT()"
+        },
+        {
+          "id": "d",
+          "text": "LOOKUPVALUE()"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Dynamic row-level security relies on USERPRINCIPALNAME() to return the signed-in user's UPN, which is matched against a mapping column so one role adapts to every user. A static filter would hard-code a value and require a role per person.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/enterprise/service-admin-rls",
+        "https://learn.microsoft.com/en-us/dax/userprincipalname-function-dax"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-008",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "A finance model contains a Salary column that must be entirely invisible to most consumers — absent from field lists, visuals, and metadata, as though it does not exist. Which mechanism achieves this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Row-level security with a DAX filter on Salary"
+        },
+        {
+          "id": "b",
+          "text": "A workspace Viewer role"
+        },
+        {
+          "id": "c",
+          "text": "Object-level security hiding the column via columnPermissions set to none"
+        },
+        {
+          "id": "d",
+          "text": "A sensitivity label set to Highly Confidential"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Object-level security (column-level security) hides both the data and the column's metadata name by setting metadataPermission to none, so the column appears not to exist. Row-level security only filters rows and would leave the column name visible in field lists.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/analysis-services/tabular-models/object-level-security",
+        "https://learn.microsoft.com/en-us/power-bi/enterprise/service-admin-object-level-security"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-009",
+      "objective": "1.1.3",
+      "type": "tf",
+      "stem": "A developer holding the Contributor workspace role opens a report that has row-level security defined. The RLS filters are applied to that developer's session.",
+      "answer": "false",
+      "explanation": "Row-level security applies only to Viewer-level consumers. Admin, Member, and Contributor workspace roles bypass RLS and always see all rows. To simulate a filtered experience the developer must use View as / Test as role.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/enterprise/service-admin-rls",
+        "https://learn.microsoft.com/en-us/fabric/security/permission-model"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-010",
+      "objective": "1.1.3",
+      "type": "multi",
+      "stem": "Which statements about OneLake data-access roles for a Lakehouse are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "The model is deny-by-default; users get no data access unless a role grants it"
+        },
+        {
+          "id": "b",
+          "text": "A role can scope permissions to specific folders or tables"
+        },
+        {
+          "id": "c",
+          "text": "A OneLake role can strip Write access away from a workspace Contributor"
+        },
+        {
+          "id": "d",
+          "text": "Only Admin and Member can manage OneLake security roles"
+        },
+        {
+          "id": "e",
+          "text": "Viewers automatically get Read on every folder without any role"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "OneLake roles are deny-by-default, can be scoped to folders/tables, and are manageable only by Admin and Member. Workspace Admin, Member, and Contributor retain Write to OneLake and cannot be restricted below it, and Viewers have no OneLake access unless a role explicitly grants it.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/onelake/security/data-access-control-model",
+        "https://learn.microsoft.com/en-us/fabric/security/permission-model"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-011",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "A Lakehouse owner wants to give an external team Read access to only the folder SalesData/2024/, while keeping every other folder inaccessible to them. Which approach is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Grant the team the Viewer workspace role"
+        },
+        {
+          "id": "b",
+          "text": "Create a custom OneLake data-access role with Read scoped to that folder"
+        },
+        {
+          "id": "c",
+          "text": "Define row-level security on the Lakehouse tables"
+        },
+        {
+          "id": "d",
+          "text": "Apply object-level security to the folder"
+        }
+      ],
+      "answer": "b",
+      "explanation": "OneLake data-access roles support folder-level scoping. A custom role granting Read only on SalesData/2024/ leaves other folders inaccessible. Workspace roles are not folder-scoped, and RLS/OLS operate inside the semantic model, not at the storage folder level.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/onelake/security/data-access-control-model",
+        "https://learn.microsoft.com/en-us/fabric/security/permission-model"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-012",
+      "objective": "1.1.4",
+      "type": "single",
+      "stem": "A sensitivity label was created in the Microsoft Purview portal, but it does not appear for users in Fabric. What is the most likely reason?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The label was never published to users through a label policy"
+        },
+        {
+          "id": "b",
+          "text": "The label needs a Fabric capacity to appear"
+        },
+        {
+          "id": "c",
+          "text": "Labels only appear after a workspace is connected to Git"
+        },
+        {
+          "id": "d",
+          "text": "The label must be applied by an administrator before others can see it"
+        }
+      ],
+      "answer": "a",
+      "explanation": "A label surfaces in Fabric only after it is both created and published to users through a label policy in Purview. Simply creating the label, or listing users as allowed, is not enough on its own.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/governance/information-protection",
+        "https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-overview"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-013",
+      "objective": "1.1.4",
+      "type": "single",
+      "stem": "A compliance team requires that no Power BI report can be saved without a sensitivity label. Which labeling capability enforces this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Default labeling"
+        },
+        {
+          "id": "b",
+          "text": "Downstream inheritance"
+        },
+        {
+          "id": "c",
+          "text": "Mandatory labeling"
+        },
+        {
+          "id": "d",
+          "text": "Programmatic labeling"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Mandatory labeling blocks saving a Power BI item until a label is chosen and is fully supported for Power BI items. Default labeling only pre-selects a label, and inheritance and programmatic labeling do not force a user to choose one before saving.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/governance/information-protection",
+        "https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-overview"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-014",
+      "objective": "1.1.4",
+      "type": "multi",
+      "stem": "From which export paths does a Power BI item's sensitivity label travel with the exported content? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Export to Excel"
+        },
+        {
+          "id": "b",
+          "text": "Export to PDF"
+        },
+        {
+          "id": "c",
+          "text": "Export to CSV"
+        },
+        {
+          "id": "d",
+          "text": "Download the .pbix file"
+        },
+        {
+          "id": "e",
+          "text": "Export to a plain TXT file"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "Structured export paths — Excel, PDF, PowerPoint, and .pbix download — carry the label with the file. CSV and TXT exports strip the label because they are unstructured formats.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-overview",
+        "https://learn.microsoft.com/en-us/fabric/governance/information-protection"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-015",
+      "objective": "1.1.5",
+      "type": "single",
+      "stem": "A data engineer wants to mark a Lakehouse as the single authoritative source for all customer reference data across the organization. Which endorsement level fits, and who can apply it?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Promoted, applied by anyone with Write permission"
+        },
+        {
+          "id": "b",
+          "text": "Certified, applied by any workspace Member"
+        },
+        {
+          "id": "c",
+          "text": "Master data, applied by an admin-designated user"
+        },
+        {
+          "id": "d",
+          "text": "Master data, applied by anyone with Write permission"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Master data marks a core, single-source-of-truth reference asset and can only be granted by an admin-designated user; the item must contain data, which a Lakehouse does. Promoted is self-serve but does not convey authoritative single-source status.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/governance/endorsement-overview",
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/endorsement-promote-certify"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-016",
+      "objective": "1.1.5",
+      "type": "single",
+      "stem": "A report author with Write permission on a semantic model wants to signal that it is production-ready, without contacting an administrator. Which endorsement can they apply themselves?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Certified"
+        },
+        {
+          "id": "b",
+          "text": "Master data"
+        },
+        {
+          "id": "c",
+          "text": "Promoted"
+        },
+        {
+          "id": "d",
+          "text": "None — all endorsements require an administrator"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Promoted is the only tier a user can self-apply, and it requires just Write permission on the item. Certified and Master data must be granted by an admin-designated approver.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/endorsement-promote-certify",
+        "https://learn.microsoft.com/en-us/fabric/governance/endorsement-overview"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-017",
+      "objective": "1.1.5",
+      "type": "multi",
+      "stem": "Which statements about Fabric endorsement are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Power BI dashboards cannot be endorsed at any level"
+        },
+        {
+          "id": "b",
+          "text": "Master data can only be applied to items that contain data"
+        },
+        {
+          "id": "c",
+          "text": "Any user can request Certified status even though only approvers can grant it"
+        },
+        {
+          "id": "d",
+          "text": "Certified is available by default without any admin enablement"
+        },
+        {
+          "id": "e",
+          "text": "Promoted requires a Fabric administrator to grant it"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Dashboards cannot be endorsed, Master data applies only to data-bearing items, and anyone can request Certified while only approvers grant it. Certified must first be enabled by an administrator, and Promoted is self-applied with Write permission — no admin needed.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/governance/endorsement-overview",
+        "https://learn.microsoft.com/en-us/fabric/admin/endorsement-certification-enable"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-018",
+      "objective": "1.2.1",
+      "type": "single",
+      "stem": "A team wants to connect their Fabric workspace to a self-hosted, on-premises Azure DevOps Server for version control. Is this supported?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Yes, with a standard-mode gateway installed"
+        },
+        {
+          "id": "b",
+          "text": "No — only cloud-hosted Git providers such as Azure DevOps and GitHub are supported"
+        },
+        {
+          "id": "c",
+          "text": "Yes, once the relevant tenant switch is enabled"
+        },
+        {
+          "id": "d",
+          "text": "Yes, but only for semantic models"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Fabric Git integration supports only cloud-hosted providers — Azure DevOps (cloud), GitHub, and GitHub Enterprise (cloud). On-premises Azure DevOps Server is explicitly not supported, regardless of gateways or tenant switches.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/intro-to-git-integration",
+        "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/git-get-started"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-019",
+      "objective": "1.2.1",
+      "type": "single",
+      "stem": "In Fabric Git integration, how are semantic models and reports stored so they can be reviewed as text diffs in pull requests?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Semantic models as binary .pbix; reports as PNG snapshots"
+        },
+        {
+          "id": "b",
+          "text": "Semantic models as TMDL; reports as PBIR"
+        },
+        {
+          "id": "c",
+          "text": "Both as a single compressed .pbip archive"
+        },
+        {
+          "id": "d",
+          "text": "Both as CSV exports"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Semantic models are serialized as TMDL (a YAML-like text format) and reports as PBIR (JSON). Both are plain text and diffable line by line, which enables proper code review of analytics assets.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/source-code-format",
+        "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/intro-to-git-integration"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-020",
+      "objective": "1.2.1",
+      "type": "tf",
+      "stem": "A workspace Contributor can connect the workspace to a GitHub repository without any Admin involvement.",
+      "answer": "false",
+      "explanation": "Only a workspace Admin can connect or disconnect a workspace from Git. A Contributor cannot perform the connection; at most an Admin can enable a setting that lets Contributors and Members switch branches after the connection exists.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/git-get-started",
+        "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/intro-to-git-integration"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-021",
+      "objective": "1.2.2",
+      "type": "single",
+      "stem": "A developer edits a measure directly in the TMDL file of a .pbip project in VS Code while Power BI Desktop has that project open. When will Desktop reflect the change?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Immediately, as soon as the file is saved"
+        },
+        {
+          "id": "b",
+          "text": "After Power BI Desktop is restarted"
+        },
+        {
+          "id": "c",
+          "text": "Only after the project is published to the service"
+        },
+        {
+          "id": "d",
+          "text": "Never — external edits are ignored"
+        }
+      ],
+      "answer": "b",
+      "explanation": "External edits to TMDL or PBIR files are picked up only after restarting Power BI Desktop, not in real time. The change is valid and preserved; Desktop simply needs to reload the project to recognize it.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-overview",
+        "https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-dataset"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-022",
+      "objective": "1.2.2",
+      "type": "single",
+      "stem": "A team wants several report authors to develop separate reports that all use one shared semantic model definition inside a single .pbip project, without duplicating the model. How does .pbip support this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Each report needs its own copy of the SemanticModel folder"
+        },
+        {
+          "id": "b",
+          "text": "Multiple Report folders can point at a single shared SemanticModel folder"
+        },
+        {
+          "id": "c",
+          "text": "The model must be published first, then linked by URL"
+        },
+        {
+          "id": "d",
+          "text": ".pbip does not allow more than one report per project"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A .pbip project can contain multiple report (PBIR) folders that all reference one SemanticModel (TMDL) folder, so authors work independently against a single shared model definition without copying it.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-report",
+        "https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-dataset"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-023",
+      "objective": "1.2.3",
+      "type": "single",
+      "scenario_id": "s-governance",
+      "stem": "The platform team needs the Production stage of a deployment pipeline to connect to a different Azure SQL Database than Development uses. Which rule type accomplishes this, and where is it configured?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A parameter rule configured on the Development stage"
+        },
+        {
+          "id": "b",
+          "text": "A data source rule configured on the Production (target) stage"
+        },
+        {
+          "id": "c",
+          "text": "A default lakehouse rule configured on the Test stage"
+        },
+        {
+          "id": "d",
+          "text": "A data source rule configured on the Development stage"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Data source rules override connection strings during promotion and are always defined on the target stage — here Production. The source types must match (Azure SQL to Azure SQL). Rules cannot be created on the Development stage.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/create-rules",
+        "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-024",
+      "objective": "1.2.3",
+      "type": "multi",
+      "stem": "Which statements about Fabric deployment pipelines are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "A pipeline can have between 2 and 10 stages"
+        },
+        {
+          "id": "b",
+          "text": "Deployment copies content rather than moving it"
+        },
+        {
+          "id": "c",
+          "text": "Deployment rules can be created on the Development stage"
+        },
+        {
+          "id": "d",
+          "text": "A Fabric capacity is required; shared capacity is not supported"
+        },
+        {
+          "id": "e",
+          "text": "Items added after workspace assignment are auto-paired on the next deployment"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "Pipelines allow 2 to 10 stages, copy (not move) content, and require a Fabric capacity. Rules cannot be created on Development, and items added after assignment are not auto-paired — they need an explicit deployment to create the pairing.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines",
+        "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/create-rules"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-025",
+      "objective": "1.2.3",
+      "type": "single",
+      "stem": "After deploying once to Test, a developer adds a new notebook to Development and deploys to Test again, but the notebook does not appear in Test. Why?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Notebooks are never supported in deployment pipelines"
+        },
+        {
+          "id": "b",
+          "text": "The notebook was added after workspace assignment and is not yet paired; it must be included in an explicit deployment"
+        },
+        {
+          "id": "c",
+          "text": "A data source rule blocked it"
+        },
+        {
+          "id": "d",
+          "text": "The Test stage is read-only"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Items added to a workspace after it was assigned to a pipeline are not automatically paired to the next stage. The developer must include the notebook in an explicit deployment to create the pairing for the first time.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/get-started-with-deployment-pipelines",
+        "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-026",
+      "objective": "1.2.3",
+      "type": "single",
+      "scenario_id": "s-governance",
+      "stem": "A Production data source rule references an Azure SQL source. A developer then changes the Development semantic model to use a completely different source type. What happens at the next deployment?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The rule silently adapts to the new source type"
+        },
+        {
+          "id": "b",
+          "text": "The deployment succeeds but the rule is skipped"
+        },
+        {
+          "id": "c",
+          "text": "The deployment fails because the rule can no longer be resolved"
+        },
+        {
+          "id": "d",
+          "text": "The rule is automatically deleted and deployment continues"
+        }
+      ],
+      "answer": "c",
+      "explanation": "If the data source a rule depends on is removed or changed to a different type in the source stage, the rule becomes invalid. Fabric validates rules before deploying and blocks the deployment with an error.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/create-rules",
+        "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-027",
+      "objective": "1.2.4",
+      "type": "single",
+      "stem": "Before making breaking changes to a shared semantic model, an engineer wants to know how many reports and dashboards depend on it and how heavily each is used. Which feature provides this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The workspace activity log"
+        },
+        {
+          "id": "b",
+          "text": "Semantic model impact analysis in lineage view"
+        },
+        {
+          "id": "c",
+          "text": "The OneLake catalog search"
+        },
+        {
+          "id": "d",
+          "text": "A deployment pipeline comparison"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Impact analysis, opened from the semantic model's lineage card, shows counts of downstream workspaces, reports, and dashboards plus 30-day usage metrics, and can notify affected workspace contacts. That is exactly what the engineer needs to prioritize communication.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-dataset-impact-analysis",
+        "https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-data-lineage"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-028",
+      "objective": "1.2.4",
+      "type": "single",
+      "stem": "A workspace Viewer wants to open lineage view to review data dependencies. Can they?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Yes — all workspace roles can use lineage view"
+        },
+        {
+          "id": "b",
+          "text": "No — lineage view requires at least the Contributor role"
+        },
+        {
+          "id": "c",
+          "text": "Yes, but only for their own items"
+        },
+        {
+          "id": "d",
+          "text": "No — lineage view requires the Admin role"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Lineage view requires at least a Contributor workspace role and a Power BI Pro license. Viewers are excluded from the feature.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-data-lineage",
+        "https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-dataset-impact-analysis"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-029",
+      "objective": "1.2.5",
+      "type": "single",
+      "stem": "A capacity administrator wants Tabular Editor to deploy schema changes to semantic models on a Premium capacity via the XMLA endpoint. What must be configured?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Set the XMLA endpoint to Read Write at the capacity level in the Admin portal"
+        },
+        {
+          "id": "b",
+          "text": "Enable the XMLA endpoint on each report individually"
+        },
+        {
+          "id": "c",
+          "text": "Install a standard-mode data gateway"
+        },
+        {
+          "id": "d",
+          "text": "Switch the workspace to shared capacity"
+        }
+      ],
+      "answer": "a",
+      "explanation": "The XMLA endpoint is read-only by default. Enabling Read Write at the capacity level in the Admin portal unlocks write operations for all tools connecting to workspaces on that capacity, including Tabular Editor.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-connect-tools",
+        "https://learn.microsoft.com/en-us/analysis-services/tmsl/tabular-model-scripting-language-tmsl-reference"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-030",
+      "objective": "1.2.5",
+      "type": "tf",
+      "stem": "The Az.AnalysisServices PowerShell module is the supported way to refresh a Power BI semantic model through the XMLA endpoint.",
+      "answer": "false",
+      "explanation": "Az.AnalysisServices targets Azure Analysis Services and is not supported for Power BI semantic models. The supported approach is the SqlServer PowerShell module with the powerbi:// connection string.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-connect-tools",
+        "https://learn.microsoft.com/en-us/analysis-services/tmsl/tabular-model-scripting-language-tmsl-reference"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-031",
+      "objective": "1.2.6",
+      "type": "single",
+      "stem": "An architect must ensure every report developer connects to the correct Azure SQL server and database, without distributing any credentials or predefining tables. Which file format fits best?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A .pbit template file"
+        },
+        {
+          "id": "b",
+          "text": "A .pbids data source file"
+        },
+        {
+          "id": "c",
+          "text": "A .pbix file"
+        },
+        {
+          "id": "d",
+          "text": "A .pbip project folder"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A .pbids file carries only the connection address (protocol, server, database) — no credentials and no schema. Authors open it, are prompted for credentials, and then choose their own tables, which standardizes the target without sharing secrets.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/desktop-data-sources",
+        "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-templates"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q1-032",
+      "objective": "1.2.6",
+      "type": "multi",
+      "stem": "Which statements correctly distinguish these reusable Power BI asset formats? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "A .pbit contains report structure and model schema but no data"
+        },
+        {
+          "id": "b",
+          "text": "A .pbids contains a connection address but no credentials or schema"
+        },
+        {
+          "id": "c",
+          "text": "Build permission on a shared semantic model is required to author new reports on it"
+        },
+        {
+          "id": "d",
+          "text": "A .pbids can define multiple data sources in one file"
+        },
+        {
+          "id": "e",
+          "text": "A .pbit already includes a cached copy of the data"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "A .pbit packages structure and schema with no data, a .pbids carries only a connection address, and Build permission is needed to author reports on a shared model. A .pbids supports only a single data source, and a .pbit contains no cached data.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-templates",
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-build-permissions"
+      ],
+      "domain": 1,
+      "domain_title": "Maintain a data analytics solution"
+    },
+    {
+      "id": "q2-001",
+      "objective": "2.1.1",
+      "type": "single",
+      "stem": "Several analysts must refresh reports via DirectQuery against an on-premises SQL Server at the same time. Which gateway type is required?",
+      "options": [
+        {
+          "id": "a",
+          "text": "On-premises data gateway (personal mode)"
+        },
+        {
+          "id": "b",
+          "text": "On-premises data gateway (standard mode)"
+        },
+        {
+          "id": "c",
+          "text": "A cloud connection with no gateway"
+        },
+        {
+          "id": "d",
+          "text": "A shareable cloud connection only"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Standard-mode gateway is multi-user and supports DirectQuery and live connections. Personal mode is single-user and supports only scheduled refresh, and a cloud connection cannot reach a private on-premises source.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-factory/how-to-access-on-premises-data",
+        "https://learn.microsoft.com/fabric/data-factory/data-source-management"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-002",
+      "objective": "2.1.1",
+      "type": "single",
+      "stem": "A new analyst needs to use an existing Azure SQL connection inside a Dataflow Gen2 without ever seeing the stored password. What makes this possible?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Marking the connection as shareable"
+        },
+        {
+          "id": "b",
+          "text": "Switching authentication to Basic"
+        },
+        {
+          "id": "c",
+          "text": "Installing a personal-mode gateway"
+        },
+        {
+          "id": "d",
+          "text": "Granting the analyst the Admin workspace role"
+        }
+      ],
+      "answer": "a",
+      "explanation": "A shareable connection lets workspace members reference it in their items while the underlying credentials stay hidden. The authentication method and workspace role do not, by themselves, hide stored secrets.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-factory/data-source-management",
+        "https://learn.microsoft.com/fabric/data-factory/how-to-access-on-premises-data"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-003",
+      "objective": "2.1.1",
+      "type": "multi",
+      "stem": "Which statements about Fabric gateways and connections are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Personal-mode gateway supports scheduled refresh but not DirectQuery"
+        },
+        {
+          "id": "b",
+          "text": "A VNet data gateway requires Premium or Fabric capacity"
+        },
+        {
+          "id": "c",
+          "text": "A cloud connection is used for publicly reachable sources such as Azure SQL"
+        },
+        {
+          "id": "d",
+          "text": "Standard-mode gateway is limited to a single user"
+        },
+        {
+          "id": "e",
+          "text": "A shareable connection exposes the stored password to members"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Personal mode is scheduled-refresh only, the VNet gateway requires Premium/Fabric capacity, and cloud connections serve publicly reachable sources. Standard mode is multi-user, and shareable connections deliberately hide credentials from members.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-factory/data-source-management",
+        "https://learn.microsoft.com/fabric/data-factory/how-to-access-on-premises-data"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-004",
+      "objective": "2.1.2",
+      "type": "single",
+      "stem": "A business analyst searches the OneLake catalog for a lakehouse another team owns but cannot find it. What is the most likely reason?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The catalog only indexes semantic models"
+        },
+        {
+          "id": "b",
+          "text": "The analyst lacks read access to that workspace, so the item is hidden"
+        },
+        {
+          "id": "c",
+          "text": "The lakehouse has not been endorsed"
+        },
+        {
+          "id": "d",
+          "text": "The catalog cannot search by item type"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The OneLake catalog shows only items the signed-in user can access at least at Viewer level. Items in workspaces the user cannot see are hidden regardless of endorsement or item type.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/governance/use-microsoft-purview-hub",
+        "https://learn.microsoft.com/fabric/real-time-intelligence/real-time-hub/real-time-hub-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-005",
+      "objective": "2.1.2",
+      "type": "single",
+      "stem": "Which Fabric experience provides a one-click connection from an Azure Event Hubs namespace into an Eventhouse KQL database?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The OneLake catalog"
+        },
+        {
+          "id": "b",
+          "text": "The Real-Time hub"
+        },
+        {
+          "id": "c",
+          "text": "The Admin portal"
+        },
+        {
+          "id": "d",
+          "text": "A deployment pipeline"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The Real-Time hub lists event producers such as Azure Event Hubs under Microsoft sources and offers guided one-click routing into Eventhouse, Eventstream, or Activator alerts. The OneLake catalog is a read-only discovery layer for stored items.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/real-time-intelligence/real-time-hub/real-time-hub-overview",
+        "https://learn.microsoft.com/fabric/governance/use-microsoft-purview-hub"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-006",
+      "objective": "2.1.2",
+      "type": "single",
+      "stem": "In the OneLake catalog, which endorsement can only be applied by a tenant-admin-designated certifier?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Promoted"
+        },
+        {
+          "id": "b",
+          "text": "Certified"
+        },
+        {
+          "id": "c",
+          "text": "Featured"
+        },
+        {
+          "id": "d",
+          "text": "Recommended"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Any workspace member can Promote an item, but only tenant-admin-designated certifiers can apply the Certified badge, which conveys organization-wide authority and ranks higher in search.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/governance/use-microsoft-purview-hub",
+        "https://learn.microsoft.com/fabric/real-time-intelligence/real-time-hub/real-time-hub-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-007",
+      "objective": "2.1.3",
+      "type": "single",
+      "scenario_id": "s-medallion",
+      "stem": "The team already has petabytes of Parquet in an ADLS Gen2 account and wants Fabric engines to query it from the Lakehouse without copying the data. Which mechanism should they use?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A pipeline Copy activity into the Lakehouse"
+        },
+        {
+          "id": "b",
+          "text": "A OneLake shortcut to the ADLS Gen2 location"
+        },
+        {
+          "id": "c",
+          "text": "COPY INTO a Warehouse table"
+        },
+        {
+          "id": "d",
+          "text": "A Dataflow Gen2 with a Lakehouse destination"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A shortcut is a zero-copy virtual reference; Spark, the SQL analytics endpoint, and OneLake all read the external files without duplicating them. Copy activity, COPY INTO, and Dataflows all physically move data into Fabric storage.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-engineering/lakehouse-shortcuts",
+        "https://learn.microsoft.com/fabric/data-factory/pipeline-copy-activity"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-008",
+      "objective": "2.1.3",
+      "type": "single",
+      "stem": "A pipeline must bulk-load 50 GB of Parquet from ADLS Gen2 directly into a Fabric Warehouse table with no transformation, as efficiently as possible. Which method is best?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A Dataflow Gen2 with per-row transforms"
+        },
+        {
+          "id": "b",
+          "text": "COPY INTO in T-SQL"
+        },
+        {
+          "id": "c",
+          "text": "A PySpark notebook writing row by row"
+        },
+        {
+          "id": "d",
+          "text": "Manual drag-and-drop upload"
+        }
+      ],
+      "answer": "b",
+      "explanation": "COPY INTO is a bulk-optimized T-SQL command that reads Parquet directly from ADLS Gen2 or OneLake into a Warehouse table in parallel with no per-row overhead. The other options add unnecessary transformation or per-row cost.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/ingest-data-copy",
+        "https://learn.microsoft.com/fabric/data-factory/pipeline-copy-activity"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-009",
+      "objective": "2.1.3",
+      "type": "multi",
+      "stem": "Which statements about Fabric ingestion mechanisms are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "COPY INTO is a Warehouse-only command, not available at the Lakehouse SQL analytics endpoint"
+        },
+        {
+          "id": "b",
+          "text": "Shortcuts are read-only references and cannot write back to the external source"
+        },
+        {
+          "id": "c",
+          "text": "Eventstream can update existing rows in place"
+        },
+        {
+          "id": "d",
+          "text": "Pipelines support incremental copy using a high-watermark pattern"
+        },
+        {
+          "id": "e",
+          "text": "Dataflows Gen2 cannot write to a Warehouse destination"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "COPY INTO targets only the Warehouse, shortcuts are read-only, and pipelines can do incremental high-watermark loads. Eventstream is append-only and cannot update rows, and Dataflows Gen2 can in fact write to a Warehouse destination.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/ingest-data-copy",
+        "https://learn.microsoft.com/fabric/data-engineering/lakehouse-shortcuts"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-010",
+      "objective": "2.1.3",
+      "type": "single",
+      "stem": "A recurring job must extract from an on-premises SQL Server, join the result with a Lakehouse Delta table, apply complex business logic, and write to another Lakehouse table. Which combination fits best?",
+      "options": [
+        {
+          "id": "a",
+          "text": "COPY INTO alone"
+        },
+        {
+          "id": "b",
+          "text": "A single Dataflow Gen2 with no scheduling"
+        },
+        {
+          "id": "c",
+          "text": "A pipeline (for the gateway extract and scheduling) that calls a PySpark notebook for the join and logic"
+        },
+        {
+          "id": "d",
+          "text": "A manual file upload each day"
+        }
+      ],
+      "answer": "c",
+      "explanation": "The pipeline provides gateway-connected extraction, scheduling, and retries, while a PySpark notebook handles the complex join and write logic that exceeds what COPY INTO or a simple Dataflow can express.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-factory/pipeline-copy-activity",
+        "https://learn.microsoft.com/fabric/data-engineering/lakehouse-shortcuts"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-011",
+      "objective": "2.1.4",
+      "type": "single",
+      "scenario_id": "s-dataprep",
+      "stem": "One dataset requires T-SQL MERGE to maintain a slowly changing dimension at analytical scale. Which Fabric store supports this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The Lakehouse SQL analytics endpoint"
+        },
+        {
+          "id": "b",
+          "text": "An Eventhouse KQL database"
+        },
+        {
+          "id": "c",
+          "text": "A Fabric Data Warehouse"
+        },
+        {
+          "id": "d",
+          "text": "A OneLake shortcut"
+        }
+      ],
+      "answer": "c",
+      "explanation": "MERGE is a DML operation that requires write access. The Fabric Data Warehouse supports full T-SQL DML including MERGE; the Lakehouse SQL analytics endpoint is read-only, and Eventhouse is append-optimized without SQL-style updates.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/get-started/decision-guide-data-store",
+        "https://learn.microsoft.com/fabric/data-warehouse/sql-analytics-endpoint"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-012",
+      "objective": "2.1.4",
+      "type": "single",
+      "stem": "A team ingests millions of IoT events per minute and needs KQL time-series analysis with sub-second freshness. Which store is the best fit?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Fabric Data Warehouse"
+        },
+        {
+          "id": "b",
+          "text": "SQL database in Fabric"
+        },
+        {
+          "id": "c",
+          "text": "Eventhouse (KQL database)"
+        },
+        {
+          "id": "d",
+          "text": "Lakehouse SQL analytics endpoint"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Eventhouse is purpose-built for high-throughput append-only streaming ingest and KQL time-series analysis with sub-second freshness. The Warehouse and SQL database are not optimized for sub-second streaming workloads.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/get-started/decision-guide-data-store",
+        "https://learn.microsoft.com/fabric/data-warehouse/sql-analytics-endpoint"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-013",
+      "objective": "2.1.4",
+      "type": "tf",
+      "stem": "Running an INSERT statement against the Lakehouse SQL analytics endpoint will succeed and write rows to the Delta table.",
+      "answer": "false",
+      "explanation": "The Lakehouse SQL analytics endpoint is read-only. INSERT, UPDATE, DELETE, and CREATE TABLE are rejected. To perform T-SQL DML you must use a Fabric Data Warehouse.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/sql-analytics-endpoint",
+        "https://learn.microsoft.com/fabric/get-started/decision-guide-data-store"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-014",
+      "objective": "2.1.4",
+      "type": "multi",
+      "stem": "Which capabilities are supported by the Fabric Data Warehouse but NOT by the Lakehouse SQL analytics endpoint? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "INSERT and UPDATE statements"
+        },
+        {
+          "id": "b",
+          "text": "CREATE TABLE via T-SQL"
+        },
+        {
+          "id": "c",
+          "text": "SELECT queries"
+        },
+        {
+          "id": "d",
+          "text": "MERGE statements"
+        },
+        {
+          "id": "e",
+          "text": "Creating views over Delta tables"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "Full DML — INSERT, UPDATE, MERGE — and CREATE TABLE are Warehouse-only. Both stores support SELECT and creating views, functions, and procedures; only the Warehouse permits data-modifying statements.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/sql-analytics-endpoint",
+        "https://learn.microsoft.com/fabric/get-started/decision-guide-data-store"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-015",
+      "objective": "2.1.5",
+      "type": "single",
+      "stem": "An engineer enables OneLake availability for an Eventhouse KQL table. What is the effect?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The table becomes writable from Spark"
+        },
+        {
+          "id": "b",
+          "text": "The table is mirrored to OneLake as Delta-Parquet and becomes readable by Spark and the SQL analytics endpoint"
+        },
+        {
+          "id": "c",
+          "text": "The table is deleted from the KQL database"
+        },
+        {
+          "id": "d",
+          "text": "The table is converted to an Import semantic model"
+        }
+      ],
+      "answer": "b",
+      "explanation": "OneLake availability mirrors the KQL table to OneLake as Delta-Parquet, so other Fabric engines can read it without data movement. It is a one-direction mirror; it does not make the Eventhouse writable from Spark.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/real-time-intelligence/one-lake-availability",
+        "https://learn.microsoft.com/power-bi/enterprise/directlake-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-016",
+      "objective": "2.1.5",
+      "type": "single",
+      "stem": "A Direct Lake semantic model suddenly returns slower query responses even though no model changes were made. What is the most likely cause?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The model was converted to Import mode"
+        },
+        {
+          "id": "b",
+          "text": "Queries fell back to DirectQuery because capacity Parquet limits were exceeded"
+        },
+        {
+          "id": "c",
+          "text": "The Delta tables were deleted"
+        },
+        {
+          "id": "d",
+          "text": "A sensitivity label was applied"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Direct Lake automatically falls back to DirectQuery when row-count or column-cardinality thresholds for the capacity are breached, producing slower per-query round-trips without any error. No mode change or data loss is involved.",
+      "refs": [
+        "https://learn.microsoft.com/power-bi/enterprise/directlake-overview",
+        "https://learn.microsoft.com/fabric/real-time-intelligence/one-lake-availability"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-017",
+      "objective": "2.1.5",
+      "type": "multi",
+      "stem": "Which statements about Direct Lake and OneLake are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Direct Lake reads Delta-Parquet files from OneLake rather than importing data into memory"
+        },
+        {
+          "id": "b",
+          "text": "A Direct Lake model needs a frame refresh to make newly written Delta data visible"
+        },
+        {
+          "id": "c",
+          "text": "Direct Lake is an ingestion tool that moves and transforms data"
+        },
+        {
+          "id": "d",
+          "text": "OneLake exposes an ADLS Gen2 DFS endpoint"
+        },
+        {
+          "id": "e",
+          "text": "Enabling OneLake availability makes an Eventhouse writable from external engines"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "Direct Lake reads OneLake Parquet directly, requires a frame refresh to advance its Delta checkpoint, and OneLake presents an ADLS Gen2 DFS endpoint. Direct Lake is a storage mode, not an ingestion tool, and OneLake availability is a one-way mirror, not write-back.",
+      "refs": [
+        "https://learn.microsoft.com/power-bi/enterprise/directlake-overview",
+        "https://learn.microsoft.com/fabric/real-time-intelligence/one-lake-availability"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-018",
+      "objective": "2.2.1",
+      "type": "single",
+      "stem": "An engineer creates a view at the Lakehouse SQL analytics endpoint that joins two Delta tables, then tries to query that view from a PySpark notebook. What happens?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Spark reads the view normally"
+        },
+        {
+          "id": "b",
+          "text": "The Spark query fails because the view is not visible to Spark"
+        },
+        {
+          "id": "c",
+          "text": "The view is silently converted to a Delta table"
+        },
+        {
+          "id": "d",
+          "text": "Spark reads the view but ignores the join"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Views created at the SQL analytics endpoint exist only in the endpoint's SQL catalog; they are not registered in the Lakehouse metastore and are not visible to Spark, so the notebook query cannot find them.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/create-views",
+        "https://learn.microsoft.com/fabric/data-warehouse/functions"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-019",
+      "objective": "2.2.1",
+      "type": "single",
+      "stem": "Why should a Fabric Warehouse developer prefer <code>CREATE OR ALTER VIEW</code> over dropping and recreating the view?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It runs faster on first execution"
+        },
+        {
+          "id": "b",
+          "text": "It preserves existing permissions on the object instead of breaking the grant chain"
+        },
+        {
+          "id": "c",
+          "text": "It allows DML inside the view"
+        },
+        {
+          "id": "d",
+          "text": "It automatically indexes the view"
+        }
+      ],
+      "answer": "b",
+      "explanation": "CREATE OR ALTER is atomic and keeps existing permissions on the object intact. DROP followed by CREATE removes the object, so any GRANT must be reapplied afterward.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/create-views",
+        "https://learn.microsoft.com/fabric/data-warehouse/stored-procedures"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-020",
+      "objective": "2.2.1",
+      "type": "multi",
+      "stem": "Which statements about T-SQL objects in Fabric are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Inline table-valued functions support predicate push-down and can fold from a Dataflow"
+        },
+        {
+          "id": "b",
+          "text": "Stored procedures support parameters, TRY/CATCH, and transactions"
+        },
+        {
+          "id": "c",
+          "text": "Views can be created at the Lakehouse SQL analytics endpoint, but DML inside them is blocked"
+        },
+        {
+          "id": "d",
+          "text": "Scalar functions always improve query performance"
+        },
+        {
+          "id": "e",
+          "text": "Objects created at the SQL analytics endpoint are visible to Spark"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Inline TVFs fold, stored procedures support parameters and error handling, and endpoint views cannot contain DML. Scalar functions can hurt performance when applied row by row, and endpoint objects are not visible to Spark.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/functions",
+        "https://learn.microsoft.com/fabric/data-warehouse/stored-procedures"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-021",
+      "objective": "2.2.2",
+      "type": "single",
+      "stem": "A PySpark job adds a column with <code>withColumn</code> but nothing is written to storage. What must happen to persist the result?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Nothing — withColumn writes immediately"
+        },
+        {
+          "id": "b",
+          "text": "Call a write action such as saveAsTable, which triggers execution"
+        },
+        {
+          "id": "c",
+          "text": "Run the notebook a second time"
+        },
+        {
+          "id": "d",
+          "text": "Convert the DataFrame to a view"
+        }
+      ],
+      "answer": "b",
+      "explanation": "PySpark transformations like withColumn are lazy and only define a plan. Data is written only when an action such as write.saveAsTable triggers execution.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-engineering/author-execute-notebook",
+        "https://learn.microsoft.com/powerquery-m/table-addcolumn"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-022",
+      "objective": "2.2.2",
+      "type": "single",
+      "stem": "In which medallion layer should derived enrichment columns generally be added?",
+      "options": [
+        {
+          "id": "a",
+          "text": "In the Bronze layer, before any cleaning"
+        },
+        {
+          "id": "b",
+          "text": "In the Silver or Gold layer, after conforming the raw data"
+        },
+        {
+          "id": "c",
+          "text": "Only inside the semantic model"
+        },
+        {
+          "id": "d",
+          "text": "Only in the source system"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Bronze is the raw landing zone and should mirror the source. Enrichment columns belong in Silver or Gold, where data has been cleaned and conformed for analytical use.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-engineering/author-execute-notebook",
+        "https://learn.microsoft.com/powerquery-m/table-addcolumn"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-023",
+      "objective": "2.2.3",
+      "type": "single",
+      "scenario_id": "s-medallion",
+      "stem": "In the Gold layer, a fact table records one row per product per store per day capturing closing inventory, including days with no sales. What fact type is this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Transaction fact"
+        },
+        {
+          "id": "b",
+          "text": "Periodic snapshot fact"
+        },
+        {
+          "id": "c",
+          "text": "Accumulating snapshot fact"
+        },
+        {
+          "id": "d",
+          "text": "Factless fact"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A periodic snapshot captures state at the end of each regular period for every entity, so rows exist for every period regardless of activity. A transaction fact would only have rows when events occur.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview",
+        "https://learn.microsoft.com/power-bi/guidance/star-schema"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-024",
+      "objective": "2.2.3",
+      "type": "single",
+      "stem": "A product changes its name but keeps the same ProductID, and the team must analyze old sales under the old name and new sales under the new name. Which SCD type is required?",
+      "options": [
+        {
+          "id": "a",
+          "text": "SCD Type 1"
+        },
+        {
+          "id": "b",
+          "text": "SCD Type 2"
+        },
+        {
+          "id": "c",
+          "text": "No SCD handling is needed"
+        },
+        {
+          "id": "d",
+          "text": "A degenerate dimension"
+        }
+      ],
+      "answer": "b",
+      "explanation": "SCD Type 2 preserves history by inserting a new row with a new surrogate key and marking the old row inactive. Historical facts keep pointing at the old surrogate key, so they resolve to the old name while new facts use the new one.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview",
+        "https://learn.microsoft.com/power-bi/guidance/star-schema"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-025",
+      "objective": "2.2.3",
+      "type": "single",
+      "stem": "Why should a dimension's surrogate key be generated by the warehouse (for example with IDENTITY) rather than reused from the source system's natural key?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Natural keys are always text and cannot be joined"
+        },
+        {
+          "id": "b",
+          "text": "Source natural keys can change or be reused, while a warehouse-generated key stays stable and supports SCD history rows"
+        },
+        {
+          "id": "c",
+          "text": "Surrogate keys are required by KQL"
+        },
+        {
+          "id": "d",
+          "text": "It prevents the need for any relationships"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A warehouse-generated surrogate key insulates the model from source key changes or reuse and enables multiple history rows per natural key for SCD Type 2. Natural keys can be unstable and cannot represent multiple versions.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview",
+        "https://learn.microsoft.com/power-bi/guidance/star-schema"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-026",
+      "objective": "2.2.3",
+      "type": "multi",
+      "stem": "An order-tracking fact stores OrderDateKey, ShipDateKey, and DeliveryDateKey, all pointing to a single DimDate. Which statements are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "This is an accumulating snapshot fact"
+        },
+        {
+          "id": "b",
+          "text": "A semantic model allows only one active relationship between the fact and DimDate"
+        },
+        {
+          "id": "c",
+          "text": "The inactive date relationships can be activated in DAX with USERELATIONSHIP"
+        },
+        {
+          "id": "d",
+          "text": "All three relationships can be active at the same time"
+        },
+        {
+          "id": "e",
+          "text": "DimDate must be duplicated three times to support this"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Multiple milestone dates to one dimension is an accumulating snapshot handled as a role-playing dimension. Only one relationship can be active; the others are inactive and activated per measure with USERELATIONSHIP, so no duplication of DimDate is required.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview",
+        "https://learn.microsoft.com/power-bi/guidance/star-schema"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-027",
+      "objective": "2.2.4",
+      "type": "single",
+      "stem": "An engineer builds a denormalized wide table that pre-joins five dimensions to speed up a slow report. What is the primary trade-off?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Queries become slower"
+        },
+        {
+          "id": "b",
+          "text": "Increased storage and the risk of stale data when source attributes change"
+        },
+        {
+          "id": "c",
+          "text": "The report can no longer use DAX"
+        },
+        {
+          "id": "d",
+          "text": "Relationships are automatically deleted"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A wide table stores attribute values redundantly for every row, increasing storage, and it does not stay in sync automatically — it must be rebuilt or merged when source attributes change. The benefit is faster queries with fewer joins.",
+      "refs": [
+        "https://learn.microsoft.com/power-bi/guidance/star-schema",
+        "https://learn.microsoft.com/fabric/data-warehouse/create-table"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-028",
+      "objective": "2.2.4",
+      "type": "tf",
+      "stem": "A denormalized wide table automatically reflects changes to source dimension attributes without being rebuilt.",
+      "answer": "false",
+      "explanation": "A denormalized table stores duplicated attribute values and does not stay in sync automatically. When a source attribute such as a product name changes, the wide table must be rebuilt or merge-updated to reflect it.",
+      "refs": [
+        "https://learn.microsoft.com/power-bi/guidance/star-schema",
+        "https://learn.microsoft.com/fabric/data-warehouse/create-table"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-029",
+      "objective": "2.2.5",
+      "type": "single",
+      "stem": "A T-SQL query uses <code>GROUP BY CategoryName</code> but also lists <code>ProductName</code> in the SELECT without aggregating it or adding it to GROUP BY. What is the result?",
+      "options": [
+        {
+          "id": "a",
+          "text": "ProductName is silently dropped"
+        },
+        {
+          "id": "b",
+          "text": "A syntax error, because every non-aggregated SELECT column must be in GROUP BY"
+        },
+        {
+          "id": "c",
+          "text": "ProductName is returned as NULL"
+        },
+        {
+          "id": "d",
+          "text": "The query returns one row per ProductName"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Every non-aggregated column in the SELECT list must appear in the GROUP BY clause. Referencing ProductName without aggregating or grouping it produces a syntax error.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/query",
+        "https://learn.microsoft.com/powerquery-m/table-group"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-030",
+      "objective": "2.2.5",
+      "type": "single",
+      "stem": "A report must show each detail sale row alongside a running total of sales within its product category, without removing any rows. Which T-SQL feature fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "GROUP BY with SUM"
+        },
+        {
+          "id": "b",
+          "text": "A window function with SUM() OVER (PARTITION BY ... ORDER BY ...)"
+        },
+        {
+          "id": "c",
+          "text": "HAVING"
+        },
+        {
+          "id": "d",
+          "text": "A CROSS JOIN"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A window function computes a per-row aggregate without collapsing rows, so each detail row can carry a running total scoped to its category. GROUP BY would collapse the detail rows into one per category.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/query",
+        "https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-031",
+      "objective": "2.2.5",
+      "type": "multi",
+      "stem": "Which statements about aggregation in Fabric are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "HAVING filters on aggregated values after GROUP BY"
+        },
+        {
+          "id": "b",
+          "text": "WHERE filters row values before aggregation"
+        },
+        {
+          "id": "c",
+          "text": "Window functions collapse rows the same way GROUP BY does"
+        },
+        {
+          "id": "d",
+          "text": "PySpark groupBy.agg is lazy until an action is triggered"
+        },
+        {
+          "id": "e",
+          "text": "Table.Group in Power Query never folds to the source"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "HAVING filters aggregates, WHERE filters rows before aggregation, and groupBy.agg is lazy. Window functions preserve rows rather than collapsing them, and Table.Group can fold to source GROUP BY when the connector supports it.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/query",
+        "https://learn.microsoft.com/powerquery-m/table-group"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-032",
+      "objective": "2.2.6",
+      "type": "single",
+      "stem": "A data-quality job must return all SalesFact rows whose CustomerKey is not present in DimCustomer. Which PySpark join type returns exactly these rows?",
+      "options": [
+        {
+          "id": "a",
+          "text": "inner"
+        },
+        {
+          "id": "b",
+          "text": "left_anti"
+        },
+        {
+          "id": "c",
+          "text": "left_semi"
+        },
+        {
+          "id": "d",
+          "text": "full"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A left_anti join returns only the left rows that have no match on the right — exactly the orphaned fact rows. left_semi returns matched left rows, and inner/full do not isolate unmatched rows this way.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/merge",
+        "https://learn.microsoft.com/fabric/data-warehouse/query"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-033",
+      "objective": "2.2.6",
+      "type": "single",
+      "stem": "A MERGE statement fails with an error that it tried to update the same target row more than once. What is the cause and fix?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The target table is empty; load it first"
+        },
+        {
+          "id": "b",
+          "text": "The source has duplicate rows on the join key; deduplicate the source before MERGE"
+        },
+        {
+          "id": "c",
+          "text": "The MERGE must run inside a transaction"
+        },
+        {
+          "id": "d",
+          "text": "The join key is indexed; remove the index"
+        }
+      ],
+      "answer": "b",
+      "explanation": "MERGE requires each target row to match at most one source row. Duplicate source rows on the join key cause the error; deduplicating the staging source (for example with ROW_NUMBER filtering) resolves it.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/merge",
+        "https://learn.microsoft.com/fabric/data-warehouse/query"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-034",
+      "objective": "2.2.6",
+      "type": "single",
+      "stem": "A query must return all customers and all orders, including customers with no orders and orders with no matching customer. Which join type is required?",
+      "options": [
+        {
+          "id": "a",
+          "text": "INNER JOIN"
+        },
+        {
+          "id": "b",
+          "text": "LEFT OUTER JOIN"
+        },
+        {
+          "id": "c",
+          "text": "FULL OUTER JOIN"
+        },
+        {
+          "id": "d",
+          "text": "CROSS JOIN"
+        }
+      ],
+      "answer": "c",
+      "explanation": "FULL OUTER JOIN returns all rows from both tables, placing NULLs where either side has no match. LEFT would drop unmatched orders and RIGHT would drop unmatched customers.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/merge",
+        "https://learn.microsoft.com/fabric/data-warehouse/query"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-035",
+      "objective": "2.2.6",
+      "type": "multi",
+      "stem": "Which statements about joins and MERGE in Fabric are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "INNER JOIN returns only rows with a matching key in both tables"
+        },
+        {
+          "id": "b",
+          "text": "PySpark left_semi returns matched left rows with only left-table columns"
+        },
+        {
+          "id": "c",
+          "text": "A CROSS JOIN produces a Cartesian product"
+        },
+        {
+          "id": "d",
+          "text": "MERGE requires the source to have duplicate keys"
+        },
+        {
+          "id": "e",
+          "text": "LEFT OUTER JOIN excludes right-table rows that have no left match, which is expected"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "INNER returns only matched rows, left_semi returns matched left rows with left columns only, and CROSS JOIN is a Cartesian product. MERGE requires at most one matching source row (not duplicates), and while LEFT does drop unmatched right rows, that is not a distinguishing correctness point being tested here.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-warehouse/merge",
+        "https://learn.microsoft.com/fabric/data-warehouse/query"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-036",
+      "objective": "2.2.7",
+      "type": "single",
+      "stem": "A T-SQL filter uses <code>WHERE Discount &lt;&gt; 0</code>. A row where Discount is NULL is present. Is that row included?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Yes, NULL is treated as not equal to 0"
+        },
+        {
+          "id": "b",
+          "text": "No, because NULL compared with &lt;&gt; evaluates to UNKNOWN and is excluded"
+        },
+        {
+          "id": "c",
+          "text": "Yes, NULL is coerced to 0"
+        },
+        {
+          "id": "d",
+          "text": "The query errors on the NULL"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Comparisons with NULL using = or <> yield UNKNOWN, which is treated as false, so the row is excluded. To include NULLs you would add <code>OR Discount IS NULL</code>.",
+      "refs": [
+        "https://learn.microsoft.com/sql/t-sql/functions/coalesce-transact-sql",
+        "https://learn.microsoft.com/azure/databricks/pyspark/missing-data"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-037",
+      "objective": "2.2.7",
+      "type": "tf",
+      "stem": "Calling <code>dropDuplicates()</code> with no column arguments on a PySpark DataFrame removes rows that share the same business key even if other columns differ.",
+      "answer": "false",
+      "explanation": "dropDuplicates() with no arguments deduplicates on all columns, so two rows with the same business key but different values elsewhere are kept. To deduplicate by business key you must pass the key column list.",
+      "refs": [
+        "https://learn.microsoft.com/azure/databricks/pyspark/missing-data",
+        "https://learn.microsoft.com/sql/t-sql/functions/coalesce-transact-sql"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-038",
+      "objective": "2.2.7",
+      "type": "multi",
+      "stem": "Which statements about NULL and duplicate handling are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "COALESCE returns the first non-NULL value from its argument list"
+        },
+        {
+          "id": "b",
+          "text": "ISNULL accepts only two arguments"
+        },
+        {
+          "id": "c",
+          "text": "COUNT(column) skips NULLs while COUNT(*) counts all rows"
+        },
+        {
+          "id": "d",
+          "text": "NULL equals an empty string in SQL comparisons"
+        },
+        {
+          "id": "e",
+          "text": "A comparison with NULL using = returns TRUE"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "COALESCE returns the first non-NULL, ISNULL takes two arguments, and COUNT(column) ignores NULLs while COUNT(*) counts every row. NULL is not equal to an empty string, and any equality comparison with NULL yields UNKNOWN, not TRUE.",
+      "refs": [
+        "https://learn.microsoft.com/sql/t-sql/functions/coalesce-transact-sql",
+        "https://learn.microsoft.com/azure/databricks/pyspark/missing-data"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-039",
+      "objective": "2.2.8",
+      "type": "single",
+      "stem": "A staging column mostly holds numeric strings but occasionally the literal 'N/A'. An ETL step must convert it to DECIMAL without failing on the bad rows. Which function should be used?",
+      "options": [
+        {
+          "id": "a",
+          "text": "CAST"
+        },
+        {
+          "id": "b",
+          "text": "TRY_CAST"
+        },
+        {
+          "id": "c",
+          "text": "CONVERT without a style"
+        },
+        {
+          "id": "d",
+          "text": "PARSE"
+        }
+      ],
+      "answer": "b",
+      "explanation": "TRY_CAST returns NULL for invalid conversions instead of raising an error, so 'N/A' rows become NULL and the query keeps running. CAST would fail the entire statement on the first bad value.",
+      "refs": [
+        "https://learn.microsoft.com/sql/t-sql/functions/try-cast-transact-sql",
+        "https://learn.microsoft.com/fabric/data-engineering/spark-data-types"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-040",
+      "objective": "2.2.8",
+      "type": "single",
+      "stem": "After casting a column from string to double in PySpark, a data-quality check finds unexpected NULLs. What most likely caused them?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The cast rounded the values"
+        },
+        {
+          "id": "b",
+          "text": "The source column contained non-numeric strings that Spark could not convert, which become NULL"
+        },
+        {
+          "id": "c",
+          "text": "Spark cannot cast strings at all"
+        },
+        {
+          "id": "d",
+          "text": "The DataFrame was empty"
+        }
+      ],
+      "answer": "b",
+      "explanation": "PySpark cast returns NULL for values that fail conversion instead of throwing, so invalid non-numeric strings silently become NULL. Always inspect for unexpected NULLs after a cast.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-engineering/spark-data-types",
+        "https://learn.microsoft.com/sql/t-sql/functions/try-cast-transact-sql"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-041",
+      "objective": "2.2.8",
+      "type": "single",
+      "stem": "Which data type should be used for exact financial amounts to avoid precision errors?",
+      "options": [
+        {
+          "id": "a",
+          "text": "FLOAT"
+        },
+        {
+          "id": "b",
+          "text": "REAL"
+        },
+        {
+          "id": "c",
+          "text": "DECIMAL with defined precision and scale"
+        },
+        {
+          "id": "d",
+          "text": "VARCHAR"
+        }
+      ],
+      "answer": "c",
+      "explanation": "FLOAT and REAL are approximate types and can introduce rounding errors. DECIMAL(p,s) stores exact values with defined precision and scale, which is required for financial amounts.",
+      "refs": [
+        "https://learn.microsoft.com/sql/t-sql/functions/try-cast-transact-sql",
+        "https://learn.microsoft.com/fabric/data-engineering/spark-data-types"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-042",
+      "objective": "2.2.9",
+      "type": "single",
+      "stem": "A PySpark job filters a Delta table on <code>ProductCategory</code>, but the table is partitioned by <code>OrderYear</code>. Will partition pruning skip partitions for the ProductCategory filter?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Yes, any filter enables partition pruning"
+        },
+        {
+          "id": "b",
+          "text": "No, pruning applies only to the partition column; Spark falls back to file-level data skipping"
+        },
+        {
+          "id": "c",
+          "text": "Yes, because ProductCategory is a string"
+        },
+        {
+          "id": "d",
+          "text": "No, Delta tables never prune partitions"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Partition pruning skips partition directories only based on the partition columns (here OrderYear). A filter on ProductCategory cannot prune partitions; Spark instead relies on column statistics and row-group data skipping, which is less aggressive.",
+      "refs": [
+        "https://learn.microsoft.com/fabric/data-engineering/delta-optimization-and-v-order",
+        "https://learn.microsoft.com/power-query/query-folding-basics"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-043",
+      "objective": "2.2.9",
+      "type": "single",
+      "stem": "In a Dataflow Gen2 on a SQL Server source, an engineer applies a filter, then adds a custom M column using a non-foldable regex function, then renames columns. What is the effect on folding?",
+      "options": [
+        {
+          "id": "a",
+          "text": "All steps continue to fold"
+        },
+        {
+          "id": "b",
+          "text": "Only the rename step folds"
+        },
+        {
+          "id": "c",
+          "text": "The regex step breaks folding, so it and every later step run in the Mashup engine"
+        },
+        {
+          "id": "d",
+          "text": "Folding is unaffected by custom columns"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Once a non-foldable step is introduced, folding stops there and every subsequent step — even a normally foldable rename — executes locally in the Mashup engine. Foldable steps should be placed before any folding-breaking step.",
+      "refs": [
+        "https://learn.microsoft.com/power-query/query-folding-basics",
+        "https://learn.microsoft.com/fabric/data-engineering/delta-optimization-and-v-order"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-044",
+      "objective": "2.2.9",
+      "type": "multi",
+      "stem": "Which practices improve filter performance in Fabric data preparation? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Filter on Delta partition columns to enable partition pruning"
+        },
+        {
+          "id": "b",
+          "text": "Apply foldable filter steps before any folding-breaking step"
+        },
+        {
+          "id": "c",
+          "text": "Use EXISTS to short-circuit an existence check on a large fact table"
+        },
+        {
+          "id": "d",
+          "text": "Insert Table.Buffer early to speed up folding"
+        },
+        {
+          "id": "e",
+          "text": "Filter as late as possible so all rows are loaded first"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Partition-column filters enable pruning, ordering foldable steps first maximizes pushdown, and EXISTS short-circuits on the first match. Table.Buffer forces data into memory and breaks folding, and filtering as early as possible (not as late) is the correct principle.",
+      "refs": [
+        "https://learn.microsoft.com/power-query/query-folding-basics",
+        "https://learn.microsoft.com/fabric/data-engineering/delta-optimization-and-v-order"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-045",
+      "objective": "2.3.1",
+      "type": "single",
+      "stem": "Which statement best describes query folding in Power Query?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It is a storage-engine feature that applies to all T-SQL and KQL queries"
+        },
+        {
+          "id": "b",
+          "text": "It translates M transform steps into a native source query so work runs at the source"
+        },
+        {
+          "id": "c",
+          "text": "It caches all source data in memory before transforming"
+        },
+        {
+          "id": "d",
+          "text": "It converts reports into Delta tables"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Query folding is a Mashup-engine feature that translates M steps into a single native query (for example SQL) executed at the source, reducing data movement. It does not apply to T-SQL or KQL, which already run at the engine.",
+      "refs": [
+        "https://learn.microsoft.com/power-query/query-folding-basics",
+        "https://learn.microsoft.com/fabric/data-warehouse/visual-query-editor"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-046",
+      "objective": "2.3.1",
+      "type": "tf",
+      "stem": "Once a step breaks query folding in Power Query, every step after it also stops folding, even simple ones such as renames.",
+      "answer": "true",
+      "explanation": "When a step breaks folding, all subsequent steps execute in the Mashup engine, even ordinarily foldable ones. This is why foldable operations should be placed before any folding-breaking step.",
+      "refs": [
+        "https://learn.microsoft.com/power-query/query-folding-basics",
+        "https://learn.microsoft.com/fabric/data-warehouse/visual-query-editor"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-047",
+      "objective": "2.3.1",
+      "type": "single",
+      "stem": "In Power Query Editor, an engineer right-clicks a filter step and finds that View native query is grayed out. What does this indicate?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The step folds correctly"
+        },
+        {
+          "id": "b",
+          "text": "The step does not fold and is executing in the Mashup engine"
+        },
+        {
+          "id": "c",
+          "text": "The source is offline"
+        },
+        {
+          "id": "d",
+          "text": "The step contains a syntax error"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A grayed-out View native query option confirms folding stopped at or before that step, so it runs client-side in the Mashup engine. This is a standard way to diagnose Dataflow performance problems.",
+      "refs": [
+        "https://learn.microsoft.com/power-query/query-folding-basics",
+        "https://learn.microsoft.com/fabric/data-warehouse/visual-query-editor"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-048",
+      "objective": "2.3.2",
+      "type": "single",
+      "stem": "A T-SQL window function assigns the same RANK value to two tied customers. What rank does the next customer receive?",
+      "options": [
+        {
+          "id": "a",
+          "text": "2 — RANK never skips"
+        },
+        {
+          "id": "b",
+          "text": "3 — RANK skips the number after a tie"
+        },
+        {
+          "id": "c",
+          "text": "1 — all rows share the same rank"
+        },
+        {
+          "id": "d",
+          "text": "It errors on ties"
+        }
+      ],
+      "answer": "b",
+      "explanation": "RANK assigns the same value to tied rows and then skips the next rank number, so after two rows tied at 1 the next is 3. DENSE_RANK would assign 2 without skipping.",
+      "refs": [
+        "https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql",
+        "https://learn.microsoft.com/fabric/data-warehouse/query"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-049",
+      "objective": "2.3.2",
+      "type": "single",
+      "stem": "An engineer writes <code>SELECT ..., RANK() OVER (...) AS Rnk FROM t WHERE Rnk &lt;= 10</code> and it errors. Why?",
+      "options": [
+        {
+          "id": "a",
+          "text": "RANK is not supported in Fabric"
+        },
+        {
+          "id": "b",
+          "text": "Window functions are evaluated after WHERE, so they cannot be referenced in the WHERE of the same SELECT"
+        },
+        {
+          "id": "c",
+          "text": "The alias Rnk is reserved"
+        },
+        {
+          "id": "d",
+          "text": "ORDER BY is missing"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Window functions are evaluated after the WHERE clause, so their result cannot be referenced there in the same query. Wrap the window function in a CTE or subquery and filter in the outer query.",
+      "refs": [
+        "https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql",
+        "https://learn.microsoft.com/fabric/data-warehouse/query"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-050",
+      "objective": "2.3.2",
+      "type": "multi",
+      "stem": "Which statements about T-SQL window functions in Fabric are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "ROW_NUMBER returns a unique integer per row with no ties"
+        },
+        {
+          "id": "b",
+          "text": "DENSE_RANK does not skip numbers after a tie"
+        },
+        {
+          "id": "c",
+          "text": "LAG and LEAD access previous and next row values within a partition"
+        },
+        {
+          "id": "d",
+          "text": "Window functions can be referenced directly in the WHERE clause"
+        },
+        {
+          "id": "e",
+          "text": "Window functions collapse the result to one row per partition"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "ROW_NUMBER is unique per row, DENSE_RANK does not skip after ties, and LAG/LEAD reach neighboring rows. Window functions cannot be used in WHERE and they preserve rows rather than collapsing them.",
+      "refs": [
+        "https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql",
+        "https://learn.microsoft.com/fabric/data-warehouse/query"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-051",
+      "objective": "2.3.3",
+      "type": "single",
+      "stem": "A KQL query must count events per hour for the past seven days, grouped by server. Which core function creates the regular hourly buckets?",
+      "options": [
+        {
+          "id": "a",
+          "text": "project"
+        },
+        {
+          "id": "b",
+          "text": "bin(TimeGenerated, 1h) inside summarize"
+        },
+        {
+          "id": "c",
+          "text": "render"
+        },
+        {
+          "id": "d",
+          "text": "take"
+        }
+      ],
+      "answer": "b",
+      "explanation": "bin() floors each timestamp to the nearest interval, so bin(TimeGenerated, 1h) inside a summarize creates uniform one-hour buckets. Without it, each distinct timestamp would form its own group.",
+      "refs": [
+        "https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric",
+        "https://learn.microsoft.com/kusto/query/bin-function?view=microsoft-fabric"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-052",
+      "objective": "2.3.3",
+      "type": "single",
+      "stem": "A KQL query does <code>summarize Total = sum(Amount) by Category</code> and then <code>project OrderID, Category, Total</code>, which fails. Why?",
+      "options": [
+        {
+          "id": "a",
+          "text": "project must come before summarize"
+        },
+        {
+          "id": "b",
+          "text": "OrderID no longer exists after summarize, which keeps only by-columns and aggregates"
+        },
+        {
+          "id": "c",
+          "text": "sum cannot be used with project"
+        },
+        {
+          "id": "d",
+          "text": "Category is a reserved word"
+        }
+      ],
+      "answer": "b",
+      "explanation": "After summarize, only the by-clause columns and aggregate expressions remain in scope. OrderID was not in the by clause, so it no longer exists and cannot be projected.",
+      "refs": [
+        "https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric",
+        "https://learn.microsoft.com/kusto/query/tutorials/use-aggregation-functions?view=microsoft-fabric"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-053",
+      "objective": "2.3.3",
+      "type": "single",
+      "stem": "In KQL, what is the difference between <code>project</code> and <code>extend</code>?",
+      "options": [
+        {
+          "id": "a",
+          "text": "project adds a column; extend removes columns"
+        },
+        {
+          "id": "b",
+          "text": "project selects specific columns and drops the rest; extend adds computed columns while keeping existing ones"
+        },
+        {
+          "id": "c",
+          "text": "They are identical"
+        },
+        {
+          "id": "d",
+          "text": "extend can only be used after summarize"
+        }
+      ],
+      "answer": "b",
+      "explanation": "project narrows the schema to the named columns and drops the others, while extend adds new computed columns without removing existing ones. Choosing the wrong one can accidentally drop columns.",
+      "refs": [
+        "https://learn.microsoft.com/kusto/query/tutorials/use-aggregation-functions?view=microsoft-fabric",
+        "https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-054",
+      "objective": "2.3.3",
+      "type": "multi",
+      "stem": "Which statements about KQL are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "KQL uses == for equality comparison"
+        },
+        {
+          "id": "b",
+          "text": "render is a display directive that does not change tabular output"
+        },
+        {
+          "id": "c",
+          "text": "take without a preceding sort returns a non-deterministic set of rows"
+        },
+        {
+          "id": "d",
+          "text": "extend drops all columns not named"
+        },
+        {
+          "id": "e",
+          "text": "summarize preserves every original column"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "KQL uses == for equality, render only hints at a chart, and take is non-deterministic without a sort. extend keeps existing columns (project is the one that drops), and summarize retains only by-columns and aggregates.",
+      "refs": [
+        "https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric",
+        "https://learn.microsoft.com/kusto/query/bin-function?view=microsoft-fabric"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-055",
+      "objective": "2.3.4",
+      "type": "single",
+      "stem": "Why should a DAX measure use <code>DIVIDE(x, y)</code> rather than the <code>/</code> operator?",
+      "options": [
+        {
+          "id": "a",
+          "text": "DIVIDE is faster for constant denominators"
+        },
+        {
+          "id": "b",
+          "text": "DIVIDE returns BLANK (or an alternate) on divide-by-zero instead of raising an error"
+        },
+        {
+          "id": "c",
+          "text": "The / operator is not valid DAX"
+        },
+        {
+          "id": "d",
+          "text": "DIVIDE rounds the result automatically"
+        }
+      ],
+      "answer": "b",
+      "explanation": "DIVIDE handles division by zero gracefully by returning BLANK or a specified alternate result, whereas the / operator raises a division-by-zero error that can break visuals.",
+      "refs": [
+        "https://learn.microsoft.com/dax/divide-function-dax",
+        "https://learn.microsoft.com/dax/dax-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q2-056",
+      "objective": "2.3.4",
+      "type": "single",
+      "stem": "A measure is defined as the sum of SalesAmount divided by <code>CALCULATE(SUM(SalesFact[SalesAmount]), ALL(SalesFact))</code>. A user selects only 2024 in a Year slicer. Does the denominator change?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Yes, it drops to the 2024 total"
+        },
+        {
+          "id": "b",
+          "text": "No, ALL(SalesFact) removes all filters so the denominator stays the grand total"
+        },
+        {
+          "id": "c",
+          "text": "Yes, because slicers always override ALL"
+        },
+        {
+          "id": "d",
+          "text": "No, but only if the Year table is separate"
+        }
+      ],
+      "answer": "b",
+      "explanation": "ALL(SalesFact) removes all filters on that table, including the Year filter, so the denominator always returns the grand total across all years. That makes the measure a true share-of-total regardless of the slicer.",
+      "refs": [
+        "https://learn.microsoft.com/dax/calculate-function-dax",
+        "https://learn.microsoft.com/dax/dax-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Prepare data"
+    },
+    {
+      "id": "q3-001",
+      "objective": "3.1.1",
+      "type": "single",
+      "stem": "A model must serve sub-second visuals over a 40 GB Fabric lakehouse Delta table whose data changes hourly, with minimal refresh cost. Which storage mode fits best?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Import"
+        },
+        {
+          "id": "b",
+          "text": "DirectQuery"
+        },
+        {
+          "id": "c",
+          "text": "Direct Lake"
+        },
+        {
+          "id": "d",
+          "text": "Dual"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Direct Lake gives VertiPaq-class query speed while reading Delta columns from OneLake on demand, and its refresh is metadata-only framing that completes in seconds. Import would require an expensive reload, and DirectQuery would be slower per query.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview",
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-002",
+      "objective": "3.1.1",
+      "type": "single",
+      "stem": "In a DirectQuery composite model, which storage mode should dimension tables use to minimize source queries when joined to DirectQuery facts?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Import"
+        },
+        {
+          "id": "b",
+          "text": "DirectQuery"
+        },
+        {
+          "id": "c",
+          "text": "Dual"
+        },
+        {
+          "id": "d",
+          "text": "Direct Lake"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Dual dimensions can serve cached results when queried alone and also fold into a single native join with DirectQuery facts, avoiding extra source round-trips. Pure Import dimensions would force separate queries against the fact source.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand",
+        "https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-composite-models"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-003",
+      "objective": "3.1.1",
+      "type": "multi",
+      "stem": "Which statements about semantic model storage modes are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Only Direct Lake requires a Fabric capacity license"
+        },
+        {
+          "id": "b",
+          "text": "Import caches data in the in-memory VertiPaq store and requires refresh"
+        },
+        {
+          "id": "c",
+          "text": "DirectQuery caches all data in memory"
+        },
+        {
+          "id": "d",
+          "text": "Direct Lake refresh is a metadata-only framing operation"
+        },
+        {
+          "id": "e",
+          "text": "A single model cannot mix storage modes"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "Direct Lake alone requires a Fabric capacity, Import caches in VertiPaq and needs refresh, and Direct Lake refresh is framing. DirectQuery caches no data (metadata only), and composite models can mix storage modes.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand",
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-004",
+      "objective": "3.1.2",
+      "type": "single",
+      "stem": "A Product table is normalized into Product, Subcategory, and Category tables. For a performant Power BI model, what should you do?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Keep the snowflake and add bi-directional filters"
+        },
+        {
+          "id": "b",
+          "text": "Denormalize the three tables into a single Product dimension"
+        },
+        {
+          "id": "c",
+          "text": "Convert them into three fact tables"
+        },
+        {
+          "id": "d",
+          "text": "Set all three to DirectQuery"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Denormalizing snowflaked tables into one flat dimension avoids extra joins, compresses better, and simplifies DAX. Keeping the snowflake or adding bi-directional filters increases complexity and can hurt performance.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/guidance/star-schema",
+        "https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-relationships-understand"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-005",
+      "objective": "3.1.2",
+      "type": "single",
+      "stem": "Sales has OrderDate, ShipDate, and DueDate, all referencing one Date table. How do you support all three roles without duplicating the Date table?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Create three copies of the Date table"
+        },
+        {
+          "id": "b",
+          "text": "Create one active and two inactive relationships, and activate the needed one in measures with USERELATIONSHIP"
+        },
+        {
+          "id": "c",
+          "text": "Set all three relationships active"
+        },
+        {
+          "id": "d",
+          "text": "Use a bridge table between Sales and Date"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A model allows only one active relationship between two tables. The role-playing pattern uses one active and two inactive relationships to a single Date table, activating the inactive ones per measure with USERELATIONSHIP.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-relationships-understand",
+        "https://learn.microsoft.com/en-us/dax/userelationship-function-dax"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-006",
+      "objective": "3.1.3",
+      "type": "single",
+      "stem": "Accounts and Customers have a many-to-many association and each must filter a Transactions fact. What is the recommended model design?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A native many-to-many relationship between Accounts and Customers"
+        },
+        {
+          "id": "b",
+          "text": "An AccountCustomer bridge table with two one-to-many relationships, one set to bi-directional"
+        },
+        {
+          "id": "c",
+          "text": "Merge Accounts and Customers into one table"
+        },
+        {
+          "id": "d",
+          "text": "Set every relationship to bi-directional"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A bridge (factless fact) table with two one-to-many relationships, one made bi-directional so filters reach the fact, resolves the many-to-many cleanly and outperforms native many-to-many cardinality.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-many-to-many",
+        "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-bidirectional-filtering"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-007",
+      "objective": "3.1.3",
+      "type": "single",
+      "stem": "A measure must count distinct customer countries filtering from Sales, but the relationship is single-direction. Which function enables this for that measure only?",
+      "options": [
+        {
+          "id": "a",
+          "text": "USERELATIONSHIP"
+        },
+        {
+          "id": "b",
+          "text": "CROSSFILTER(..., BOTH) inside CALCULATE"
+        },
+        {
+          "id": "c",
+          "text": "ALLEXCEPT"
+        },
+        {
+          "id": "d",
+          "text": "TREATAS"
+        }
+      ],
+      "answer": "b",
+      "explanation": "CROSSFILTER(..., BOTH) inside CALCULATE temporarily enables bidirectional filtering for that single expression without making the model relationship globally bi-directional. USERELATIONSHIP activates an inactive relationship, not a cross-filter change.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/dax/crossfilter-function-dax",
+        "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-bidirectional-filtering"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-008",
+      "objective": "3.1.3",
+      "type": "multi",
+      "stem": "Which statements about Power BI relationships are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Filters propagate automatically from the one side of a relationship"
+        },
+        {
+          "id": "b",
+          "text": "Bi-directional filtering can create ambiguous filter paths and should be used sparingly"
+        },
+        {
+          "id": "c",
+          "text": "USERELATIONSHIP works only inside CALCULATE"
+        },
+        {
+          "id": "d",
+          "text": "Native many-to-many cardinality is always faster than a bridge table"
+        },
+        {
+          "id": "e",
+          "text": "For Direct Lake, one-side columns may contain duplicates"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Filters flow from the one side, bi-directional filtering risks ambiguity, and USERELATIONSHIP is only valid inside CALCULATE. A well-designed bridge outperforms native many-to-many, and Direct Lake requires unique one-side columns or queries fail.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-many-to-many",
+        "https://learn.microsoft.com/en-us/dax/userelationship-function-dax"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-009",
+      "objective": "3.1.4",
+      "type": "single",
+      "stem": "A Revenue measure should equal the sum of Qty times UnitPrice computed per row. Why does <code>SUM(Sales[Qty]) * SUM(Sales[UnitPrice])</code> give the wrong answer?",
+      "options": [
+        {
+          "id": "a",
+          "text": "SUM cannot be multiplied"
+        },
+        {
+          "id": "b",
+          "text": "It multiplies the two column totals instead of multiplying row by row"
+        },
+        {
+          "id": "c",
+          "text": "It ignores the filter context"
+        },
+        {
+          "id": "d",
+          "text": "UnitPrice must be a measure"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Multiplying two independent column sums is not the same as summing the per-row product. Use an iterator, SUMX(Sales, Sales[Qty] * Sales[UnitPrice]), to compute the product row by row and then aggregate.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables",
+        "https://learn.microsoft.com/en-us/dax/userprincipalname-function-dax"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-010",
+      "objective": "3.1.4",
+      "type": "single",
+      "stem": "You need a percent-of-category-total that ignores the current product filter but keeps the category filter. Which function provides the denominator?",
+      "options": [
+        {
+          "id": "a",
+          "text": "ALL('Product')"
+        },
+        {
+          "id": "b",
+          "text": "ALLEXCEPT('Product', 'Product'[Category])"
+        },
+        {
+          "id": "c",
+          "text": "REMOVEFILTERS()"
+        },
+        {
+          "id": "d",
+          "text": "KEEPFILTERS('Product')"
+        }
+      ],
+      "answer": "b",
+      "explanation": "ALLEXCEPT('Product', 'Product'[Category]) removes all Product filters except Category, yielding the category-level denominator. ALL('Product') would also remove the Category filter, giving the grand total instead.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables",
+        "https://learn.microsoft.com/en-us/dax/datesytd-function-dax"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-011",
+      "objective": "3.1.4",
+      "type": "tf",
+      "stem": "A DAX variable defined with VAR is re-evaluated each time it is referenced later in the expression.",
+      "answer": "false",
+      "explanation": "A VAR is evaluated once, in the filter context where it is defined, and its stored value is reused wherever it is referenced. This both improves performance and can change results compared with recomputing inline.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables",
+        "https://learn.microsoft.com/en-us/dax/offset-function-dax"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-012",
+      "objective": "3.1.4",
+      "type": "multi",
+      "stem": "Which DAX practices are recommended for correctness or clarity? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Use SELECTEDVALUE instead of IF+HASONEVALUE+VALUES"
+        },
+        {
+          "id": "b",
+          "text": "Use DIVIDE for safe division"
+        },
+        {
+          "id": "c",
+          "text": "Wrap OFFSET or INDEX in an aggregator such as SUMX when a single row is returned"
+        },
+        {
+          "id": "d",
+          "text": "Always prefer FILTER over a Boolean filter argument for simple conditions"
+        },
+        {
+          "id": "e",
+          "text": "Use USERPRINCIPALNAME to hard-code a region value"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "SELECTEDVALUE simplifies the older pattern, DIVIDE handles divide-by-zero, and OFFSET/INDEX return a single row that is typically aggregated. Boolean filter arguments are preferred over FILTER for simple conditions, and USERPRINCIPALNAME returns the signed-in user's UPN rather than a hard-coded value.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables",
+        "https://learn.microsoft.com/en-us/dax/userprincipalname-function-dax"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-013",
+      "objective": "3.1.5",
+      "type": "single",
+      "stem": "You have 12 base measures and need YTD, PY, and YoY% versions of each without authoring 36 more measures. What should you build?",
+      "options": [
+        {
+          "id": "a",
+          "text": "36 individual measures"
+        },
+        {
+          "id": "b",
+          "text": "A calculation group with three calculation items using SELECTEDMEASURE()"
+        },
+        {
+          "id": "c",
+          "text": "A field parameter"
+        },
+        {
+          "id": "d",
+          "text": "Three composite models"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A calculation group with three items referencing SELECTEDMEASURE() applies dynamically to whichever measure is in context, avoiding measure explosion. Field parameters swap fields, not time-intelligence logic.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/transform-model/calculation-groups",
+        "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-dynamic-format-strings"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-014",
+      "objective": "3.1.5",
+      "type": "single",
+      "stem": "A YoY% calculation item should display as a percentage while the base measure remains formatted as currency. How do you achieve this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Wrap the result in FORMAT()"
+        },
+        {
+          "id": "b",
+          "text": "Enable a dynamic format string on the calculation item"
+        },
+        {
+          "id": "c",
+          "text": "Change the base measure's data type to text"
+        },
+        {
+          "id": "d",
+          "text": "Add a field parameter"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A per-item dynamic format string overrides display for that calculation item while keeping the underlying numeric type, so other items retain the currency format. FORMAT() returns text and would break numeric visuals and sorting.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-dynamic-format-strings",
+        "https://learn.microsoft.com/en-us/power-bi/transform-model/calculation-groups"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-015",
+      "objective": "3.1.5",
+      "type": "single",
+      "stem": "Report readers want to switch a chart's axis between Customer, Category, and Color at runtime. Which feature enables this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A calculation group"
+        },
+        {
+          "id": "b",
+          "text": "A field parameter added to a slicer"
+        },
+        {
+          "id": "c",
+          "text": "A dynamic format string"
+        },
+        {
+          "id": "d",
+          "text": "Object-level security"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A field parameter lets users choose which dimension or measure a visual uses at runtime, typically via a slicer, without editing the report. Calculation groups change measure logic, not which field is displayed.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/create-reports/power-bi-field-parameters",
+        "https://learn.microsoft.com/en-us/power-bi/transform-model/calculation-groups"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-016",
+      "objective": "3.1.6",
+      "type": "single",
+      "stem": "An Import model must grow to 18 GB in an F64 workspace and be deployed via the XMLA endpoint. What must be enabled?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Direct Lake mode"
+        },
+        {
+          "id": "b",
+          "text": "Large semantic model storage format"
+        },
+        {
+          "id": "c",
+          "text": "Automatic aggregations"
+        },
+        {
+          "id": "d",
+          "text": "Bi-directional filtering"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Large semantic model storage format raises the per-model limit to the capacity size and is required for XMLA write operations. Without it the model is capped at the default service limit and cannot grow to 18 GB.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-large-models",
+        "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-scale-out"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-017",
+      "objective": "3.1.6",
+      "type": "single",
+      "stem": "A team wants read-only replicas to distribute heavy query load across a large model. What is a prerequisite?",
+      "options": [
+        {
+          "id": "a",
+          "text": "DirectQuery storage mode"
+        },
+        {
+          "id": "b",
+          "text": "Large semantic model storage format on a Premium or Fabric capacity"
+        },
+        {
+          "id": "c",
+          "text": "A personal-mode gateway"
+        },
+        {
+          "id": "d",
+          "text": "Disabling XMLA endpoints"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Scale-out to read-only replicas depends on the large semantic model storage format and a Premium or Fabric capacity. Disabling large format also disables scale-out.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-scale-out",
+        "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-large-models"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-018",
+      "objective": "3.1.7",
+      "type": "single",
+      "stem": "You must extend a certified published semantic model with a few local Excel tables. What action turns the live connection into a composite model?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Import the published model as a copy"
+        },
+        {
+          "id": "b",
+          "text": "Choose Make changes to this model, which converts the live connection to DirectQuery, then add local tables"
+        },
+        {
+          "id": "c",
+          "text": "Export the model to .pbit"
+        },
+        {
+          "id": "d",
+          "text": "Enable large model storage format"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Choosing Make changes to this model chains the published model by converting the live connection into a DirectQuery connection, allowing you to add local tables on top. This is the standard composite chaining pattern.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-composite-models",
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-019",
+      "objective": "3.1.7",
+      "type": "single",
+      "stem": "Which Direct Lake variant cannot participate in a composite model?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Direct Lake on OneLake"
+        },
+        {
+          "id": "b",
+          "text": "Direct Lake on the SQL analytics endpoint"
+        },
+        {
+          "id": "c",
+          "text": "Both variants support composite models"
+        },
+        {
+          "id": "d",
+          "text": "Neither variant supports Direct Lake at all"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Direct Lake on the SQL analytics endpoint is single-source and cannot mix with DirectQuery, Dual, or Import. Only Direct Lake on OneLake supports composite models (combined with Import) via web modeling.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-composite-models",
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-020",
+      "objective": "3.2.1",
+      "type": "single",
+      "scenario_id": "s-perf",
+      "stem": "The team needs the exact DAX that one slow card visual runs so they can tune the underlying measure. Which tool captures it?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The Modeling ribbon's Manage relationships dialog"
+        },
+        {
+          "id": "b",
+          "text": "Performance Analyzer, using Copy query or Run in DAX query view"
+        },
+        {
+          "id": "c",
+          "text": "The OneLake catalog"
+        },
+        {
+          "id": "d",
+          "text": "Lineage view"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Performance Analyzer records per-visual timing and lets you copy the exact DAX a visual runs or open it in DAX query view for tuning. It is the primary tool for locating slow visuals and their queries.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-performance-analyzer",
+        "https://learn.microsoft.com/en-us/power-bi/guidance/report-performance-troubleshoot"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-021",
+      "objective": "3.2.1",
+      "type": "single",
+      "stem": "Performance Analyzer shows most of a visual's time under Visual display rather than DAX query. What is the correct fix direction?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Rewrite the measure to use variables"
+        },
+        {
+          "id": "b",
+          "text": "Simplify the visual by reducing data points or elements"
+        },
+        {
+          "id": "c",
+          "text": "Add more visuals to the page"
+        },
+        {
+          "id": "d",
+          "text": "Switch the model to DirectQuery"
+        }
+      ],
+      "answer": "b",
+      "explanation": "High Visual display time indicates the bottleneck is rendering, not the query, so reducing visual complexity or the number of data points helps more than tuning the measure.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-performance-analyzer",
+        "https://learn.microsoft.com/en-us/power-bi/guidance/report-performance-troubleshoot"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-022",
+      "objective": "3.2.2",
+      "type": "single",
+      "scenario_id": "s-perf",
+      "stem": "A measure computes an expensive prior-year value twice inside DIVIDE and runs slowly. What is the simplest optimization?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Convert the measure to a calculated column"
+        },
+        {
+          "id": "b",
+          "text": "Store the prior-year value in a VAR and reuse it"
+        },
+        {
+          "id": "c",
+          "text": "Wrap the expression in FILTER"
+        },
+        {
+          "id": "d",
+          "text": "Switch the table to DirectQuery"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Storing the prior-year CALCULATE result in a variable makes it evaluate once and reuse the value, cutting engine work in half. Calculated columns and FILTER would not address the duplicate evaluation.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables",
+        "https://learn.microsoft.com/en-us/power-bi/guidance/dax-avoid-avoid-filter-as-filter-argument"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-023",
+      "objective": "3.2.2",
+      "type": "single",
+      "stem": "Which is faster for filtering to red products: <code>CALCULATE([Sales], 'Product'[Color] = \"Red\")</code> or <code>CALCULATE([Sales], FILTER('Product', 'Product'[Color] = \"Red\"))</code>?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The FILTER version, because it is explicit"
+        },
+        {
+          "id": "b",
+          "text": "The Boolean version, because it uses the storage engine directly"
+        },
+        {
+          "id": "c",
+          "text": "They perform identically"
+        },
+        {
+          "id": "d",
+          "text": "Neither is valid DAX"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A Boolean filter argument folds to the fast storage engine, while FILTER iterates the table in the slower formula engine. Reserve FILTER for conditions needing multiple columns, a measure, or OR logic.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/guidance/dax-avoid-avoid-filter-as-filter-argument",
+        "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-024",
+      "objective": "3.2.2",
+      "type": "multi",
+      "stem": "Which DAX choices generally improve performance? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Using Boolean column filters instead of FILTER for simple conditions"
+        },
+        {
+          "id": "b",
+          "text": "Storing repeated sub-expressions in variables"
+        },
+        {
+          "id": "c",
+          "text": "Using COUNTROWS instead of COUNT for row counts"
+        },
+        {
+          "id": "d",
+          "text": "Adding complex calculated columns evaluated at query time"
+        },
+        {
+          "id": "e",
+          "text": "Scanning large fact tables with FILTER for simple predicates"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Boolean filters, variables, and COUNTROWS are all storage-engine-friendly and efficient. Query-time calculated columns and scanning large facts with FILTER push work to the slower formula engine and should be avoided.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables",
+        "https://learn.microsoft.com/en-us/power-bi/guidance/dax-countrows"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-025",
+      "objective": "3.2.3",
+      "type": "single",
+      "scenario_id": "s-medallion",
+      "stem": "How long does a Direct Lake refresh (framing) typically take, and what does it do?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Hours — it fully reloads all data into memory"
+        },
+        {
+          "id": "b",
+          "text": "Seconds — it is metadata-only and repoints the model at the newest Delta Parquet files"
+        },
+        {
+          "id": "c",
+          "text": "Minutes — it rewrites the Delta log"
+        },
+        {
+          "id": "d",
+          "text": "It does not refresh; data is always live"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Framing is a metadata-only operation that completes in seconds by pointing the model at the newest Parquet files. No data reload occurs; column transcoding happens on demand at query time.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works",
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-026",
+      "objective": "3.2.3",
+      "type": "single",
+      "stem": "During development you want any Direct Lake fallback condition to fail loudly instead of silently degrading to DirectQuery. Which setting achieves this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "DirectLakeBehavior = Automatic"
+        },
+        {
+          "id": "b",
+          "text": "DirectLakeBehavior = DirectLakeOnly"
+        },
+        {
+          "id": "c",
+          "text": "DirectLakeBehavior = DirectQueryOnly"
+        },
+        {
+          "id": "d",
+          "text": "Disable automatic updates"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Setting DirectLakeBehavior to DirectLakeOnly makes queries error when Direct Lake cannot be used, surfacing the root cause instead of hiding it behind DirectQuery. Automatic allows silent fallback and DirectQueryOnly forces DirectQuery for all queries.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works",
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-027",
+      "objective": "3.2.3",
+      "type": "multi",
+      "stem": "Which conditions can trigger a Direct Lake on SQL model to fall back to DirectQuery? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "SQL RLS or OLS enforced on the endpoint"
+        },
+        {
+          "id": "b",
+          "text": "A table sitting over an unmaterialized SQL view"
+        },
+        {
+          "id": "c",
+          "text": "A single table exceeding capacity guardrails"
+        },
+        {
+          "id": "d",
+          "text": "Using Boolean filters in a measure"
+        },
+        {
+          "id": "e",
+          "text": "Renaming a measure"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "SQL security, unmaterialized views, and exceeding capacity guardrails all trigger DirectQuery fallback on the SQL variant. Measure-level DAX choices and renaming measures do not cause fallback.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works",
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-028",
+      "objective": "3.2.4",
+      "type": "single",
+      "stem": "A new model must read Delta tables from two different lakehouses and add a small Import table. Which Direct Lake variant should you choose?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Direct Lake on the SQL analytics endpoint"
+        },
+        {
+          "id": "b",
+          "text": "Direct Lake on OneLake"
+        },
+        {
+          "id": "c",
+          "text": "Either variant works identically"
+        },
+        {
+          "id": "d",
+          "text": "Neither — use pure Import"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Direct Lake on OneLake can read from multiple Fabric Delta items and supports composite models with Import tables via web modeling. The SQL endpoint variant is single-source and non-composite.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview",
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-029",
+      "objective": "3.2.4",
+      "type": "single",
+      "stem": "Which Direct Lake variant guarantees the model never silently degrades to DirectQuery?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Direct Lake on the SQL analytics endpoint"
+        },
+        {
+          "id": "b",
+          "text": "Direct Lake on OneLake"
+        },
+        {
+          "id": "c",
+          "text": "Both fall back equally"
+        },
+        {
+          "id": "d",
+          "text": "Neither can avoid fallback"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Direct Lake on OneLake always runs in DirectLakeOnly mode and never falls back; if it exceeds a guardrail the refresh fails rather than degrading. The SQL endpoint variant can fall back to DirectQuery.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview",
+        "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-030",
+      "objective": "3.2.5",
+      "type": "single",
+      "stem": "After configuring incremental refresh, Power BI Desktop warns that the query cannot fold. What is the impact and the likely cause?",
+      "options": [
+        {
+          "id": "a",
+          "text": "No impact; folding is optional for incremental refresh"
+        },
+        {
+          "id": "b",
+          "text": "The RangeStart/RangeEnd filter cannot push to the source, so the whole table is scanned; a non-foldable step likely follows the source"
+        },
+        {
+          "id": "c",
+          "text": "The parameters were named incorrectly"
+        },
+        {
+          "id": "d",
+          "text": "The model is too small for incremental refresh"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Incremental refresh requires the RangeStart/RangeEnd filter to fold into a native source predicate. If a non-foldable step breaks folding, the filter cannot be pushed down and the entire table is scanned, losing the benefit.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-configure",
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-overview"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-031",
+      "objective": "3.2.5",
+      "type": "tf",
+      "stem": "Incremental refresh requires two parameters named exactly RangeStart and RangeEnd, both of type DateTime.",
+      "answer": "true",
+      "explanation": "Power BI reserves the case-sensitive parameter names RangeStart and RangeEnd, both typed DateTime, to drive the partition boundaries for incremental refresh. Any other name or type will not work.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-configure",
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-overview"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    },
+    {
+      "id": "q3-032",
+      "objective": "3.2.5",
+      "type": "multi",
+      "stem": "Which statements about incremental refresh are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "The RangeStart/RangeEnd filter must be a folding step"
+        },
+        {
+          "id": "b",
+          "text": "Detect data changes can skip partitions with no newer Last-Modified timestamp"
+        },
+        {
+          "id": "c",
+          "text": "The first refresh loads all history and is slow, while later refreshes are fast"
+        },
+        {
+          "id": "d",
+          "text": "The parameters can be named anything as long as they are DateTime"
+        },
+        {
+          "id": "e",
+          "text": "Query folding is optional for the range filter"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "The range filter must fold, Detect data changes skips unchanged partitions, and the first refresh loads all history while subsequent ones are incremental. The parameters must be named exactly RangeStart and RangeEnd, and folding of the range filter is mandatory.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-overview",
+        "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-configure"
+      ],
+      "domain": 3,
+      "domain_title": "Implement and manage semantic models"
+    }
+  ]
+}

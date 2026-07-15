@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Microsoft Certification Practice Exams</title>
+<style>
+  :root{
+    --navy:#0b3d63; --blue:#0f6cbd; --blue2:#3a9bdc; --ink:#1b2733; --mute:#5b6b7a;
+    --line:#d7e2ee; --pale:#eaf3fb; --bg:#f5f8fc; --card:#ffffff; --ok:#107c41; --draft:#b45309;
+    --bad:#b3261e; --flag:#b45309;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5}
+  a{color:var(--blue)}
+  header{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;padding:24px 20px}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+  header h1{margin:0;font-size:24px;font-weight:700}
+  header p{margin:6px 0 0;opacity:.92;font-size:14px}
+  .home-link{color:#dce9f6;font-size:13px;text-decoration:none;opacity:.9}
+  .home-link:hover{opacity:1;text-decoration:underline}
+  main{padding:26px 0 60px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin:0 0 18px}
+  h2{color:var(--navy);margin:0 0 12px;font-size:20px}
+  h3{color:var(--navy);margin:18px 0 8px;font-size:16px}
+  .muted{color:var(--mute);font-size:13.5px}
+  label{font-size:14px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+  .opt-btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 14px;cursor:pointer;font-size:14px;color:var(--ink)}
+  .opt-btn.sel{border-color:var(--blue);background:var(--pale);color:var(--navy);font-weight:600}
+  .checks{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+  .checks label{display:flex;gap:8px;align-items:center;cursor:pointer}
+  .btn{display:inline-block;border:0;border-radius:9px;padding:11px 20px;font-size:15px;font-weight:600;cursor:pointer}
+  .btn.primary{background:var(--blue);color:#fff}
+  .btn.primary:hover{background:var(--navy)}
+  .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .btn.ghost:hover{border-color:var(--blue2)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  /* runner */
+  .exam-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .timer{font-variant-numeric:tabular-nums;font-weight:700;font-size:18px;color:var(--navy);background:var(--pale);border-radius:9px;padding:6px 12px}
+  .timer.low{color:#fff;background:var(--bad)}
+  .pill{font-size:12px;font-weight:600;border-radius:20px;padding:3px 10px;background:var(--pale);color:var(--navy)}
+  .qcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .scenario{background:var(--pale);border-left:4px solid var(--blue2);border-radius:8px;padding:12px 14px;margin:0 0 14px;font-size:14px}
+  .stem{font-size:16px;font-weight:600;color:var(--ink);margin:0 0 4px}
+  .qmeta{font-size:12px;color:var(--mute);margin:0 0 12px}
+  .choice{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin:8px 0;cursor:pointer;transition:border-color .12s,background .12s}
+  .choice:hover{border-color:var(--blue2)}
+  .choice.sel{border-color:var(--blue);background:var(--pale)}
+  .choice.correct{border-color:var(--ok);background:#e9f6ee}
+  .choice.wrong{border-color:var(--bad);background:#fbeceb}
+  .choice input{margin-top:3px}
+  .choice .ltr{font-weight:700;color:var(--mute);min-width:18px}
+  .choice.correct .ltr{color:var(--ok)}
+  .choice.wrong .ltr{color:var(--bad)}
+  .feedback{margin-top:12px;padding:12px 14px;border-radius:10px;font-size:14px}
+  .feedback.good{background:#e9f6ee;border:1px solid #b7e0c6}
+  .feedback.bad{background:#fbeceb;border:1px solid #eec4c1}
+  .feedback .verdict{font-weight:700}
+  .feedback .refs{margin:8px 0 0;padding:0;list-style:none;font-size:13px}
+  .navgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:6px;margin-top:6px}
+  .navgrid button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:7px 0;font-size:12.5px;cursor:pointer;color:var(--ink)}
+  .navgrid button.answered{background:var(--pale);border-color:var(--blue2);color:var(--navy);font-weight:600}
+  .navgrid button.current{outline:2px solid var(--blue)}
+  .navgrid button.flagged{border-color:var(--flag);box-shadow:inset 0 -3px 0 var(--flag)}
+  .side{display:grid;grid-template-columns:1fr 240px;gap:18px;align-items:start}
+  @media(max-width:820px){.side{grid-template-columns:1fr}}
+  .flagbtn{font-size:13px;background:none;border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;color:var(--flag)}
+  .flagbtn.on{background:#fdf0dd;border-color:var(--flag);font-weight:600}
+  /* report */
+  .score-hero{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+  .score-num{font-size:52px;font-weight:800;line-height:1;color:var(--navy)}
+  .band{font-size:20px;font-weight:700;border-radius:12px;padding:8px 16px}
+  .band.Ready{background:#e6f4ec;color:var(--ok)}
+  .band.Approaching{background:#fdf0dd;color:var(--draft)}
+  .band[data-b="0"]{background:#fbeceb;color:var(--bad)}
+  .dbar{margin:10px 0}
+  .dbar .lab{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:3px}
+  .dbar .lab b{color:var(--navy)}
+  .dbar .track{background:#e7eef6;border-radius:20px;height:12px;overflow:hidden}
+  .dbar .fill{height:100%;border-radius:20px;background:var(--blue)}
+  .dbar .fill.low{background:var(--draft)}
+  .dbar .fill.bad{background:var(--bad)}
+  .rev-q{border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+  .rev-q.correct{border-left:5px solid var(--ok)}
+  .rev-q.wrong{border-left:5px solid var(--bad)}
+  .tag{font-size:11.5px;font-weight:700;border-radius:6px;padding:2px 8px}
+  .tag.ok{background:#e6f4ec;color:var(--ok)}
+  .tag.no{background:#fbeceb;color:var(--bad)}
+  .disclaimer{font-size:12.5px;color:var(--mute);border-top:1px solid var(--line);margin-top:22px;padding-top:14px}
+  .error{background:var(--card);border:1px dashed #e2b6b6;border-radius:14px;padding:28px;color:#8a3a3a;text-align:center}
+  code{background:var(--pale);border-radius:4px;padding:1px 5px;font-size:12.5px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="home-link" href="index.html">&larr; All study guides</a>
+    <h1>Practice Exams</h1>
+    <p>Original, clean-room practice questions to simulate the exam experience. Not affiliated with or endorsed by Microsoft.</p>
+  </div>
+</header>
+
+<main><div class="wrap" id="app">
+  <div class="panel"><p class="muted">Loading practice exams&hellip;</p></div>
+</div></main>
+
+<script>
+(function(){
+  "use strict";
+  var app = document.getElementById("app");
+  var CATALOG = null, BANK = null, RUN = null, TIMER = null;
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  function el(html){ var d=document.createElement("div"); d.innerHTML=html.trim(); return d.firstChild; }
+  function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+  function letter(i){ return String.fromCharCode(65+i); }
+
+  // ---------- data loading ----------
+  function loadCatalog(){
+    return fetch("quiz/exams.json",{cache:"no-store"})
+      .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
+  }
+  function loadBank(file){
+    return fetch("quiz/"+file,{cache:"no-store"})
+      .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
+  }
+
+  // ---------- start screen ----------
+  function renderStart(){
+    var exams = CATALOG.exams || [];
+    var examOpts = exams.map(function(e){ return "<option value='"+esc(e.file)+"'>"+esc(e.exam)+" — "+esc(e.title)+" ("+e.total+" Q)</option>"; }).join("");
+    var domains = (BANK.domains||[]).map(function(d){
+      return "<label><input type='checkbox' class='dchk' value='"+d.domain+"' checked> "+
+        "<span>D"+d.domain+" &middot; "+esc(d.title)+" <span class='muted'>("+d.count+" Q)</span></span></label>";
+    }).join("");
+    var total = (BANK.questions||[]).length;
+    app.innerHTML = "";
+    app.appendChild(el(
+      "<div class='panel'>"+
+        "<h2>Set up your practice exam</h2>"+
+        "<p class='muted'>"+esc(BANK.title)+" &middot; "+total+" questions available.</p>"+
+        (exams.length>1 ? "<h3>Exam</h3><select id='examSel'>"+examOpts+"</select>" : "")+
+        "<h3>Mode</h3>"+
+        "<div class='row'>"+
+          "<button class='opt-btn sel' data-mode='exam'>Exam &mdash; timed, feedback at the end</button>"+
+          "<button class='opt-btn' data-mode='practice'>Practice &mdash; instant feedback per question</button>"+
+        "</div>"+
+        "<h3>Number of questions</h3>"+
+        "<div class='row' id='lenRow'>"+
+          "<button class='opt-btn' data-len='20'>20</button>"+
+          "<button class='opt-btn sel' data-len='40'>40</button>"+
+          "<button class='opt-btn' data-len='60'>60</button>"+
+          "<button class='opt-btn' data-len='0'>All ("+total+")</button>"+
+        "</div>"+
+        "<h3>Domains</h3>"+
+        "<div class='checks'>"+domains+"</div>"+
+        "<h3>Options</h3>"+
+        "<div class='checks'>"+
+          "<label><input type='checkbox' id='randChk' checked> Randomize question &amp; option order</label>"+
+        "</div>"+
+        "<div class='btnrow'><button class='btn primary' id='startBtn'>Start exam</button></div>"+
+        "<p class='disclaimer'>"+esc(BANK.passing_note)+"</p>"+
+      "</div>"
+    ));
+
+    var mode = "exam", len = 40;
+    app.querySelectorAll("[data-mode]").forEach(function(b){
+      b.onclick=function(){ app.querySelectorAll("[data-mode]").forEach(function(x){x.classList.remove("sel");}); b.classList.add("sel"); mode=b.getAttribute("data-mode"); };
+    });
+    app.querySelectorAll("[data-len]").forEach(function(b){
+      b.onclick=function(){ app.querySelectorAll("[data-len]").forEach(function(x){x.classList.remove("sel");}); b.classList.add("sel"); len=parseInt(b.getAttribute("data-len"),10); };
+    });
+    var examSel = document.getElementById("examSel");
+    if(examSel){ examSel.onchange=function(){ startLoad(examSel.value); }; }
+
+    document.getElementById("startBtn").onclick=function(){
+      var doms = Array.prototype.map.call(app.querySelectorAll(".dchk:checked"),function(c){return parseInt(c.value,10);});
+      if(!doms.length){ alert("Pick at least one domain."); return; }
+      var rand = document.getElementById("randChk").checked;
+      beginRun(mode, len, doms, rand);
+    };
+  }
+
+  // ---------- build a run ----------
+  function beginRun(mode, len, doms, rand){
+    var pool = (BANK.questions||[]).filter(function(q){ return doms.indexOf(q.domain)!==-1; });
+    pool = rand ? shuffle(pool) : pool.slice();
+    if(len>0 && pool.length>len) pool = pool.slice(0, len);
+    var qs = pool.map(function(q){
+      var opts = (q.type==="tf" || !rand) ? q.options.slice() : shuffle(q.options);
+      return {q:q, opts:opts, chosen:(q.type==="multi"?[]:null), flagged:false, checked:false};
+    });
+    RUN = {mode:mode, items:qs, idx:0, started:Date.now(),
+           limit: (mode==="exam" ? qs.length*90 : 0), remaining: qs.length*90, done:false};
+    if(TIMER){ clearInterval(TIMER); TIMER=null; }
+    if(mode==="exam"){
+      TIMER=setInterval(function(){
+        RUN.remaining--; updateTimer();
+        if(RUN.remaining<=0){ clearInterval(TIMER); TIMER=null; finish(); }
+      },1000);
+    }
+    renderRunner();
+  }
+
+  function fmt(s){ var m=Math.floor(s/60), r=s%60; return m+":"+(r<10?"0":"")+r; }
+  function updateTimer(){
+    var t=document.getElementById("timer"); if(!t) return;
+    t.textContent = fmt(Math.max(0,RUN.remaining));
+    t.classList.toggle("low", RUN.remaining<=60);
+  }
+
+  // ---------- runner ----------
+  function renderRunner(){
+    var it = RUN.items[RUN.idx], q = it.q;
+    var answered = RUN.items.filter(isAnswered).length;
+    var scen = q.scenario_id && BANK.scenarios[q.scenario_id]
+      ? "<div class='scenario'><b>Scenario.</b> "+BANK.scenarios[q.scenario_id]+"</div>" : "";
+    var typeLabel = q.type==="multi" ? "Choose all that apply" : (q.type==="tf" ? "True / False" : "Choose one");
+
+    var choices = it.opts.map(function(o,i){
+      var sel = q.type==="multi" ? (it.chosen.indexOf(o.id)!==-1) : (it.chosen===o.id);
+      var cls = "choice"+(sel?" sel":"");
+      var mark = "";
+      if(it.checked){
+        var isCorrect = isOptCorrect(q,o.id);
+        if(isCorrect) cls="choice correct";
+        else if(sel) cls="choice wrong";
+        mark = isCorrect ? " &#10004;" : (sel ? " &#10008;" : "");
+      }
+      var input = q.type==="multi"
+        ? "<input type='checkbox' "+(sel?"checked":"")+" "+(it.checked?"disabled":"")+">"
+        : "<input type='radio' name='c' "+(sel?"checked":"")+" "+(it.checked?"disabled":"")+">";
+      return "<label class='"+cls+"' data-oid='"+esc(o.id)+"'>"+input+
+        "<span class='ltr'>"+letter(i)+"</span><span>"+o.text+mark+"</span></label>";
+    }).join("");
+
+    var feedback = "";
+    if(it.checked){
+      var ok = isCorrect(it);
+      feedback = "<div class='feedback "+(ok?"good":"bad")+"'>"+
+        "<div class='verdict'>"+(ok?"Correct":"Incorrect")+"</div>"+
+        "<div>"+q.explanation+"</div>"+ refsHtml(q) +"</div>";
+    }
+
+    var nav = RUN.items.map(function(x,i){
+      var c="navgrid-btn"; var classes=[];
+      if(isAnswered(x)) classes.push("answered");
+      if(i===RUN.idx) classes.push("current");
+      if(x.flagged) classes.push("flagged");
+      return "<button class='"+classes.join(" ")+"' data-goto='"+i+"'>"+(i+1)+"</button>";
+    }).join("");
+
+    var checkBtn = RUN.mode==="practice" && !it.checked
+      ? "<button class='btn ghost' id='checkBtn'>Check answer</button>" : "";
+    var isLast = RUN.idx===RUN.items.length-1;
+
+    app.innerHTML="";
+    app.appendChild(el(
+      "<div>"+
+        "<div class='exam-top'>"+
+          (RUN.mode==="exam" ? "<span class='timer' id='timer'>"+fmt(RUN.remaining)+"</span>" : "<span class='pill'>Practice mode</span>")+
+          "<span class='pill'>Question "+(RUN.idx+1)+" / "+RUN.items.length+"</span>"+
+          "<span class='pill'>Answered "+answered+"</span>"+
+          "<span class='pill'>D"+q.domain+"</span>"+
+          "<div style='flex:1'></div>"+
+          "<button class='flagbtn"+(it.flagged?" on":"")+"' id='flagBtn'>"+(it.flagged?"&#9873; Flagged":"&#9873; Flag")+"</button>"+
+        "</div>"+
+        "<div class='side'>"+
+          "<div class='qcard'>"+
+            scen+
+            "<div class='qmeta'>"+esc(typeLabel)+" &middot; Objective "+esc(q.objective||"")+"</div>"+
+            "<p class='stem'>"+q.stem+"</p>"+
+            choices+
+            feedback+
+            "<div class='btnrow'>"+
+              "<button class='btn ghost' id='prevBtn' "+(RUN.idx===0?"disabled":"")+">&larr; Previous</button>"+
+              checkBtn+
+              (isLast ? "<button class='btn primary' id='submitBtn'>Finish &amp; score</button>"
+                      : "<button class='btn primary' id='nextBtn'>Next &rarr;</button>")+
+            "</div>"+
+          "</div>"+
+          "<div class='qcard'>"+
+            "<h3 style='margin-top:0'>Navigator</h3>"+
+            "<div class='navgrid'>"+nav+"</div>"+
+            "<div class='btnrow'><button class='btn ghost' id='endBtn'>Finish now</button></div>"+
+          "</div>"+
+        "</div>"+
+      "</div>"
+    ));
+    updateTimer();
+    wireRunner(it,q);
+  }
+
+  function wireRunner(it,q){
+    app.querySelectorAll(".choice").forEach(function(node){
+      if(it.checked) return;
+      node.onclick=function(e){
+        e.preventDefault();
+        var oid=node.getAttribute("data-oid");
+        if(q.type==="multi"){
+          var i=it.chosen.indexOf(oid);
+          if(i===-1) it.chosen.push(oid); else it.chosen.splice(i,1);
+        } else { it.chosen=oid; }
+        renderRunner();
+      };
+    });
+    var flag=document.getElementById("flagBtn"); if(flag) flag.onclick=function(){ it.flagged=!it.flagged; renderRunner(); };
+    var prev=document.getElementById("prevBtn"); if(prev) prev.onclick=function(){ if(RUN.idx>0){RUN.idx--; renderRunner();} };
+    var next=document.getElementById("nextBtn"); if(next) next.onclick=function(){ if(RUN.idx<RUN.items.length-1){RUN.idx++; renderRunner();} };
+    var chk=document.getElementById("checkBtn"); if(chk) chk.onclick=function(){
+      if(!isAnswered(it)){ alert("Pick an answer first."); return; } it.checked=true; renderRunner(); };
+    var submit=document.getElementById("submitBtn"); if(submit) submit.onclick=confirmFinish;
+    var end=document.getElementById("endBtn"); if(end) end.onclick=confirmFinish;
+    app.querySelectorAll("[data-goto]").forEach(function(b){
+      b.onclick=function(){ RUN.idx=parseInt(b.getAttribute("data-goto"),10); renderRunner(); };
+    });
+  }
+
+  function confirmFinish(){
+    var unanswered = RUN.items.filter(function(x){return !isAnswered(x);}).length;
+    var msg = unanswered ? ("You have "+unanswered+" unanswered question(s). Finish and score anyway?") : "Finish and score your exam?";
+    if(confirm(msg)) finish();
+  }
+
+  // ---------- grading ----------
+  function isAnswered(it){ return it.q.type==="multi" ? it.chosen.length>0 : it.chosen!=null; }
+  function isOptCorrect(q,oid){ return q.type==="multi" ? q.answer.indexOf(oid)!==-1 : q.answer===oid; }
+  function isCorrect(it){
+    var q=it.q;
+    if(q.type==="multi"){
+      if(it.chosen.length!==q.answer.length) return false;
+      for(var i=0;i<q.answer.length;i++){ if(it.chosen.indexOf(q.answer[i])===-1) return false; }
+      return true;
+    }
+    return it.chosen===q.answer;
+  }
+  function refsHtml(q){
+    if(!q.refs||!q.refs.length) return "";
+    return "<ul class='refs'><li><b>Learn more</b></li>"+q.refs.map(function(u){
+      return "<li><a href='"+esc(u)+"' target='_blank' rel='noopener'>"+esc(u)+"</a></li>"; }).join("")+"</ul>";
+  }
+
+  // ---------- report ----------
+  function finish(){
+    RUN.done=true; if(TIMER){ clearInterval(TIMER); TIMER=null; }
+    var total=RUN.items.length, correct=0;
+    var byDom={};
+    RUN.items.forEach(function(it){
+      var d=it.q.domain; byDom[d]=byDom[d]||{c:0,t:0,title:it.q.domain_title};
+      byDom[d].t++; if(isCorrect(it)){ correct++; byDom[d].c++; }
+    });
+    var pct=Math.round(correct/total*100);
+    var band=(BANK.readiness_bands||[]).find(function(b){return pct>=b.min;})||{label:"",note:""};
+    var bandIdx=(BANK.readiness_bands||[]).indexOf(band);
+
+    var doms=Object.keys(byDom).sort(function(a,b){return a-b;}).map(function(d){
+      var o=byDom[d], p=Math.round(o.c/o.t*100);
+      var fill=p>=75?"":(p>=60?"low":"bad");
+      var w=BANK.weights ? weightFor(o.title) : "";
+      return "<div class='dbar'><div class='lab'><b>D"+d+" &middot; "+esc(o.title)+"</b>"+
+        "<span>"+o.c+"/"+o.t+" &middot; "+p+"%"+(w?" <span class='muted'>(exam "+esc(w)+")</span>":"")+"</span></div>"+
+        "<div class='track'><div class='fill "+fill+"' style='width:"+p+"%'></div></div></div>";
+    }).join("");
+
+    var elapsed=Math.round((Date.now()-RUN.started)/1000);
+    app.innerHTML="";
+    app.appendChild(el(
+      "<div class='panel'>"+
+        "<h2>Your results</h2>"+
+        "<div class='score-hero'>"+
+          "<div><div class='score-num'>"+pct+"%</div><div class='muted'>"+correct+" of "+total+" correct &middot; "+fmt(elapsed)+"</div></div>"+
+          "<div class='band "+esc(band.label)+"' data-b='"+bandIdx+"'>"+esc(band.label)+"</div>"+
+        "</div>"+
+        "<p class='muted' style='margin-top:10px'>"+esc(band.note)+"</p>"+
+        "<h3>By domain</h3>"+doms+
+        "<div class='btnrow'>"+
+          "<button class='btn primary' id='reviewBtn'>Review answers</button>"+
+          "<button class='btn ghost' id='againBtn'>New exam</button>"+
+        "</div>"+
+        "<p class='disclaimer'>"+esc(BANK.passing_note)+" This tool is an independent, unofficial study aid and is not affiliated with, endorsed by, or sponsored by Microsoft.</p>"+
+      "</div>"
+    ));
+    document.getElementById("reviewBtn").onclick=renderReview;
+    document.getElementById("againBtn").onclick=renderStart;
+  }
+
+  function weightFor(title){
+    var w=BANK.weights||{};
+    var keys=Object.keys(w);
+    for(var i=0;i<keys.length;i++){
+      var k=keys[i].toLowerCase();
+      if(title && (k.indexOf(title.toLowerCase())!==-1 || title.toLowerCase().indexOf(k)!==-1)) return w[keys[i]];
+    }
+    // fall back to positional match on domain order
+    return "";
+  }
+
+  function renderReview(){
+    var html="<div class='panel'><h2>Review</h2>";
+    RUN.items.forEach(function(it,i){
+      var q=it.q, ok=isCorrect(it);
+      var opts=it.opts.map(function(o,j){
+        var cls="choice"; var mark="";
+        if(isOptCorrect(q,o.id)){ cls="choice correct"; mark=" &#10004;"; }
+        else if(chosenHas(it,o.id)){ cls="choice wrong"; mark=" &#10008;"; }
+        return "<label class='"+cls+"'><span class='ltr'>"+letter(j)+"</span><span>"+o.text+mark+"</span></label>";
+      }).join("");
+      var scen = q.scenario_id && BANK.scenarios[q.scenario_id]
+        ? "<div class='scenario'><b>Scenario.</b> "+BANK.scenarios[q.scenario_id]+"</div>" : "";
+      html += "<div class='rev-q "+(ok?"correct":"wrong")+"'>"+
+        "<div class='qmeta'>Q"+(i+1)+" &middot; D"+q.domain+" &middot; Objective "+esc(q.objective||"")+
+          " <span class='tag "+(ok?"ok":"no")+"'>"+(ok?"Correct":"Incorrect")+"</span>"+
+          (it.flagged?" <span class='tag no'>&#9873; Flagged</span>":"")+"</div>"+
+        scen+"<p class='stem'>"+q.stem+"</p>"+opts+
+        "<div class='feedback "+(ok?"good":"bad")+"'><div class='verdict'>Explanation</div><div>"+q.explanation+"</div>"+refsHtml(q)+"</div>"+
+      "</div>";
+    });
+    html+="<div class='btnrow'><button class='btn primary' id='backBtn'>Back to results</button>"+
+          "<button class='btn ghost' id='againBtn2'>New exam</button></div></div>";
+    app.innerHTML=""; app.appendChild(el(html));
+    document.getElementById("backBtn").onclick=finish;
+    document.getElementById("againBtn2").onclick=renderStart;
+    window.scrollTo(0,0);
+  }
+  function chosenHas(it,oid){ return it.q.type==="multi" ? it.chosen.indexOf(oid)!==-1 : it.chosen===oid; }
+
+  // ---------- boot ----------
+  function startLoad(file){
+    app.innerHTML="<div class='panel'><p class='muted'>Loading questions&hellip;</p></div>";
+    loadBank(file).then(function(b){ BANK=b; renderStart(); }).catch(fail);
+  }
+  function fail(err){
+    app.innerHTML="<div class='error'>Couldn&rsquo;t load the practice exam data. "+
+      "If you opened this file directly, run it from a local server or view it on GitHub&nbsp;Pages.<br><small>"+esc(err.message)+"</small></div>";
+  }
+  loadCatalog().then(function(cat){
+    CATALOG=cat;
+    if(!cat.exams||!cat.exams.length){ app.innerHTML="<div class='error'>No practice exams are published yet.</div>"; return; }
+    startLoad(cat.exams[0].file);
+  }).catch(fail);
+})();
+</script>
+</body>
+</html>

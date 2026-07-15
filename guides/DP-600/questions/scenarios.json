@@ -1,0 +1,20 @@
+{
+  "scenarios": [
+    {
+      "id": "s-medallion",
+      "text": "A retail analytics team is building a lakehouse that follows the medallion pattern. Raw point-of-sale extracts land as CSV in a Bronze layer, PySpark notebooks clean and conform them into Silver Delta tables, and business-ready star-schema tables are published to a Gold layer that feeds a Direct Lake semantic model. The team must keep ingestion incremental, enforce data quality, and expose the Gold tables to report authors in other workspaces."
+    },
+    {
+      "id": "s-perf",
+      "text": "An enterprise BI group owns a widely used semantic model whose reports have become slow since the underlying fact table grew to tens of gigabytes. Analysts complain that several visuals take many seconds to render, some measures recompute the same prior-period value repeatedly, and refreshes are taking too long. The group has been asked to diagnose the bottlenecks and tune both the model and the report without changing the business logic the reports expose."
+    },
+    {
+      "id": "s-governance",
+      "text": "A central platform team is rolling out governed self-service analytics across several business units. They must promote content through Development, Test, and Production workspaces, keep every stage pointed at the correct data source, put semantic models and reports under source control, and make sure only approved data assets are surfaced as trusted to consumers. Different business units require different connection strings in each stage."
+    },
+    {
+      "id": "s-dataprep",
+      "text": "A data engineering team is standing up a new subject area and must decide, step by step, how to prepare each dataset. Some sources are on-premises relational databases, some are large Parquet extracts already in a data lake, and some are high-volume streaming events. The team needs to pick the right ingestion mechanism, the right store, and the right transformation tool for each case while minimizing data duplication and refresh cost."
+    }
+  ]
+}

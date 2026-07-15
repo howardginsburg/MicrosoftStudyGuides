@@ -1,0 +1,211 @@
+{
+  "domain": 3,
+  "domain_title": "Implement computer vision solutions",
+  "questions": [
+    {
+      "id": "q3-001",
+      "objective": "3.1.1",
+      "type": "single",
+      "stem": "An application generates images with a gpt-image model and needs to display the result. In what form does the API return the generated image?",
+      "options": [
+        {"id": "a", "text": "A temporary public URL that expires after 24 hours"},
+        {"id": "b", "text": "Base64-encoded data in the b64_json field"},
+        {"id": "c", "text": "A binary PNG stream with no wrapper"},
+        {"id": "d", "text": "A link to Azure Blob Storage created automatically"}
+      ],
+      "answer": "b",
+      "explanation": "The gpt-image family always returns base64-encoded image data in the b64_json field rather than a hosted URL, so the client decodes the string to obtain the image bytes.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/dall-e", "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/dall-e-quickstart"]
+    },
+    {
+      "id": "q3-002",
+      "objective": "3.1.2",
+      "type": "single",
+      "stem": "A developer integrates the Sora video generation model. Which interaction pattern is correct?",
+      "options": [
+        {"id": "a", "text": "A single synchronous call that returns the finished video"},
+        {"id": "b", "text": "Submit a job, poll for completion, then download the result"},
+        {"id": "c", "text": "A streaming WebSocket that emits frames in real time"},
+        {"id": "d", "text": "Upload frames and receive a stitched video immediately"}
+      ],
+      "answer": "b",
+      "explanation": "Video generation is a long-running operation, so the workflow submits a job, polls the job status until it completes, and then downloads the generated video. There is no synchronous single-call response.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/video-generation"]
+    },
+    {
+      "id": "q3-003",
+      "objective": "3.1.3",
+      "type": "single",
+      "stem": "A team wants to repaint only a specific region of an existing image while leaving the rest unchanged, using the image edits endpoint. What must the mask satisfy?",
+      "options": [
+        {"id": "a", "text": "The mask must be a different size to indicate scaling"},
+        {"id": "b", "text": "The mask must match the source image dimensions, with transparent pixels marking the repaint area"},
+        {"id": "c", "text": "The mask must be provided as base64 JSON, not multipart"},
+        {"id": "d", "text": "The mask must cover the whole image with a solid color"}
+      ],
+      "answer": "b",
+      "explanation": "The edits endpoint uses multipart/form-data and a mask whose dimensions match the source image. Transparent pixels in the mask mark the region to repaint while opaque pixels are preserved.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/dall-e"]
+    },
+    {
+      "id": "q3-004",
+      "objective": "3.1.4",
+      "type": "single",
+      "stem": "When submitting a Sora generation job, which parameter most directly drives billing?",
+      "options": [
+        {"id": "a", "text": "n_variants, the number of candidate clips"},
+        {"id": "b", "text": "n_seconds, the duration of the generated video"},
+        {"id": "c", "text": "The width value only"},
+        {"id": "d", "text": "The output filename"}
+      ],
+      "answer": "b",
+      "explanation": "Video generation is billed primarily by duration, so n_seconds is the main cost driver. Width and height are integer dimensions and n_variants controls how many clips are produced, but duration is the principal billing factor.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/video-generation"]
+    },
+    {
+      "id": "q3-005",
+      "objective": "3.1.5",
+      "type": "multi",
+      "stem": "Which statements about controlling gpt-image generation are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "quality can be set to low, medium, or high"},
+        {"id": "b", "text": "A transparent background is supported with the png output format on gpt-image-1"},
+        {"id": "c", "text": "output_compression applies to jpeg output"},
+        {"id": "d", "text": "Every gpt-image model returns a hosted URL instead of base64"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Generation supports quality levels, transparent backgrounds with png on gpt-image-1, and jpeg output compression. The gpt-image family returns base64 data, not a hosted URL.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/dall-e", "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/video-generation"]
+    },
+    {
+      "id": "q3-006",
+      "objective": "3.2.1",
+      "type": "single",
+      "stem": "An application must ask a multimodal model open-ended questions about a photo and request high visual fidelity. How is the image passed?",
+      "options": [
+        {"id": "a", "text": "As a separate Image Analysis REST call before the chat"},
+        {"id": "b", "text": "As an image_url content block in a Chat Completions message, optionally with detail set to high"},
+        {"id": "c", "text": "As a base64 field on the SpeechConfig object"},
+        {"id": "d", "text": "As a query parameter on the deployment URL"}
+      ],
+      "answer": "b",
+      "explanation": "Vision-capable chat models accept images as image_url content blocks within a Chat Completions message, and the detail parameter can be set to high for finer analysis at higher token cost.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/gpt-with-vision", "https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis"]
+    },
+    {
+      "id": "q3-007",
+      "objective": "3.2.2",
+      "type": "single",
+      "stem": "A cataloging solution needs a bounding box plus a short description for each distinct region of an image. Which Image Analysis feature fits?",
+      "options": [
+        {"id": "a", "text": "Caption, which returns one sentence for the whole image"},
+        {"id": "b", "text": "Dense Captions, which returns descriptions with bounding boxes for multiple regions"},
+        {"id": "c", "text": "Tags, which returns labels without coordinates"},
+        {"id": "d", "text": "Read OCR, which extracts text lines"}
+      ],
+      "answer": "b",
+      "explanation": "Dense Captions produces a description and bounding box for several regions of an image. Caption returns a single sentence for the entire image, and Tags returns labels without location data.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis", "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/gpt-with-vision"]
+    },
+    {
+      "id": "q3-008",
+      "objective": "3.2.3",
+      "type": "tf",
+      "stem": "Because the Chat Completions vision endpoint is stateless, a multi-turn visual Q&A app must resend the relevant image and prior turns with each new question.",
+      "answer": "true",
+      "explanation": "The endpoint does not retain conversation state between calls, so the application must include the image and any needed prior context on every request to preserve continuity.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/gpt-with-vision", "https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis"]
+    },
+    {
+      "id": "q3-009",
+      "objective": "3.2.4",
+      "type": "single",
+      "stem": "A web team must generate accessible alt text for uploaded photos to satisfy WCAG guidance. Which Image Analysis capability is the direct fit?",
+      "options": [
+        {"id": "a", "text": "Read OCR"},
+        {"id": "b", "text": "The Caption feature, which returns a concise human-readable description"},
+        {"id": "c", "text": "Smart crop"},
+        {"id": "d", "text": "Background removal"}
+      ],
+      "answer": "b",
+      "explanation": "The Caption feature returns a short natural-language description suitable for alt text, supporting accessibility requirements such as WCAG 1.1.1. OCR, cropping, and background removal do not describe overall image content.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis", "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/gpt-with-vision"]
+    },
+    {
+      "id": "q3-010",
+      "objective": "3.2.5",
+      "type": "single",
+      "scenario_id": "s-docpipe",
+      "stem": "For Fabrikam Insurance, the team needs a reusable, schema-driven analyzer that extracts fields from embedded photos and reports a confidence value for each field. Which service should they use?",
+      "options": [
+        {"id": "a", "text": "The Chat Completions vision endpoint with a free-form prompt"},
+        {"id": "b", "text": "Azure AI Content Understanding with a custom analyzer"},
+        {"id": "c", "text": "The Image Analysis Tags feature"},
+        {"id": "d", "text": "The Speech SDK"}
+      ],
+      "answer": "b",
+      "explanation": "Content Understanding lets you define a reusable analyzer with a field schema and can emit per-field confidence and source estimation, which suits repeatable extraction across many similar images. The free-form chat endpoint is not schema-driven or reusable in the same way.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/overview", "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/quickstart/use-rest-api"]
+    },
+    {
+      "id": "q3-011",
+      "objective": "3.2.6",
+      "type": "single",
+      "stem": "A team uses the Content Understanding prebuilt video analyzer and needs per-shot timing details in the output. What must they set?",
+      "options": [
+        {"id": "a", "text": "disableFaceBlurring to false"},
+        {"id": "b", "text": "returnDetails to true so cameraShotTimesMs is included"},
+        {"id": "c", "text": "enableSegment to false"},
+        {"id": "d", "text": "The output format to WEBVTT only"}
+      ],
+      "answer": "b",
+      "explanation": "Setting returnDetails to true adds granular metadata such as camera shot times to the analyzer output. WEBVTT is the transcript format and does not by itself include shot timing details.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/video/overview", "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/overview"]
+    },
+    {
+      "id": "q3-012",
+      "objective": "3.2.8",
+      "type": "multi",
+      "stem": "Which statements correctly distinguish Azure AI Image Analysis from Content Understanding for visual workloads? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Image Analysis offers prebuilt features such as Caption, Dense Captions, Tags, and OCR"},
+        {"id": "b", "text": "Content Understanding lets you define custom field schemas for extraction"},
+        {"id": "c", "text": "Content Understanding can analyze video and return timestamped segments"},
+        {"id": "d", "text": "Image Analysis is the right choice for schema-driven structured field extraction"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Image Analysis provides fixed prebuilt visual features, while Content Understanding supports custom field schemas and multimodal inputs including video with timestamped segments. Schema-driven structured extraction is a Content Understanding strength, not Image Analysis.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis", "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/video/overview"]
+    },
+    {
+      "id": "q3-013",
+      "objective": "3.3.2",
+      "type": "single",
+      "stem": "A generative image application must defend against prompt-injection instructions hidden inside user-supplied text. When should Prompt Shields be invoked?",
+      "options": [
+        {"id": "a", "text": "After the model produces its output, to redact the response"},
+        {"id": "b", "text": "Before the content reaches the model, to detect injection attempts"},
+        {"id": "c", "text": "Only during batch processing"},
+        {"id": "d", "text": "Only on generated images, not text"}
+      ],
+      "answer": "b",
+      "explanation": "Prompt Shields analyze user prompts and any embedded document content for jailbreak and injection attacks, and must run before the content is sent to the model so that a detected attack can be blocked.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/jailbreak-detection"]
+    },
+    {
+      "id": "q3-014",
+      "objective": "3.3.3",
+      "type": "multi",
+      "stem": "Which statements about Content Credentials on AI-generated images are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "They are based on the C2PA provenance standard"},
+        {"id": "b", "text": "They are automatically attached to generated images"},
+        {"id": "c", "text": "Removing or altering the image can strip the credential"},
+        {"id": "d", "text": "They are a visible watermark burned into the pixels"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Content Credentials implement the C2PA provenance manifest, are attached automatically to generated images, and can be lost if the image is tampered with. They are cryptographic metadata rather than a visible watermark.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/content-credentials", "https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/harm-categories"]
+    }
+  ]
+}

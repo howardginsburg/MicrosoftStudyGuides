@@ -1,0 +1,3471 @@
+{
+  "exam": "AI-103",
+  "title": "Developing AI Apps and Agents on Azure",
+  "generated": "2026-07-15",
+  "weights": {
+    "Plan and manage an Azure AI solution": "25–30%",
+    "Implement generative AI and agentic solutions": "30–35%",
+    "Implement computer vision solutions": "10–15%",
+    "Implement text analysis solutions": "10–15%",
+    "Implement information extraction solutions": "10–15%"
+  },
+  "passing_note": "AI-103 passes at 700/1000. Microsoft does not publish the raw-score mapping, so the readiness estimate below is unofficial and based on percent correct only.",
+  "readiness_bands": [
+    {
+      "min": 75,
+      "label": "Ready",
+      "note": "Consistently strong — you're tracking well above the pass line."
+    },
+    {
+      "min": 60,
+      "label": "Approaching",
+      "note": "Close — shore up weaker domains before test day."
+    },
+    {
+      "min": 0,
+      "label": "Not ready yet",
+      "note": "Keep studying — focus on your lowest-scoring domains."
+    }
+  ],
+  "scenarios": {
+    "s-rag": "Northwind Health is building an internal chat assistant that answers employee questions from a large library of HR and benefits PDFs held in Azure Blob Storage. Leadership wants grounded answers with source citations, a low rate of fabricated content, and a guarantee that all conversation history remains inside the company's own Azure subscription for compliance.",
+    "s-agents": "Contoso Travel is building a multi-agent concierge. A primary coordinating agent delegates to specialized sub-agents that look up flight prices, check hotel availability, and send booking confirmation emails to customers. Some of these actions are irreversible and must never execute without an explicit human check.",
+    "s-docpipe": "Fabrikam Insurance receives scanned claim packets that mix typed forms, handwritten notes, embedded photographs, and short video clips. The team needs an automated pipeline that reads the documents, extracts structured fields with source citations, describes the visual content, and indexes everything so a downstream retrieval agent can answer adjuster questions.",
+    "s-govern": "Adatum is rolling out a customer-facing generative assistant across several regions and must pass a responsible-AI review board. The board requires content filtering, defense against prompt injection, complete trace-based auditing, ongoing quality monitoring in production, and least-privilege access with no API keys stored in application code."
+  },
+  "domains": [
+    {
+      "domain": 1,
+      "title": "Plan and manage an Azure AI solution",
+      "count": 30
+    },
+    {
+      "domain": 2,
+      "title": "Implement generative AI and agentic solutions",
+      "count": 34
+    },
+    {
+      "domain": 3,
+      "title": "Implement computer vision solutions",
+      "count": 14
+    },
+    {
+      "domain": 4,
+      "title": "Implement text analysis solutions",
+      "count": 14
+    },
+    {
+      "domain": 5,
+      "title": "Implement information extraction solutions",
+      "count": 14
+    }
+  ],
+  "questions": [
+    {
+      "id": "q1-001",
+      "objective": "1.1.1",
+      "type": "single",
+      "stem": "A team must run inference entirely on a battery-powered sensor with 2 GB of RAM and no network connection. Which model category fits this constraint?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A frontier reasoning model such as an o-series model"
+        },
+        {
+          "id": "b",
+          "text": "A small language model such as Phi-4 Mini Instruct"
+        },
+        {
+          "id": "c",
+          "text": "A large multimodal model such as GPT-4o"
+        },
+        {
+          "id": "d",
+          "text": "A Model Router deployment"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Small language models are designed for on-device and edge scenarios with tight compute budgets, making an SLM the only realistic fit for severely constrained hardware. Frontier, multimodal, and router deployments all assume far more compute or connectivity than the sensor provides.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-002",
+      "objective": "1.1.1",
+      "type": "single",
+      "stem": "An application serves users whose query complexity varies widely and wants cheaper models used automatically for simple prompts, all behind one endpoint with no client-side selection logic. What should be deployed?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A separate deployment for every candidate model, chosen in code"
+        },
+        {
+          "id": "b",
+          "text": "An embedding model deployment"
+        },
+        {
+          "id": "c",
+          "text": "A Model Router deployment"
+        },
+        {
+          "id": "d",
+          "text": "A managed compute endpoint for a fine-tuned model"
+        }
+      ],
+      "answer": "c",
+      "explanation": "A Model Router deployment dispatches each incoming prompt at runtime to the most cost-effective capable model and exposes a single Chat Completions endpoint, so the caller does not implement routing logic. The other options require manual selection or serve a single fixed model.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-003",
+      "objective": "1.1.1",
+      "type": "multi",
+      "stem": "Which model choices are appropriate for edge or resource-constrained deployments? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Phi-4 Mini Instruct"
+        },
+        {
+          "id": "b",
+          "text": "Meta Llama 1B/3B"
+        },
+        {
+          "id": "c",
+          "text": "An o-series extended-reasoning model for the same edge device"
+        },
+        {
+          "id": "d",
+          "text": "A frontier GPT-5 model running on the device itself"
+        }
+      ],
+      "answer": [
+        "a",
+        "b"
+      ],
+      "explanation": "Phi-4 Mini Instruct and small Llama variants are built for on-device and edge inference. o-series reasoning models trade latency for depth and are not edge-optimized, and a frontier GPT-5 model cannot run within tight on-device compute budgets.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/foundry-models/concepts/models-sold-directly-by-azure"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-004",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "A legal team needs an agent that answers questions grounded in contract libraries stored in the organization's internal SharePoint. Which Foundry capability should be configured?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Grounding with Bing Search"
+        },
+        {
+          "id": "b",
+          "text": "The SharePoint tool in the Foundry Agent Service"
+        },
+        {
+          "id": "c",
+          "text": "The Fabric Data Agent"
+        },
+        {
+          "id": "d",
+          "text": "The Code Interpreter tool"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The SharePoint tool connects an agent directly to organizational SharePoint document libraries without a manual export or indexing step. Bing grounding targets live public web content, the Fabric Data Agent targets structured Fabric data, and Code Interpreter runs sandboxed code.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-005",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "A solution must classify user-uploaded images for harmful content before they are stored. Which Foundry capability provides this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Azure AI Search"
+        },
+        {
+          "id": "b",
+          "text": "Azure AI Content Safety"
+        },
+        {
+          "id": "c",
+          "text": "Foundry IQ"
+        },
+        {
+          "id": "d",
+          "text": "The Responses API"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Azure AI Content Safety performs real-time harm classification for both text and images and can act as a guardrail on the input path. Search and Foundry IQ handle retrieval, and the Responses API orchestrates agent runs rather than moderating content.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-006",
+      "objective": "1.1.2",
+      "type": "tf",
+      "stem": "Azure AI Search is the underlying retrieval engine for both Foundry IQ and the agent File Search tool.",
+      "answer": "true",
+      "explanation": "Azure AI Search provides the indexing and retrieval layer that both Foundry IQ and the File Search tool are built on, which is why index configuration decisions affect both features.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-007",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "After a RAG deployment, keyword searches return accurate results but semantic, intent-based queries perform poorly. What is the most likely cause?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The index uses too many replicas"
+        },
+        {
+          "id": "b",
+          "text": "The query-time vectorizer does not use the same embedding model as the indexing skillset"
+        },
+        {
+          "id": "c",
+          "text": "Semantic ranking is scoring too many candidates"
+        },
+        {
+          "id": "d",
+          "text": "The indexer schedule interval is too short"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Cosine similarity is only meaningful when the query and document vectors come from the same embedding model with matching dimensions. A vectorizer that differs from the indexing model silently degrades vector relevance while leaving keyword matching intact.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization",
+        "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-008",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "A team wants the highest combined recall and precision for a RAG retrieval step without manually choosing keyword or vector mode per query. Which configuration should they use?",
+      "options": [
+        {
+          "id": "a",
+          "text": "BM25 keyword search only"
+        },
+        {
+          "id": "b",
+          "text": "Pure vector search only"
+        },
+        {
+          "id": "c",
+          "text": "Hybrid search with Reciprocal Rank Fusion plus semantic ranking"
+        },
+        {
+          "id": "d",
+          "text": "Exhaustive KNN over the full index for every query"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Hybrid search fuses BM25 and vector results with Reciprocal Rank Fusion, and semantic ranking then re-scores the top candidates by intent, giving the best overall relevance for most RAG workloads. Single-mode retrieval trades off recall or precision.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search",
+        "https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-009",
+      "objective": "1.1.3",
+      "type": "multi",
+      "stem": "Which statements about integrated vectorization in Azure AI Search are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "It requires an indexer and cannot be used with the direct push API"
+        },
+        {
+          "id": "b",
+          "text": "A skillset splits text and calls an embedding model during indexing"
+        },
+        {
+          "id": "c",
+          "text": "The query-time vectorizer must use the same embedding model as the skillset"
+        },
+        {
+          "id": "d",
+          "text": "It removes the need for any vector field in the index schema"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Integrated vectorization runs inside an indexer pipeline where a skillset chunks and embeds content, and the query-time vectorizer must match the indexing embedding model. A vector field is still required in the index schema to store the embeddings.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization",
+        "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-010",
+      "objective": "1.1.4",
+      "type": "single",
+      "stem": "An agent must recall a user's stated dietary preferences across separate chat sessions that occur days apart. Which capability meets this need?",
+      "options": [
+        {
+          "id": "a",
+          "text": "In-thread short-term memory"
+        },
+        {
+          "id": "b",
+          "text": "The Foundry Agent Service Memory Store"
+        },
+        {
+          "id": "c",
+          "text": "A larger model context window"
+        },
+        {
+          "id": "d",
+          "text": "The Code Interpreter tool"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Short-term memory lives only within an active thread and is lost when the session ends. The Memory Store persists extracted knowledge such as preferences across sessions and is consulted at the start of each new run.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-011",
+      "objective": "1.1.4",
+      "type": "single",
+      "stem": "A single agent run must search two separate Azure AI Search indexes. Because only one File Search tool instance is allowed per run, how should the solution be designed?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Attach two File Search tools to the same agent"
+        },
+        {
+          "id": "b",
+          "text": "Merge both indexes into one at query time inside the model prompt"
+        },
+        {
+          "id": "c",
+          "text": "Use connected agents, giving each sub-agent its own File Search tool pointed at one index"
+        },
+        {
+          "id": "d",
+          "text": "Increase the run timeout so both indexes can be scanned sequentially"
+        }
+      ],
+      "answer": "c",
+      "explanation": "The run limit of one instance per knowledge tool type means a single agent cannot hold two File Search tools. Connected agents let a primary agent delegate to sub-agents, each carrying its own File Search tool bound to a different index.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-012",
+      "objective": "1.1.4",
+      "type": "single",
+      "scenario_id": "s-rag",
+      "stem": "In the Northwind Health scenario, compliance requires that every agent conversation thread stay inside the company's own subscription. Which agent setup satisfies this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Basic Agent Setup with Microsoft-managed storage"
+        },
+        {
+          "id": "b",
+          "text": "Standard Agent Setup with a customer-owned Azure Cosmos DB for NoSQL thread store"
+        },
+        {
+          "id": "c",
+          "text": "Any setup, because thread data is always customer-owned"
+        },
+        {
+          "id": "d",
+          "text": "A larger context window so history is never persisted"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Standard Agent Setup routes conversation thread data through customer-provided resources such as Azure Cosmos DB for NoSQL, keeping it inside the customer subscription. Basic Agent Setup stores threads in Microsoft-managed multitenant storage.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-013",
+      "objective": "1.2.1",
+      "type": "single",
+      "stem": "A solution needs customer-managed keys (CMK) for a Foundry resource. Which Key Vault requirement must be satisfied?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The Key Vault must be in any region as long as it is in the same subscription"
+        },
+        {
+          "id": "b",
+          "text": "The Key Vault must be in the same region and have soft delete and purge protection enabled"
+        },
+        {
+          "id": "c",
+          "text": "The Key Vault must disable soft delete to allow key rotation"
+        },
+        {
+          "id": "d",
+          "text": "A separate Key Vault is required for every project in the resource"
+        }
+      ],
+      "answer": "b",
+      "explanation": "CMK requires a Key Vault in the same region as the Foundry resource with soft delete and purge protection enabled, and the resource's managed identity granted Key Vault Crypto User. One Key Vault covers secrets for all projects in the resource.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-014",
+      "objective": "1.2.1",
+      "type": "single",
+      "stem": "A developer should be able to build and manage agents inside one Foundry project but must not gain data-plane access to sibling projects in the same resource. What assignment achieves this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Foundry User at the resource scope"
+        },
+        {
+          "id": "b",
+          "text": "Foundry Account Owner at the resource scope"
+        },
+        {
+          "id": "c",
+          "text": "Foundry User at the individual project scope"
+        },
+        {
+          "id": "d",
+          "text": "Owner at the subscription scope"
+        }
+      ],
+      "answer": "c",
+      "explanation": "A role assignment scoped to a single project restricts data-plane access to that project only. Assigning at the resource scope would apply across all projects, and broader roles grant far more than needed.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-015",
+      "objective": "1.2.2",
+      "type": "single",
+      "stem": "A retailer generates one million product descriptions overnight with no real-time latency requirement and wants the lowest per-token cost. Which deployment type fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Global Standard"
+        },
+        {
+          "id": "b",
+          "text": "Global Provisioned (PTU)"
+        },
+        {
+          "id": "c",
+          "text": "Global Batch"
+        },
+        {
+          "id": "d",
+          "text": "Regional Standard"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Global Batch offers the cheapest per-token rate for asynchronous bulk processing and has no latency SLA, which suits an overnight, non-interactive workload. The standard and provisioned options are priced for interactive traffic.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview",
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-016",
+      "objective": "1.2.2",
+      "type": "single",
+      "stem": "An enterprise wants to run a partner model such as Llama with pay-per-token pricing and no dedicated compute to manage. Which deployment option is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Managed Compute"
+        },
+        {
+          "id": "b",
+          "text": "Serverless API"
+        },
+        {
+          "id": "c",
+          "text": "Global Provisioned (PTU)"
+        },
+        {
+          "id": "d",
+          "text": "Regional Provisioned (PTU)"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Serverless API provides pay-as-you-go access to partner and community models without provisioning compute. Managed Compute requires a dedicated endpoint, and provisioned options reserve capacity billed hourly.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview",
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-017",
+      "objective": "1.2.2",
+      "type": "multi",
+      "stem": "Which limitations apply to Serverless API deployments compared with Standard or Foundry-resource deployments? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "They do not support keyless Entra ID authentication"
+        },
+        {
+          "id": "b",
+          "text": "They do not support custom content filters"
+        },
+        {
+          "id": "c",
+          "text": "They require a provisioned PTU reservation"
+        },
+        {
+          "id": "d",
+          "text": "They operate under third-party terms for partner and community models"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "Serverless API endpoints use API keys rather than keyless Entra ID auth, do not support custom content filters, and serve partner or community models under third-party terms. They are pay-per-token and do not require a PTU reservation.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview",
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-018",
+      "objective": "1.2.3",
+      "type": "single",
+      "stem": "An agent classifies documents into fixed categories and must return the same category for the same input every time. Which generation setting best supports this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "temperature set to 1.0"
+        },
+        {
+          "id": "b",
+          "text": "temperature set to 0.0"
+        },
+        {
+          "id": "c",
+          "text": "A higher max_tokens value"
+        },
+        {
+          "id": "d",
+          "text": "top_p set to 0.5 while also raising temperature"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A temperature of 0.0 maximizes determinism, which is ideal for classification and structured-output tasks. Raising temperature or combining it with top_p adjustments increases variability.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview",
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/reference"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-019",
+      "objective": "1.2.3",
+      "type": "tf",
+      "stem": "When both an agent and its underlying model deployment have a guardrail assigned, the agent's guardrail fully overrides the model's guardrail for all traffic through that agent.",
+      "answer": "true",
+      "explanation": "Foundry gives the agent-level guardrail complete precedence over the model deployment's guardrail, so any scanning of tool calls and responses must be configured in the agent's guardrail.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-020",
+      "objective": "1.2.4",
+      "type": "single",
+      "stem": "A team wants to deploy Foundry agents from GitHub Actions without storing any long-lived Azure credentials in repository secrets. Which authentication approach should they use?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A stored client secret referenced by the workflow"
+        },
+        {
+          "id": "b",
+          "text": "OpenID Connect with a federated Entra credential"
+        },
+        {
+          "id": "c",
+          "text": "A personal access token for the deploying developer"
+        },
+        {
+          "id": "d",
+          "text": "A shared account key committed to the repository"
+        }
+      ],
+      "answer": "b",
+      "explanation": "OpenID Connect lets the pipeline exchange a short-lived GitHub-issued token for an Azure access token through a federated credential, so no long-lived secret is stored. Stored secrets and keys are exactly what OIDC is meant to eliminate.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-021",
+      "objective": "1.2.4",
+      "type": "single",
+      "stem": "A pipeline fails to deploy a hosted agent container. The pipeline identity holds only the Foundry User role on the project. What additional role is most likely required?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Cognitive Services Usages Reader at subscription scope"
+        },
+        {
+          "id": "b",
+          "text": "Contributor on the project (plus ACR roles for image push)"
+        },
+        {
+          "id": "c",
+          "text": "Reader on the resource group"
+        },
+        {
+          "id": "d",
+          "text": "Key Vault Crypto User on the connected Key Vault"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Foundry User grants data-plane access for running agents but not the management-plane rights to create or update hosted agent versions. Code deployment mode also needs Contributor on the project plus container registry roles.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-foundry"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-022",
+      "objective": "1.3.1",
+      "type": "single",
+      "stem": "A subscription holds approved PTU quota in a region, but creating a new provisioned deployment fails. What is the most likely explanation?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The subscription exceeded its number of pay-per-token deployments"
+        },
+        {
+          "id": "b",
+          "text": "Physical capacity for that deployment type is unavailable even though quota exists"
+        },
+        {
+          "id": "c",
+          "text": "TPM and PTU quotas share a single pool that is now empty"
+        },
+        {
+          "id": "d",
+          "text": "Model Router must be enabled before any provisioned deployment"
+        }
+      ],
+      "answer": "b",
+      "explanation": "PTU quota is a policy limit with no charge; actual compute capacity must also be available at deployment time. Having quota does not guarantee that capacity exists, so a deployment can still fail.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/quota"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-023",
+      "objective": "1.3.1",
+      "type": "tf",
+      "stem": "Once PTU quota is approved for a region, a provisioned deployment in that region is guaranteed to succeed.",
+      "answer": "false",
+      "explanation": "PTU quota is only a policy limit. The physical compute capacity must also be available at deployment time, so approved quota does not guarantee that a provisioned deployment will succeed.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/quota"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-024",
+      "objective": "1.3.2",
+      "type": "single",
+      "stem": "A team wants to confirm that production agent responses are grounded in retrieved context without consuming generative model token quota. Which evaluator fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The standard Groundedness evaluator"
+        },
+        {
+          "id": "b",
+          "text": "Groundedness Pro, which uses Azure AI Content Safety"
+        },
+        {
+          "id": "c",
+          "text": "The Fluency evaluator"
+        },
+        {
+          "id": "d",
+          "text": "The Relevance evaluator"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Groundedness Pro returns a binary pass/fail using Azure AI Content Safety and requires no generative model deployment, so it does not consume model token quota. The standard Groundedness evaluator uses a judge model, and Fluency and Relevance measure different properties.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-025",
+      "objective": "1.3.3",
+      "type": "single",
+      "stem": "During integrated vectorization, an indexer run reports partial success and some documents are missing. What is the most likely cause?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The search service ran out of replicas"
+        },
+        {
+          "id": "b",
+          "text": "The Azure OpenAI embedding model quota was exhausted, so embedding calls for some documents failed"
+        },
+        {
+          "id": "c",
+          "text": "Semantic ranking was disabled on the index"
+        },
+        {
+          "id": "d",
+          "text": "The schedule interval was set below five minutes"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Integrated vectorization calls the embedding API for each chunk. When embedding quota is exhausted mid-run, those calls fail and the affected documents are skipped while others succeed, producing a partial-success result.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization",
+        "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-026",
+      "objective": "1.3.4",
+      "type": "single",
+      "stem": "An Azure Function with a system-assigned managed identity must call a Foundry endpoint without storing any API key. Which approach is recommended?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Read an API key from application settings"
+        },
+        {
+          "id": "b",
+          "text": "Use DefaultAzureCredential, which uses the managed identity when running in Azure"
+        },
+        {
+          "id": "c",
+          "text": "Embed a shared secret in the deployment package"
+        },
+        {
+          "id": "d",
+          "text": "Use a Serverless API deployment with a stored key"
+        }
+      ],
+      "answer": "b",
+      "explanation": "DefaultAzureCredential automatically uses the managed identity when the code runs in Azure and a developer credential locally, so no key is stored in code or configuration. The other options all rely on stored secrets.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
+        "https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-027",
+      "objective": "1.4.1",
+      "type": "single",
+      "scenario_id": "s-govern",
+      "stem": "In the Adatum scenario, an agent must block harmful content returned by a web search tool before that content reaches the model. Which guardrail intervention point must be configured?",
+      "options": [
+        {
+          "id": "a",
+          "text": "User Input"
+        },
+        {
+          "id": "b",
+          "text": "Output"
+        },
+        {
+          "id": "c",
+          "text": "Tool Response"
+        },
+        {
+          "id": "d",
+          "text": "Model auto-update"
+        }
+      ],
+      "answer": "c",
+      "explanation": "The Tool Response intervention point scans content returned from a tool to the agent before the agent processes it, blocking poisoned or harmful retrieved content. User Input scans the prompt and Output scans the final completion.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-028",
+      "objective": "1.4.1",
+      "type": "multi",
+      "stem": "Which guardrail intervention points apply only to agents and not to standalone model deployments? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Tool Call"
+        },
+        {
+          "id": "b",
+          "text": "Tool Response"
+        },
+        {
+          "id": "c",
+          "text": "User Input"
+        },
+        {
+          "id": "d",
+          "text": "Output"
+        }
+      ],
+      "answer": [
+        "a",
+        "b"
+      ],
+      "explanation": "Tool Call and Tool Response are agent-only intervention points that scan the agent's planned actions and the content returned to it. User Input and Output apply to both model deployments and agents.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-029",
+      "objective": "1.4.2",
+      "type": "multi",
+      "stem": "Which evaluators require a reference ground-truth answer to produce a meaningful score? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "ROUGE"
+        },
+        {
+          "id": "b",
+          "text": "BLEU"
+        },
+        {
+          "id": "c",
+          "text": "Groundedness Pro"
+        },
+        {
+          "id": "d",
+          "text": "Coherence"
+        }
+      ],
+      "answer": [
+        "a",
+        "b"
+      ],
+      "explanation": "Textual similarity evaluators such as ROUGE and BLEU measure n-gram overlap against a reference answer, so they require ground truth. Groundedness Pro judges against retrieved context and Coherence judges internal logical flow, neither of which needs a reference.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q1-030",
+      "objective": "1.4.3",
+      "type": "single",
+      "stem": "A regulated solution must produce an audit trail linking each agent output to the exact tool calls and retrieved documents that produced it. Which foundation provides this in Foundry?",
+      "options": [
+        {
+          "id": "a",
+          "text": "OpenTelemetry traces stored in the connected Application Insights instance"
+        },
+        {
+          "id": "b",
+          "text": "Increasing the model context window"
+        },
+        {
+          "id": "c",
+          "text": "A larger PTU reservation"
+        },
+        {
+          "id": "d",
+          "text": "Enabling Model Router"
+        }
+      ],
+      "answer": "a",
+      "explanation": "Foundry tracing is built on OpenTelemetry, storing spans in the connected Application Insights instance. Each trace links an output to the tool calls, retrieved documents, and model invocations that produced it, providing lineage for auditing.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/trace-agent-concept",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/trace-agents"
+      ],
+      "domain": 1,
+      "domain_title": "Plan and manage an Azure AI solution"
+    },
+    {
+      "id": "q2-001",
+      "objective": "2.1.1",
+      "type": "single",
+      "stem": "A team fine-tuned a model on proprietary data and needs a dedicated endpoint with predictable throughput. Which deployment type is required?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Serverless API"
+        },
+        {
+          "id": "b",
+          "text": "Managed Compute"
+        },
+        {
+          "id": "c",
+          "text": "Global Batch"
+        },
+        {
+          "id": "d",
+          "text": "Model Router"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Serverless API deployments cannot host custom fine-tuned weights. Managed Compute runs the model on a dedicated container endpoint that hosts custom weights and delivers consistent throughput through Azure Machine Learning scaling rules.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/foundry-classic/how-to/deploy-models-managed",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-002",
+      "objective": "2.1.1",
+      "type": "multi",
+      "stem": "Which statements about inference SDK selection in Azure AI Foundry are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "The azure-ai-inference package is the recommended cross-model abstraction over the Model Inference REST API"
+        },
+        {
+          "id": "b",
+          "text": "Switching models with azure-ai-inference can require only changing the model parameter"
+        },
+        {
+          "id": "c",
+          "text": "azure-ai-projects is needed for Foundry-native features such as agents and evaluations"
+        },
+        {
+          "id": "d",
+          "text": "Managed compute autoscaling is configured directly in the Foundry portal deployment blade"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "The azure-ai-inference package provides a model-agnostic interface, so only the model parameter changes when switching, while azure-ai-projects unlocks Foundry-native features. Managed compute autoscaling is configured through Azure Machine Learning online endpoint rules, not the Foundry portal.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/model-inference/reference/reference-model-inference-chat-completions"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-003",
+      "objective": "2.1.2",
+      "type": "single",
+      "stem": "A RAG application sometimes returns facts that appear in no retrieved document. Which evaluator best measures this problem?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Fluency"
+        },
+        {
+          "id": "b",
+          "text": "Relevance"
+        },
+        {
+          "id": "c",
+          "text": "Groundedness"
+        },
+        {
+          "id": "d",
+          "text": "Coherence"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Groundedness measures whether each claim in a response is supported by the provided context, so a low score flags fabrication. Relevance measures topical fit, while Fluency and Coherence measure language quality and logical flow.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/foundry/concepts/retrieval-augmented-generation",
+        "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-004",
+      "objective": "2.1.2",
+      "type": "single",
+      "scenario_id": "s-rag",
+      "stem": "For the Northwind Health assistant, an Azure AI Search index must hold embeddings for semantic similarity. What field type must the vector field use?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Edm.String"
+        },
+        {
+          "id": "b",
+          "text": "Collection(Edm.Single)"
+        },
+        {
+          "id": "c",
+          "text": "Edm.Double"
+        },
+        {
+          "id": "d",
+          "text": "Collection(Edm.String)"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Vector fields in Azure AI Search must be declared as Collection(Edm.Single) to hold the array of single-precision floats that make up an embedding. String or scalar types cannot store a vector.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview",
+        "https://learn.microsoft.com/en-us/azure/foundry/concepts/retrieval-augmented-generation"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-005",
+      "objective": "2.1.3",
+      "type": "single",
+      "stem": "A team built an orchestration pipeline using Prompt flow. What is the recommended migration target for new development?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The legacy Completions API"
+        },
+        {
+          "id": "b",
+          "text": "The Microsoft Agent Framework and Responses API"
+        },
+        {
+          "id": "c",
+          "text": "A hand-rolled polling loop over raw REST"
+        },
+        {
+          "id": "d",
+          "text": "The Assistants API only"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Prompt flow is deprecated, and the Microsoft Agent Framework together with the Responses API is its designated replacement for Foundry workflow orchestration. The Completions API is not an orchestration surface.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/quickstarts/responses-api"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-006",
+      "objective": "2.1.3",
+      "type": "tf",
+      "stem": "Prompt flow is deprecated, and new Foundry workflow development should favor the Agent Framework and Responses API rather than Prompt flow.",
+      "answer": "true",
+      "explanation": "Prompt flow is officially deprecated with a scheduled retirement, so production best practice for new workflows is to build on the Agent Framework and the Responses API.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/quickstarts/responses-api"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-007",
+      "objective": "2.1.4",
+      "type": "single",
+      "stem": "A compliance team must verify that no generated content contains self-harm language. Which evaluator category applies, and at what granularity does it operate?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A quality evaluator operating on full conversations"
+        },
+        {
+          "id": "b",
+          "text": "A safety evaluator operating on individual turns"
+        },
+        {
+          "id": "c",
+          "text": "An agent evaluator operating on tool calls"
+        },
+        {
+          "id": "d",
+          "text": "A textual similarity evaluator operating on references"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Safety evaluators detect harm categories such as self-harm and operate on individual turns rather than entire conversation threads. Quality and agent evaluators measure different dimensions and are not the correct category for content-safety validation.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/evaluate-generative-ai-app",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/evaluation-metrics-built-in"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-008",
+      "objective": "2.1.4",
+      "type": "multi",
+      "stem": "Which statements about the Foundry Evaluation service are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "AI-assisted quality evaluators require a deployed judge model"
+        },
+        {
+          "id": "b",
+          "text": "Safety evaluators can score a full multi-turn conversation as a single unit"
+        },
+        {
+          "id": "c",
+          "text": "Evaluations can target datasets, model turns, agent runs, or historical traces"
+        },
+        {
+          "id": "d",
+          "text": "Agent evaluators such as Tool Call Success need agent trace data, not just model outputs"
+        }
+      ],
+      "answer": [
+        "a",
+        "c",
+        "d"
+      ],
+      "explanation": "Quality evaluators use a judge model, evaluations can target datasets, models, agents, or traces, and agent evaluators need trace data. Safety evaluators operate on individual turns rather than scoring an entire conversation as one unit.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/evaluation-metrics-built-in",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/cloud-evaluation"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-009",
+      "objective": "2.1.5",
+      "type": "single",
+      "stem": "A developer needs one authenticated session that can both list a Foundry project's connections and obtain an OpenAI-compatible inference client. Which class provides both?",
+      "options": [
+        {
+          "id": "a",
+          "text": "AzureKeyCredential"
+        },
+        {
+          "id": "b",
+          "text": "AIProjectClient from azure-ai-projects"
+        },
+        {
+          "id": "c",
+          "text": "SearchClient from azure-search-documents"
+        },
+        {
+          "id": "d",
+          "text": "SpeechConfig from the Speech SDK"
+        }
+      ],
+      "answer": "b",
+      "explanation": "AIProjectClient wraps the Foundry project endpoint and exposes sub-clients for connections and inference in a single authenticated session. The other classes are scoped to credentials, search, or speech only.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview",
+        "https://learn.microsoft.com/en-us/python/api/overview/azure/ai-projects-readme"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-010",
+      "objective": "2.1.5",
+      "type": "single",
+      "stem": "An agent tool references an external Azure AI Search service, but the deployment fails to reach it. What is a common root cause specific to Foundry?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The model context window is too small"
+        },
+        {
+          "id": "b",
+          "text": "No project connection is configured for the external service"
+        },
+        {
+          "id": "c",
+          "text": "Streaming was disabled on the client"
+        },
+        {
+          "id": "d",
+          "text": "The judge model was not deployed"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Foundry agents reach external services through configured project connections. A missing connection is a frequent deployment failure because the tool cannot authenticate or query the service without one.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/connections-add",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-011",
+      "objective": "2.1.6",
+      "type": "multi",
+      "stem": "Which statements about connecting an application to a Foundry project are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "DefaultAzureCredential selects the right credential across local, CI, and Azure-hosted environments without code changes"
+        },
+        {
+          "id": "b",
+          "text": "Foundry User is the least-privilege role for inference and agent invocation"
+        },
+        {
+          "id": "c",
+          "text": "Full prompt and response content is captured in traces by default"
+        },
+        {
+          "id": "d",
+          "text": "The project endpoint follows the pattern .../api/projects/<project-name>"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "DefaultAzureCredential chains through providers automatically, Foundry User is the least-privilege inference role, and the project endpoint uses the .../api/projects/ path. Content recording is disabled by default because prompt and response text may contain PII.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-foundry",
+        "https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-012",
+      "objective": "2.1.6",
+      "type": "single",
+      "stem": "What is the minimum RBAC role a developer needs to invoke an agent in a Foundry project?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Foundry Owner"
+        },
+        {
+          "id": "b",
+          "text": "Foundry Account Owner"
+        },
+        {
+          "id": "c",
+          "text": "Foundry User"
+        },
+        {
+          "id": "d",
+          "text": "Contributor at subscription scope"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Foundry User is the least-privilege role that grants inference and agent invocation rights. The Owner and Account Owner roles are for administration and should not be assigned to application developers by default.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-foundry",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-013",
+      "objective": "2.2.1",
+      "type": "multi",
+      "stem": "Which elements make up the definition of a Foundry agent? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "A model selected from the catalog"
+        },
+        {
+          "id": "b",
+          "text": "Instructions defining role, scope, and constraints"
+        },
+        {
+          "id": "c",
+          "text": "A set of tool definitions"
+        },
+        {
+          "id": "d",
+          "text": "A dedicated Azure subscription per agent"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "An agent is defined by a model, its instructions, and its tools. Agents do not require a dedicated subscription; they run within a Foundry project.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/development-lifecycle"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-014",
+      "objective": "2.2.1",
+      "type": "single",
+      "stem": "A developer building a multi-turn chatbot does not want to manually resend the full conversation history on each user message. Which Foundry construct handles this automatically?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A thread"
+        },
+        {
+          "id": "b",
+          "text": "A run step"
+        },
+        {
+          "id": "c",
+          "text": "A guardrail"
+        },
+        {
+          "id": "d",
+          "text": "A scoring profile"
+        }
+      ],
+      "answer": "a",
+      "explanation": "A thread stores the ordered message history across turns, so appending a new message and starting a run is enough. The Foundry service supplies the full thread context to the model on each run.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/agent-applications"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-015",
+      "objective": "2.2.2",
+      "type": "single",
+      "stem": "An agent run enters requires_action, and the application submits tool outputs 15 minutes after the run started. What happens?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The outputs are accepted and the run completes"
+        },
+        {
+          "id": "b",
+          "text": "The run fails because tool outputs expire 10 minutes after run creation"
+        },
+        {
+          "id": "c",
+          "text": "The run restarts automatically from the beginning"
+        },
+        {
+          "id": "d",
+          "text": "The outputs queue until the next run"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Tool outputs must be submitted within 10 minutes of run creation. A submission after that window is rejected and the run transitions to a failed state.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/function-calling",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/file-search"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-016",
+      "objective": "2.2.2",
+      "type": "single",
+      "stem": "An agent must answer questions from a fixed set of PDF documents without the developer writing any retrieval code. Which built-in tool fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Function calling"
+        },
+        {
+          "id": "b",
+          "text": "File search"
+        },
+        {
+          "id": "c",
+          "text": "Code Interpreter"
+        },
+        {
+          "id": "d",
+          "text": "Grounding with Bing Search"
+        }
+      ],
+      "answer": "b",
+      "explanation": "File search automatically indexes uploaded documents and lets the agent retrieve and cite content, requiring no custom retrieval code. Function calling suits dynamic data, and Bing grounding targets live web content.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/file-search",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/function-calling"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-017",
+      "objective": "2.2.3",
+      "type": "single",
+      "stem": "An agent is configured with an Azure AI Search tool and a valid connection but returns no results despite data being present in the index. What should be verified?",
+      "options": [
+        {
+          "id": "a",
+          "text": "That the model temperature is above 0.5"
+        },
+        {
+          "id": "b",
+          "text": "That the Foundry project connection name matches the index name exactly"
+        },
+        {
+          "id": "c",
+          "text": "That Code Interpreter is also attached"
+        },
+        {
+          "id": "d",
+          "text": "That streaming is enabled on the client"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The Azure AI Search tool requires the project connection name to match the index name. A mismatch causes silent retrieval failures where the tool appears attached but returns nothing.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/azure-ai-search",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/openapi-spec"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-018",
+      "objective": "2.2.3",
+      "type": "single",
+      "stem": "A team wants an agent to call an internal REST API described by an OpenAPI 3.0 spec, authenticating with the agent's managed identity. Which tool supports this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The Code Interpreter tool"
+        },
+        {
+          "id": "b",
+          "text": "The OpenAPI tool with managed identity authentication"
+        },
+        {
+          "id": "c",
+          "text": "The File Search tool"
+        },
+        {
+          "id": "d",
+          "text": "The Fabric Data Agent"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The OpenAPI tool accepts a 3.0 or 3.1 spec and supports anonymous, API key, and managed identity authentication, letting the agent call external HTTP services securely without stored credentials.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/openapi-spec",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/code-interpreter"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-019",
+      "objective": "2.2.3",
+      "type": "multi",
+      "stem": "Which statements about the Azure AI Search tool for Foundry agents are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Each tool instance supports only one index"
+        },
+        {
+          "id": "b",
+          "text": "It requires a configured Foundry project connection"
+        },
+        {
+          "id": "c",
+          "text": "It supports simple, semantic, vector, and hybrid search types"
+        },
+        {
+          "id": "d",
+          "text": "It can query multiple indexes in a single tool instance"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "The Azure AI Search tool binds to one index per instance, requires a project connection, and supports several search types. Querying multiple indexes requires the connected agents pattern with a separate tool per index.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/azure-ai-search",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/connected-agents"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-020",
+      "objective": "2.2.4",
+      "type": "single",
+      "stem": "A connected-agents design nests an orchestrator, a subagent, and that subagent's own subagent. When the middle subagent tries to call its child, what happens?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The run completes normally with three tiers"
+        },
+        {
+          "id": "b",
+          "text": "The run fails with an Assistant Tool Call Depth Error"
+        },
+        {
+          "id": "c",
+          "text": "The child subagent is silently ignored"
+        },
+        {
+          "id": "d",
+          "text": "The orchestrator restarts the run"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The connected agents pattern enforces a maximum depth of 2. A subagent cannot invoke its own subagent, and attempting a third tier produces an Assistant Tool Call Depth Error.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/connected-agents",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/workflow"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-021",
+      "objective": "2.2.4",
+      "type": "single",
+      "scenario_id": "s-agents",
+      "stem": "For the Contoso Travel concierge, a ConnectedAgentTool is created with name set to \"flight price bot\". What is the result?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It works because names are free-form"
+        },
+        {
+          "id": "b",
+          "text": "A validation error, because the name may contain only letters and underscores"
+        },
+        {
+          "id": "c",
+          "text": "The spaces are automatically converted to hyphens"
+        },
+        {
+          "id": "d",
+          "text": "The subagent runs but cannot return results"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The name field for a ConnectedAgentTool must contain only letters and underscores. A value with spaces causes a validation error; flight_price_bot would be valid.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/connected-agents",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/agent-applications"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-022",
+      "objective": "2.2.4",
+      "type": "tf",
+      "stem": "In a connected-agents solution, subagent responses are returned only to the main agent, which synthesizes the final answer for the user.",
+      "answer": "true",
+      "explanation": "Subagents report back to the main orchestrating agent, which combines their outputs into a single cohesive response. End users never interact directly with a subagent.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/connected-agents",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/workflow"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-023",
+      "objective": "2.2.5",
+      "type": "single",
+      "scenario_id": "s-agents",
+      "stem": "The Contoso Travel agent has a tool that emails booking confirmations to customers, and the team wants a human to approve every send. Which tool approval mode should be set?",
+      "options": [
+        {
+          "id": "a",
+          "text": "never_require"
+        },
+        {
+          "id": "b",
+          "text": "always_require"
+        },
+        {
+          "id": "c",
+          "text": "annotate_only"
+        },
+        {
+          "id": "d",
+          "text": "spotlight"
+        }
+      ],
+      "answer": "b",
+      "explanation": "always_require sends an approval request for every invocation through the human-in-the-loop flow, which is appropriate for outbound, potentially irreversible actions such as customer emails. never_require runs fully autonomously.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/human-in-the-loop-agui",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-024",
+      "objective": "2.2.5",
+      "type": "single",
+      "stem": "An agent keeps invoking the wrong tool for certain requests even though the correct tool exists. Which preview guardrail signal is designed to surface this deviation?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Spotlighting"
+        },
+        {
+          "id": "b",
+          "text": "Task Adherence"
+        },
+        {
+          "id": "c",
+          "text": "Groundedness Pro"
+        },
+        {
+          "id": "d",
+          "text": "Protected Material detection"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Task Adherence detects misaligned tool invocations, including wrong tool selection, incorrect inputs, and responses inconsistent with user intent, producing a signal to block or escalate. Spotlighting mitigates prompt injection instead.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/agentic-workflows-task-adherence",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-025",
+      "objective": "2.2.5",
+      "type": "multi",
+      "stem": "Which statements about safeguards for autonomous Foundry agents are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "The AG-UI protocol implements human-in-the-loop approval flows"
+        },
+        {
+          "id": "b",
+          "text": "Spotlighting is a technique to mitigate cross-prompt injection attacks"
+        },
+        {
+          "id": "c",
+          "text": "If no guardrail is explicitly assigned to an agent, the model's default guardrail applies"
+        },
+        {
+          "id": "d",
+          "text": "never_require is the correct mode for irreversible high-risk actions"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "AG-UI implements HITL approval, Spotlighting mitigates cross-prompt injection, and the model's default guardrail applies when none is assigned. Irreversible high-risk actions should use always_require, not never_require.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/human-in-the-loop-agui",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-026",
+      "objective": "2.2.6",
+      "type": "tf",
+      "stem": "The Foundry Agent Monitoring Dashboard requires an Application Insights resource to be connected to the project before it can display run telemetry.",
+      "answer": "true",
+      "explanation": "Agent run traces stream to Application Insights, and the monitoring dashboard depends on that connection. Without it, no telemetry is captured and the dashboard has nothing to display.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/trace-agent-concept"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-027",
+      "objective": "2.2.6",
+      "type": "single",
+      "stem": "An agent run has a status of failed. What is the first programmatic step to diagnose the root cause?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Raise the model temperature and re-run"
+        },
+        {
+          "id": "b",
+          "text": "Inspect run.last_error.message"
+        },
+        {
+          "id": "c",
+          "text": "Delete the thread and start over"
+        },
+        {
+          "id": "d",
+          "text": "Increase the PTU allocation"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The last_error property on a failed run holds the error code and message describing why the run failed. After reading it, trace spans in Application Insights pinpoint the specific tool or model step that failed.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/evaluate-agents",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-028",
+      "objective": "2.3.1",
+      "type": "single",
+      "stem": "A developer sets temperature to 0.9 and top_p to 0.5 at the same time. Why is this discouraged?",
+      "options": [
+        {
+          "id": "a",
+          "text": "top_p must always be higher than temperature"
+        },
+        {
+          "id": "b",
+          "text": "Temperature and top_p are alternative randomness controls that should not be tuned simultaneously"
+        },
+        {
+          "id": "c",
+          "text": "The model ignores both parameters when set together"
+        },
+        {
+          "id": "d",
+          "text": "Setting both forces deterministic output"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Temperature and top_p both restrict the token distribution independently, so adjusting both at once produces compounding, unpredictable effects. Best practice is to tune one and leave the other at its default.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/reference",
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-029",
+      "objective": "2.3.1",
+      "type": "single",
+      "stem": "An application requires the model to always return output conforming to a specific JSON structure. Which response_format setting enforces schema compliance?",
+      "options": [
+        {
+          "id": "a",
+          "text": "response_format of type text"
+        },
+        {
+          "id": "b",
+          "text": "response_format of type json_object"
+        },
+        {
+          "id": "c",
+          "text": "response_format of type json_schema"
+        },
+        {
+          "id": "d",
+          "text": "No response_format, relying on prompt wording alone"
+        }
+      ],
+      "answer": "c",
+      "explanation": "A json_schema response format validates the output against a defined schema, guaranteeing the exact shape. The json_object type only guarantees syntactically valid JSON, not a specific structure.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/json-mode",
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/reference"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-030",
+      "objective": "2.3.1",
+      "type": "multi",
+      "stem": "Which statements about tuning generation behavior are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "The system message is the most impactful lever and should be tuned before numeric parameters"
+        },
+        {
+          "id": "b",
+          "text": "Lower temperature produces more deterministic responses"
+        },
+        {
+          "id": "c",
+          "text": "max_tokens sets a hard upper limit on response length"
+        },
+        {
+          "id": "d",
+          "text": "temperature and top_p should always be adjusted together for best results"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "The system message shapes output most strongly, lower temperature increases determinism, and max_tokens caps response length. Temperature and top_p are alternative controls and should not be adjusted simultaneously.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering",
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/reference"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-031",
+      "objective": "2.3.2",
+      "type": "single",
+      "stem": "A team wants a model to catch its own arithmetic errors before returning an answer. Which pattern implements this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A single call with a higher temperature"
+        },
+        {
+          "id": "b",
+          "text": "A self-critique loop that generates, critiques, then revises"
+        },
+        {
+          "id": "c",
+          "text": "Disabling the system message"
+        },
+        {
+          "id": "d",
+          "text": "Reducing max_tokens to force brevity"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A self-critique loop makes an initial call, a second call to identify errors, and optionally a third to produce the revised answer, catching mistakes before the user sees the response. The other options do not add a review step.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/agent-optimizer-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-032",
+      "objective": "2.3.2",
+      "type": "single",
+      "stem": "An application must solve advanced mathematical proofs that require deep multi-step reasoning. Which choice is most reliable?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A standard chat model with a short prompt"
+        },
+        {
+          "id": "b",
+          "text": "An o-series reasoning model such as o3"
+        },
+        {
+          "id": "c",
+          "text": "An embedding model"
+        },
+        {
+          "id": "d",
+          "text": "A small language model for edge devices"
+        }
+      ],
+      "answer": "b",
+      "explanation": "o-series reasoning models perform internal multi-step reasoning without explicit chain-of-thought prompting and are optimized for math, logic, and complex inference. Standard, embedding, and small models are less reliable for advanced proofs.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/o1-o3-chain-of-thought",
+        "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-033",
+      "objective": "2.3.3",
+      "type": "single",
+      "stem": "An operations team needs full prompt and response text captured in distributed traces for debugging. What must they change?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Increase the model context window"
+        },
+        {
+          "id": "b",
+          "text": "Set AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED to true"
+        },
+        {
+          "id": "c",
+          "text": "Switch to a Serverless API deployment"
+        },
+        {
+          "id": "d",
+          "text": "Assign the Foundry Account Owner role"
+        }
+      ],
+      "answer": "b",
+      "explanation": "By default traces capture span metadata but not content text, to avoid PII exposure. Setting AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED to true opts in to recording full prompt and response text.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/trace-agents",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/observability-overview"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q2-034",
+      "objective": "2.3.4",
+      "type": "single",
+      "stem": "An application calls a Model Router deployment and needs to log which underlying model handled each request for cost attribution. Where is that information available?",
+      "options": [
+        {
+          "id": "a",
+          "text": "In a separate billing export only"
+        },
+        {
+          "id": "b",
+          "text": "In the response.model field of the API response"
+        },
+        {
+          "id": "c",
+          "text": "In the request headers sent by the client"
+        },
+        {
+          "id": "d",
+          "text": "It is never exposed to the caller"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The Model Router returns the name of the actual model it selected in the response.model field, which can be logged per turn for cost attribution and debugging.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/model-router",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/model-router"
+      ],
+      "domain": 2,
+      "domain_title": "Implement generative AI and agentic solutions"
+    },
+    {
+      "id": "q3-001",
+      "objective": "3.1.1",
+      "type": "single",
+      "stem": "An application generates images with a gpt-image model and needs to display the result. In what form does the API return the generated image?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A temporary public URL that expires after 24 hours"
+        },
+        {
+          "id": "b",
+          "text": "Base64-encoded data in the b64_json field"
+        },
+        {
+          "id": "c",
+          "text": "A binary PNG stream with no wrapper"
+        },
+        {
+          "id": "d",
+          "text": "A link to Azure Blob Storage created automatically"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The gpt-image family always returns base64-encoded image data in the b64_json field rather than a hosted URL, so the client decodes the string to obtain the image bytes.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/dall-e",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/dall-e-quickstart"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-002",
+      "objective": "3.1.2",
+      "type": "single",
+      "stem": "A developer integrates the Sora video generation model. Which interaction pattern is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A single synchronous call that returns the finished video"
+        },
+        {
+          "id": "b",
+          "text": "Submit a job, poll for completion, then download the result"
+        },
+        {
+          "id": "c",
+          "text": "A streaming WebSocket that emits frames in real time"
+        },
+        {
+          "id": "d",
+          "text": "Upload frames and receive a stitched video immediately"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Video generation is a long-running operation, so the workflow submits a job, polls the job status until it completes, and then downloads the generated video. There is no synchronous single-call response.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/video-generation"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-003",
+      "objective": "3.1.3",
+      "type": "single",
+      "stem": "A team wants to repaint only a specific region of an existing image while leaving the rest unchanged, using the image edits endpoint. What must the mask satisfy?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The mask must be a different size to indicate scaling"
+        },
+        {
+          "id": "b",
+          "text": "The mask must match the source image dimensions, with transparent pixels marking the repaint area"
+        },
+        {
+          "id": "c",
+          "text": "The mask must be provided as base64 JSON, not multipart"
+        },
+        {
+          "id": "d",
+          "text": "The mask must cover the whole image with a solid color"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The edits endpoint uses multipart/form-data and a mask whose dimensions match the source image. Transparent pixels in the mask mark the region to repaint while opaque pixels are preserved.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/dall-e"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-004",
+      "objective": "3.1.4",
+      "type": "single",
+      "stem": "When submitting a Sora generation job, which parameter most directly drives billing?",
+      "options": [
+        {
+          "id": "a",
+          "text": "n_variants, the number of candidate clips"
+        },
+        {
+          "id": "b",
+          "text": "n_seconds, the duration of the generated video"
+        },
+        {
+          "id": "c",
+          "text": "The width value only"
+        },
+        {
+          "id": "d",
+          "text": "The output filename"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Video generation is billed primarily by duration, so n_seconds is the main cost driver. Width and height are integer dimensions and n_variants controls how many clips are produced, but duration is the principal billing factor.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/video-generation"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-005",
+      "objective": "3.1.5",
+      "type": "multi",
+      "stem": "Which statements about controlling gpt-image generation are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "quality can be set to low, medium, or high"
+        },
+        {
+          "id": "b",
+          "text": "A transparent background is supported with the png output format on gpt-image-1"
+        },
+        {
+          "id": "c",
+          "text": "output_compression applies to jpeg output"
+        },
+        {
+          "id": "d",
+          "text": "Every gpt-image model returns a hosted URL instead of base64"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Generation supports quality levels, transparent backgrounds with png on gpt-image-1, and jpeg output compression. The gpt-image family returns base64 data, not a hosted URL.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/dall-e",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/video-generation"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-006",
+      "objective": "3.2.1",
+      "type": "single",
+      "stem": "An application must ask a multimodal model open-ended questions about a photo and request high visual fidelity. How is the image passed?",
+      "options": [
+        {
+          "id": "a",
+          "text": "As a separate Image Analysis REST call before the chat"
+        },
+        {
+          "id": "b",
+          "text": "As an image_url content block in a Chat Completions message, optionally with detail set to high"
+        },
+        {
+          "id": "c",
+          "text": "As a base64 field on the SpeechConfig object"
+        },
+        {
+          "id": "d",
+          "text": "As a query parameter on the deployment URL"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Vision-capable chat models accept images as image_url content blocks within a Chat Completions message, and the detail parameter can be set to high for finer analysis at higher token cost.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/gpt-with-vision",
+        "https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-007",
+      "objective": "3.2.2",
+      "type": "single",
+      "stem": "A cataloging solution needs a bounding box plus a short description for each distinct region of an image. Which Image Analysis feature fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Caption, which returns one sentence for the whole image"
+        },
+        {
+          "id": "b",
+          "text": "Dense Captions, which returns descriptions with bounding boxes for multiple regions"
+        },
+        {
+          "id": "c",
+          "text": "Tags, which returns labels without coordinates"
+        },
+        {
+          "id": "d",
+          "text": "Read OCR, which extracts text lines"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Dense Captions produces a description and bounding box for several regions of an image. Caption returns a single sentence for the entire image, and Tags returns labels without location data.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/gpt-with-vision"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-008",
+      "objective": "3.2.3",
+      "type": "tf",
+      "stem": "Because the Chat Completions vision endpoint is stateless, a multi-turn visual Q&A app must resend the relevant image and prior turns with each new question.",
+      "answer": "true",
+      "explanation": "The endpoint does not retain conversation state between calls, so the application must include the image and any needed prior context on every request to preserve continuity.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/gpt-with-vision",
+        "https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-009",
+      "objective": "3.2.4",
+      "type": "single",
+      "stem": "A web team must generate accessible alt text for uploaded photos to satisfy WCAG guidance. Which Image Analysis capability is the direct fit?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Read OCR"
+        },
+        {
+          "id": "b",
+          "text": "The Caption feature, which returns a concise human-readable description"
+        },
+        {
+          "id": "c",
+          "text": "Smart crop"
+        },
+        {
+          "id": "d",
+          "text": "Background removal"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The Caption feature returns a short natural-language description suitable for alt text, supporting accessibility requirements such as WCAG 1.1.1. OCR, cropping, and background removal do not describe overall image content.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis",
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/gpt-with-vision"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-010",
+      "objective": "3.2.5",
+      "type": "single",
+      "scenario_id": "s-docpipe",
+      "stem": "For Fabrikam Insurance, the team needs a reusable, schema-driven analyzer that extracts fields from embedded photos and reports a confidence value for each field. Which service should they use?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The Chat Completions vision endpoint with a free-form prompt"
+        },
+        {
+          "id": "b",
+          "text": "Azure AI Content Understanding with a custom analyzer"
+        },
+        {
+          "id": "c",
+          "text": "The Image Analysis Tags feature"
+        },
+        {
+          "id": "d",
+          "text": "The Speech SDK"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Content Understanding lets you define a reusable analyzer with a field schema and can emit per-field confidence and source estimation, which suits repeatable extraction across many similar images. The free-form chat endpoint is not schema-driven or reusable in the same way.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/overview",
+        "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/quickstart/use-rest-api"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-011",
+      "objective": "3.2.6",
+      "type": "single",
+      "stem": "A team uses the Content Understanding prebuilt video analyzer and needs per-shot timing details in the output. What must they set?",
+      "options": [
+        {
+          "id": "a",
+          "text": "disableFaceBlurring to false"
+        },
+        {
+          "id": "b",
+          "text": "returnDetails to true so cameraShotTimesMs is included"
+        },
+        {
+          "id": "c",
+          "text": "enableSegment to false"
+        },
+        {
+          "id": "d",
+          "text": "The output format to WEBVTT only"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Setting returnDetails to true adds granular metadata such as camera shot times to the analyzer output. WEBVTT is the transcript format and does not by itself include shot timing details.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/video/overview",
+        "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/overview"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-012",
+      "objective": "3.2.8",
+      "type": "multi",
+      "stem": "Which statements correctly distinguish Azure AI Image Analysis from Content Understanding for visual workloads? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Image Analysis offers prebuilt features such as Caption, Dense Captions, Tags, and OCR"
+        },
+        {
+          "id": "b",
+          "text": "Content Understanding lets you define custom field schemas for extraction"
+        },
+        {
+          "id": "c",
+          "text": "Content Understanding can analyze video and return timestamped segments"
+        },
+        {
+          "id": "d",
+          "text": "Image Analysis is the right choice for schema-driven structured field extraction"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Image Analysis provides fixed prebuilt visual features, while Content Understanding supports custom field schemas and multimodal inputs including video with timestamped segments. Schema-driven structured extraction is a Content Understanding strength, not Image Analysis.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis",
+        "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/video/overview"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-013",
+      "objective": "3.3.2",
+      "type": "single",
+      "stem": "A generative image application must defend against prompt-injection instructions hidden inside user-supplied text. When should Prompt Shields be invoked?",
+      "options": [
+        {
+          "id": "a",
+          "text": "After the model produces its output, to redact the response"
+        },
+        {
+          "id": "b",
+          "text": "Before the content reaches the model, to detect injection attempts"
+        },
+        {
+          "id": "c",
+          "text": "Only during batch processing"
+        },
+        {
+          "id": "d",
+          "text": "Only on generated images, not text"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Prompt Shields analyze user prompts and any embedded document content for jailbreak and injection attacks, and must run before the content is sent to the model so that a detected attack can be blocked.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/jailbreak-detection"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q3-014",
+      "objective": "3.3.3",
+      "type": "multi",
+      "stem": "Which statements about Content Credentials on AI-generated images are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "They are based on the C2PA provenance standard"
+        },
+        {
+          "id": "b",
+          "text": "They are automatically attached to generated images"
+        },
+        {
+          "id": "c",
+          "text": "Removing or altering the image can strip the credential"
+        },
+        {
+          "id": "d",
+          "text": "They are a visible watermark burned into the pixels"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Content Credentials implement the C2PA provenance manifest, are attached automatically to generated images, and can be lost if the image is tampered with. They are cryptographic metadata rather than a visible watermark.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/content-credentials",
+        "https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/harm-categories"
+      ],
+      "domain": 3,
+      "domain_title": "Implement computer vision solutions"
+    },
+    {
+      "id": "q4-001",
+      "objective": "4.1.1",
+      "type": "single",
+      "stem": "A team must extract organization-specific entity types that are not part of any built-in taxonomy, such as internal part numbers. Which capability should they use?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Prebuilt Named Entity Recognition"
+        },
+        {
+          "id": "b",
+          "text": "Custom Named Entity Recognition trained on labeled data"
+        },
+        {
+          "id": "c",
+          "text": "Key phrase extraction"
+        },
+        {
+          "id": "d",
+          "text": "Language detection"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Prebuilt NER recognizes only a fixed taxonomy of general categories. Custom NER lets you label examples of your own entity types and train a model to extract them.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/language-service/named-entity-recognition/overview",
+        "https://learn.microsoft.com/azure/ai-services/language-service/summarization/overview"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-002",
+      "objective": "4.1.1",
+      "type": "single",
+      "stem": "A summarization feature must produce a novel, rephrased summary rather than reusing verbatim sentences from the source. Which mode is required?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Extractive summarization"
+        },
+        {
+          "id": "b",
+          "text": "Abstractive summarization"
+        },
+        {
+          "id": "c",
+          "text": "Key phrase extraction"
+        },
+        {
+          "id": "d",
+          "text": "Sentiment analysis"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Extractive summarization selects and ranks existing sentences, while abstractive summarization generates new wording that paraphrases the content. Only abstractive mode produces novel text.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/language-service/summarization/overview",
+        "https://learn.microsoft.com/azure/ai-services/language-service/named-entity-recognition/overview"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-003",
+      "objective": "4.1.2",
+      "type": "single",
+      "stem": "A product team wants sentiment broken down by the specific aspect being discussed, such as \"battery\" versus \"screen\" in a review. What must be enabled?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Language detection"
+        },
+        {
+          "id": "b",
+          "text": "Opinion mining, by setting the show_opinion_mining flag"
+        },
+        {
+          "id": "c",
+          "text": "PII redaction"
+        },
+        {
+          "id": "d",
+          "text": "Extractive summarization"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Opinion mining, enabled with the show_opinion_mining flag, returns aspect (target) terms and the sentiment expressed toward each one, giving aspect-level rather than document-level sentiment.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/language-service/sentiment-opinion-mining/overview",
+        "https://learn.microsoft.com/azure/ai-services/language-service/personally-identifiable-information/overview"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-004",
+      "objective": "4.1.2",
+      "type": "multi",
+      "stem": "Which statements about the PII detection and redaction feature are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "It returns a redacted_text field with detected entities masked"
+        },
+        {
+          "id": "b",
+          "text": "It can run in a Docker container for on-premises processing"
+        },
+        {
+          "id": "c",
+          "text": "It supports text, conversation, and document input shapes"
+        },
+        {
+          "id": "d",
+          "text": "It always uploads documents to a public endpoint with no container option"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "PII detection returns redacted_text with entities masked, offers a container image for on-premises use, and supports text, conversation, and document inputs. The container option specifically avoids sending data to a cloud endpoint.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/language-service/personally-identifiable-information/overview",
+        "https://learn.microsoft.com/azure/ai-services/language-service/sentiment-opinion-mining/overview"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-005",
+      "objective": "4.1.3",
+      "type": "single",
+      "stem": "A translation workload processes millions of short strings and wants the most cost-effective option billed on character count. Which choice fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "LLM-based translation billed per token"
+        },
+        {
+          "id": "b",
+          "text": "Neural Machine Translation through the Translator service, billed per character"
+        },
+        {
+          "id": "c",
+          "text": "The Speech translation SDK"
+        },
+        {
+          "id": "d",
+          "text": "Transliteration"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Translator's Neural Machine Translation is billed by characters and supports large per-request batches, making it economical for high-volume short strings. LLM-based translation is billed per token and has smaller request limits.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/translator/overview",
+        "https://learn.microsoft.com/azure/ai-services/translator/text-translation/overview"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-006",
+      "objective": "4.1.3",
+      "type": "tf",
+      "stem": "Transliteration converts text from one writing script to another while keeping the same language, rather than translating it into a different language.",
+      "answer": "true",
+      "explanation": "Transliteration maps characters between scripts, for example rendering Japanese text in Latin characters, without changing the underlying language. Translation, by contrast, changes the language itself.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/translator/text-translation/overview",
+        "https://learn.microsoft.com/azure/ai-services/translator/overview"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-007",
+      "objective": "4.1.4",
+      "type": "multi",
+      "stem": "Which capability-to-task mappings for the Azure AI Language and Translator services are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Named Entity Recognition to identify people, places, and organizations"
+        },
+        {
+          "id": "b",
+          "text": "Summarization to condense long documents"
+        },
+        {
+          "id": "c",
+          "text": "Translator to convert text into another language"
+        },
+        {
+          "id": "d",
+          "text": "Sentiment analysis to generate images from text"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "NER identifies entities, summarization condenses text, and Translator converts between languages. Sentiment analysis scores emotional tone and does not generate images.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/language-service/named-entity-recognition/overview",
+        "https://learn.microsoft.com/azure/ai-services/translator/overview"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-008",
+      "objective": "4.2.1",
+      "type": "single",
+      "stem": "A desktop utility must transcribe a single short spoken command from the microphone using the Speech SDK. Which combination is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A SpeechSynthesizer calling speak_text_async"
+        },
+        {
+          "id": "b",
+          "text": "A SpeechRecognizer configured with SpeechConfig and AudioConfig, calling recognize_once_async"
+        },
+        {
+          "id": "c",
+          "text": "The batch transcription REST API"
+        },
+        {
+          "id": "d",
+          "text": "A TranslationRecognizer with two target languages"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Real-time single-utterance transcription uses a SpeechRecognizer built from a SpeechConfig and an AudioConfig, invoking recognize_once_async. SpeechSynthesizer performs text-to-speech, and batch transcription is for large offline files.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk",
+        "https://learn.microsoft.com/azure/ai-services/speech-service/overview"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-009",
+      "objective": "4.2.1",
+      "type": "single",
+      "scenario_id": "s-docpipe",
+      "stem": "Fabrikam Insurance must transcribe thousands of pre-recorded audio tracks pulled from claim video clips, running asynchronously overnight. Which approach is appropriate?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Real-time recognize_once_async in a loop"
+        },
+        {
+          "id": "b",
+          "text": "The batch transcription REST API"
+        },
+        {
+          "id": "c",
+          "text": "A SpeechSynthesizer"
+        },
+        {
+          "id": "d",
+          "text": "The text Translator service"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Batch transcription is a REST-based asynchronous service designed for large volumes of stored audio files, which fits an overnight bulk job. Real-time recognition is meant for live, interactive input.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/speech-service/overview",
+        "https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-010",
+      "objective": "4.2.2",
+      "type": "single",
+      "stem": "A hospital wants higher recognition accuracy on specialized medical terms. After training a Custom Speech model, what is required to use it for real-time recognition?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Nothing; custom models apply automatically to the base endpoint"
+        },
+        {
+          "id": "b",
+          "text": "Deploy the model to a custom endpoint and reference its endpoint_id"
+        },
+        {
+          "id": "c",
+          "text": "Switch to the Translator service"
+        },
+        {
+          "id": "d",
+          "text": "Enable opinion mining"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A trained Custom Speech model must be deployed to a dedicated endpoint, and the application references that endpoint_id for real-time recognition. Word Error Rate is used to evaluate improvement before deployment.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/speech-service/custom-speech-overview",
+        "https://learn.microsoft.com/azure/ai-services/speech-service/how-to-custom-speech-train-model"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-011",
+      "objective": "4.2.3",
+      "type": "single",
+      "stem": "A developer sends audio to a gpt-4o-audio-preview model using an input_audio content block and also wants the response validated against a JSON schema. What is the limitation?",
+      "options": [
+        {
+          "id": "a",
+          "text": "input_audio blocks are not supported by audio models"
+        },
+        {
+          "id": "b",
+          "text": "Structured Outputs with json_schema is not supported for audio-preview models"
+        },
+        {
+          "id": "c",
+          "text": "Audio models cannot return any text"
+        },
+        {
+          "id": "d",
+          "text": "The audio must first be transcribed by Translator"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Audio-preview models accept input_audio content but do not support the Structured Outputs json_schema response format, so schema-validated output cannot be combined with audio input on those models.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/openai/realtime-audio-quickstart",
+        "https://learn.microsoft.com/azure/ai-services/speech-service/llm-speech"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-012",
+      "objective": "4.2.3",
+      "type": "multi",
+      "stem": "Which statements about real-time and LLM-based speech options are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "The GPT Realtime API uses a WebSocket connection for low-latency streaming"
+        },
+        {
+          "id": "b",
+          "text": "LLM Speech offers a multi-lingual default that recognizes across many languages"
+        },
+        {
+          "id": "c",
+          "text": "Some real-time translation models are billed hourly"
+        },
+        {
+          "id": "d",
+          "text": "Structured Outputs is guaranteed for every audio-preview model"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "The GPT Realtime API streams over WebSocket, LLM Speech provides a multi-lingual default, and certain real-time translation models bill hourly. Structured Outputs is not supported on audio-preview models.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/speech-service/llm-speech",
+        "https://learn.microsoft.com/azure/ai-services/openai/realtime-audio-quickstart"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-013",
+      "objective": "4.2.4",
+      "type": "single",
+      "stem": "Using the Speech SDK for speech translation, a caller sets three target languages in a single request. What happens?",
+      "options": [
+        {
+          "id": "a",
+          "text": "All three translations are returned normally"
+        },
+        {
+          "id": "b",
+          "text": "A single call is limited to two target languages; more requires a multi-service Foundry resource"
+        },
+        {
+          "id": "c",
+          "text": "Only transliteration is returned"
+        },
+        {
+          "id": "d",
+          "text": "The source language is auto-detected and the targets are ignored"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A standard speech translation call supports up to two target languages at once. Translating into more targets simultaneously requires a multi-service Foundry resource configuration.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/speech-service/speech-translation",
+        "https://learn.microsoft.com/azure/ai-services/speech-service/how-to-translate-speech"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q4-014",
+      "objective": "4.2.4",
+      "type": "single",
+      "stem": "A conference app must translate speech when the spoken source language is unknown and may change between speakers. Which capability fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A fixed source language on SpeechTranslationConfig"
+        },
+        {
+          "id": "b",
+          "text": "Live Interpreter, which auto-detects the source language"
+        },
+        {
+          "id": "c",
+          "text": "Transliteration"
+        },
+        {
+          "id": "d",
+          "text": "Extractive summarization"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Live Interpreter automatically detects the spoken source language, which suits multi-speaker sessions where the language is not known in advance. A fixed source language would fail when speakers switch languages.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/speech-service/speech-translation",
+        "https://learn.microsoft.com/azure/ai-services/speech-service/how-to-translate-speech"
+      ],
+      "domain": 4,
+      "domain_title": "Implement text analysis solutions"
+    },
+    {
+      "id": "q5-001",
+      "objective": "5.1.1",
+      "type": "single",
+      "stem": "A team configures an Azure AI Search indexer to pull content from Blob Storage. Which statement about the indexer pipeline is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "One indexer can write to multiple indexes from multiple data sources at once"
+        },
+        {
+          "id": "b",
+          "text": "An indexer connects one data source to one index and runs stages such as document cracking, field mappings, skillset, and output field mappings"
+        },
+        {
+          "id": "c",
+          "text": "Indexers can only run on demand and never on a schedule"
+        },
+        {
+          "id": "d",
+          "text": "Indexers require the push API to load documents"
+        }
+      ],
+      "answer": "b",
+      "explanation": "An indexer binds a single data source to a single index and runs a defined sequence of stages including document cracking, field mappings, optional skillset enrichment, and output field mappings. It is the pull model, distinct from the push API.",
+      "refs": [
+        "https://learn.microsoft.com/azure/search/search-indexer-overview",
+        "https://learn.microsoft.com/azure/search/search-how-to-create-indexers"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-002",
+      "objective": "5.1.1",
+      "type": "single",
+      "stem": "A skillset must run OCR over images embedded in PDFs, but no normalized images are being produced for the OCR skill to consume. What is the likely cause?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The index has too few replicas"
+        },
+        {
+          "id": "b",
+          "text": "imageAction is left at its default of none, so normalized images are not generated"
+        },
+        {
+          "id": "c",
+          "text": "Semantic ranking is disabled"
+        },
+        {
+          "id": "d",
+          "text": "The schedule interval is below five minutes"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Image extraction is off by default. To feed OCR, the indexer configuration must set imageAction to generateNormalizedImages so that embedded images are extracted and normalized before the skillset runs.",
+      "refs": [
+        "https://learn.microsoft.com/azure/search/search-indexer-overview",
+        "https://learn.microsoft.com/azure/search/cognitive-search-concept-image-scenarios"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-003",
+      "objective": "5.1.2",
+      "type": "single",
+      "stem": "A large index must serve low-latency approximate nearest-neighbor vector search. Which algorithm should be configured?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Exhaustive KNN over the entire index"
+        },
+        {
+          "id": "b",
+          "text": "HNSW"
+        },
+        {
+          "id": "c",
+          "text": "BM25 keyword ranking"
+        },
+        {
+          "id": "d",
+          "text": "Semantic ranking only"
+        }
+      ],
+      "answer": "b",
+      "explanation": "HNSW provides fast approximate nearest-neighbor search that scales to large indexes with low latency. Exhaustive KNN gives exact results but is slower and does not scale as well for large collections.",
+      "refs": [
+        "https://learn.microsoft.com/azure/search/vector-search-overview",
+        "https://learn.microsoft.com/azure/search/hybrid-search-overview"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-004",
+      "objective": "5.1.2",
+      "type": "multi",
+      "stem": "Which statements about hybrid search and semantic ranking in Azure AI Search are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Hybrid search fuses keyword and vector results using Reciprocal Rank Fusion"
+        },
+        {
+          "id": "b",
+          "text": "The semantic ranker re-scores a top subset of candidates"
+        },
+        {
+          "id": "c",
+          "text": "Semantic ranking requires a semantic configuration on the index"
+        },
+        {
+          "id": "d",
+          "text": "Semantic ranking replaces the need for any vector field"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Hybrid search combines BM25 and vector results with RRF, the semantic ranker re-scores the top candidates, and a semantic configuration must be defined on the index. Semantic ranking complements rather than replaces vector fields.",
+      "refs": [
+        "https://learn.microsoft.com/azure/search/hybrid-search-overview",
+        "https://learn.microsoft.com/azure/search/semantic-search-overview"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-005",
+      "objective": "5.1.3",
+      "type": "multi",
+      "stem": "Which statements about skillsets in Azure AI Search are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Built-in skills include OCR and text splitting"
+        },
+        {
+          "id": "b",
+          "text": "A WebApiSkill can call custom logic hosted as a web service"
+        },
+        {
+          "id": "c",
+          "text": "A skillset can write enriched output to a knowledge store in addition to the index"
+        },
+        {
+          "id": "d",
+          "text": "Skillsets can only run without an indexer"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Skillsets provide built-in skills such as OCR and text splitting, support custom WebApiSkill calls, and can project enrichments to a knowledge store as well as the index. Skillsets run as part of an indexer pipeline.",
+      "refs": [
+        "https://learn.microsoft.com/azure/search/cognitive-search-concept-intro",
+        "https://learn.microsoft.com/azure/search/cognitive-search-predefined-skills"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-006",
+      "objective": "5.1.4",
+      "type": "single",
+      "scenario_id": "s-rag",
+      "stem": "For the Northwind Health index, long policy PDFs must be split into overlapping chunks before embedding. Which built-in skill and setting control the chunk size?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The OCR skill with the detail parameter"
+        },
+        {
+          "id": "b",
+          "text": "The Text Split skill using maximumPageLength and pageOverlapLength"
+        },
+        {
+          "id": "c",
+          "text": "The Sentiment skill"
+        },
+        {
+          "id": "d",
+          "text": "The Entity Recognition skill"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The Text Split skill divides content into pages or sentences, with maximumPageLength setting chunk size and pageOverlapLength adding overlap between chunks so context is not lost at boundaries. Overlap is typically 10 to 25 percent.",
+      "refs": [
+        "https://learn.microsoft.com/azure/search/vector-search-how-to-chunk-documents",
+        "https://learn.microsoft.com/azure/search/vector-search-integrated-vectorization"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-007",
+      "objective": "5.1.4",
+      "type": "single",
+      "stem": "A team maps each parent document to many child chunk records so that retrieval returns fine-grained passages traceable to their source document. Which integrated-vectorization feature enables this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Scoring profiles"
+        },
+        {
+          "id": "b",
+          "text": "Index projections that create a parent-child relationship"
+        },
+        {
+          "id": "c",
+          "text": "Synonym maps"
+        },
+        {
+          "id": "d",
+          "text": "Analyzer overrides"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Index projections split an enriched parent document into multiple child records, one per chunk, while preserving the link to the parent. This is how chunked RAG indexes retain document lineage.",
+      "refs": [
+        "https://learn.microsoft.com/azure/search/vector-search-integrated-vectorization",
+        "https://learn.microsoft.com/azure/ai-services/document-intelligence/concept/retrieval-augmented-generation"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-008",
+      "objective": "5.1.5",
+      "type": "single",
+      "stem": "A solution needs a retrieval step that decomposes a complex multi-part question into subqueries, runs them, and merges the results. Which Azure AI Search capability provides this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Simple keyword search"
+        },
+        {
+          "id": "b",
+          "text": "Agentic retrieval using a knowledge base with an LLM query planner"
+        },
+        {
+          "id": "c",
+          "text": "A scoring profile"
+        },
+        {
+          "id": "d",
+          "text": "A synonym map"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Agentic retrieval uses an LLM to plan and decompose a complex query into subqueries against a knowledge base, then merges the results. It requires a semantic configuration and is the foundation for query planning in search.",
+      "refs": [
+        "https://learn.microsoft.com/azure/search/agentic-retrieval-overview",
+        "https://learn.microsoft.com/azure/search/agentic-retrieval-how-to-create-knowledge-base"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-009",
+      "objective": "5.1.5",
+      "type": "tf",
+      "stem": "Agentic retrieval provides the retrieval foundation for Foundry IQ and is billed based on token usage in addition to search operations.",
+      "answer": "true",
+      "explanation": "Agentic retrieval underlies Foundry IQ and, because it invokes an LLM for query planning, incurs token-based billing in addition to standard search costs.",
+      "refs": [
+        "https://learn.microsoft.com/azure/search/agentic-retrieval-overview",
+        "https://learn.microsoft.com/azure/search/agentic-retrieval-how-to-create-pipeline"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-010",
+      "objective": "5.2.1",
+      "type": "single",
+      "scenario_id": "s-docpipe",
+      "stem": "Fabrikam Insurance must extract a handful of custom fields from claim forms without collecting labeled training data. Which Document Intelligence capability fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Training a fully custom neural model"
+        },
+        {
+          "id": "b",
+          "text": "The layout model with query field extraction"
+        },
+        {
+          "id": "c",
+          "text": "The prebuilt receipt model only"
+        },
+        {
+          "id": "d",
+          "text": "The Read model with sentiment"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The layout model supports query field extraction, which pulls specified fields on demand without any labeling or training. Building a fully custom model would require assembling and labeling training documents.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/document-intelligence/concept/query-fields?view=doc-intel-4.0.0",
+        "https://learn.microsoft.com/azure/ai-services/document-intelligence/prebuilt/layout?view=doc-intel-4.0.0"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-011",
+      "objective": "5.2.1",
+      "type": "single",
+      "stem": "A RAG pipeline needs clean structural output from scanned documents, including tables and headings rendered as Markdown. Which Document Intelligence model produces this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The prebuilt business card model"
+        },
+        {
+          "id": "b",
+          "text": "The layout model, which can emit Markdown output"
+        },
+        {
+          "id": "c",
+          "text": "The Read model with translation"
+        },
+        {
+          "id": "d",
+          "text": "A custom classification model"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The layout model extracts text, tables, and structure and can output Markdown, which preserves headings and tables for downstream RAG chunking. It also handles printed and handwritten text across many languages.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/document-intelligence/prebuilt/layout?view=doc-intel-4.0.0",
+        "https://learn.microsoft.com/azure/ai-services/document-intelligence/model-overview?view=doc-intel-4.0.0"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-012",
+      "objective": "5.2.2",
+      "type": "single",
+      "stem": "A team wants a single service that returns clean Markdown, describes embedded charts and figures, and includes grounding such as bounding boxes and confidence for a RAG index. Which service should they choose?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Azure AI Content Understanding"
+        },
+        {
+          "id": "b",
+          "text": "The Translator service"
+        },
+        {
+          "id": "c",
+          "text": "The Speech SDK"
+        },
+        {
+          "id": "d",
+          "text": "The prebuilt sentiment model"
+        }
+      ],
+      "answer": "a",
+      "explanation": "Content Understanding produces clean Markdown, generates descriptions for figures and charts, and attaches grounding such as bounding boxes, timestamps, and confidence scores, making it well suited to preparing multimodal content for RAG.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/content-understanding/overview",
+        "https://learn.microsoft.com/azure/search/retrieval-augmented-generation-overview"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-013",
+      "objective": "5.2.3",
+      "type": "multi",
+      "stem": "Which statements about Azure AI Content Understanding analyzers are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Content extraction analyzers such as prebuilt-read and prebuilt-layout do not use a generative model"
+        },
+        {
+          "id": "b",
+          "text": "Of the Extract, Classify, and Generate methods, only Generate uses an LLM"
+        },
+        {
+          "id": "c",
+          "text": "A copy operation can freeze a prebuilt analyzer so its behavior does not change"
+        },
+        {
+          "id": "d",
+          "text": "Every analyzer category always invokes a generative model"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Content extraction analyzers do not call a generative model, only the Generate method uses an LLM, and copying an analyzer pins its behavior. Not every category uses generative AI, which is why content extraction is available without it.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/analyzer-reference",
+        "https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/prebuilt-analyzers"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    },
+    {
+      "id": "q5-014",
+      "objective": "5.2.3",
+      "type": "single",
+      "stem": "A team analyzes long recordings with Content Understanding and wants segments that align to topic or scene boundaries rather than fixed time intervals. What is true about segmentation?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Audio and video are always split into fixed-length intervals only"
+        },
+        {
+          "id": "b",
+          "text": "Audio and video can be segmented by topic or scene rather than by a fixed interval"
+        },
+        {
+          "id": "c",
+          "text": "Segmentation is not supported for audio or video"
+        },
+        {
+          "id": "d",
+          "text": "Only the Translator service can segment media"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Content Understanding can segment audio and video by semantic boundaries such as topic or scene changes, which produces more meaningful units than fixed-interval slicing.",
+      "refs": [
+        "https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/analyzer-reference",
+        "https://learn.microsoft.com/azure/ai-services/content-understanding/overview"
+      ],
+      "domain": 5,
+      "domain_title": "Implement information extraction solutions"
+    }
+  ]
+}

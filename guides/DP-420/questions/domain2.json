@@ -1,0 +1,186 @@
+{
+  "domain": 2,
+  "domain_title": "Design and implement data distribution",
+  "questions": [
+    {
+      "id": "q2-001",
+      "objective": "2.1.1",
+      "type": "single",
+      "stem": "A team runs a serverless Azure Cosmos DB account and now needs it to serve low-latency reads from three continents while surviving a regional outage. What must change first before any additional regions can be associated?",
+      "options": [
+        { "id": "a", "text": "Enable availability zones on the existing serverless account" },
+        { "id": "b", "text": "Convert the account to provisioned (or autoscale) throughput" },
+        { "id": "c", "text": "Redeploy the application with a multi-region connection string" },
+        { "id": "d", "text": "Add the new regions during a scheduled maintenance window" }
+      ],
+      "answer": "b",
+      "explanation": "Serverless accounts are single-region only, so global distribution is impossible until the account uses provisioned throughput; only then can additional regions be associated. Adding regions itself needs no redeploy or downtime.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/serverless",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/distribute-data-globally"
+      ]
+    },
+    {
+      "id": "q2-002",
+      "objective": "2.1.2",
+      "type": "single",
+      "stem": "A single-write-region account has service-managed failover enabled but no failover priority order configured. The write region goes down. What happens?",
+      "options": [
+        { "id": "a", "text": "The lowest-priority read region is promoted to write automatically" },
+        { "id": "b", "text": "All read regions are promoted to write simultaneously" },
+        { "id": "c", "text": "No region is promoted automatically, so a manual forced failover is required" },
+        { "id": "d", "text": "The original write region auto-resumes as soon as it recovers" }
+      ],
+      "answer": "c",
+      "explanation": "Automatic promotion needs both the feature enabled and a ranked failover priority list; with no ranked target, the reliable fix during the outage is a manual forced failover to a healthy region.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/reliability/reliability-cosmos-db",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-database-account"
+      ]
+    },
+    {
+      "id": "q2-003",
+      "objective": "2.1.3",
+      "type": "single",
+      "stem": "During a normal maintenance window with all regions healthy, an operations team wants to move the write region from East US to West Europe with no data loss. Which operation fits?",
+      "options": [
+        { "id": "a", "text": "Forced (customer-managed) failover of the write region" },
+        { "id": "b", "text": "Service-managed failover" },
+        { "id": "c", "text": "Change write region (planned failover)" },
+        { "id": "d", "text": "Disable service-managed failover and delete the East US region" }
+      ],
+      "answer": "c",
+      "explanation": "With all regions healthy, <code>change write region</code> lets replication catch up before promoting West Europe, so there is no data loss; a forced failover would risk losing unreplicated writes and planned failover cannot run during an actual outage.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-database-account",
+        "https://learn.microsoft.com/en-us/azure/reliability/reliability-cosmos-db"
+      ]
+    },
+    {
+      "id": "q2-004",
+      "objective": "2.1.4",
+      "type": "single",
+      "stem": "Which sequence lists the five Azure Cosmos DB consistency levels correctly from strongest to weakest?",
+      "options": [
+        { "id": "a", "text": "Strong, Session, Bounded staleness, Consistent prefix, Eventual" },
+        { "id": "b", "text": "Strong, Bounded staleness, Session, Consistent prefix, Eventual" },
+        { "id": "c", "text": "Bounded staleness, Strong, Session, Eventual, Consistent prefix" },
+        { "id": "d", "text": "Strong, Bounded staleness, Consistent prefix, Session, Eventual" }
+      ],
+      "answer": "b",
+      "explanation": "The defined order from strongest to weakest is Strong, Bounded staleness, Session, Consistent prefix, Eventual, with Session as the account default.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels"
+      ]
+    },
+    {
+      "id": "q2-005",
+      "objective": "2.1.5",
+      "type": "single",
+      "stem": "A social app must ensure each user always sees their own most recent post immediately, while other users can tolerate slight delays. Which consistency level is the best fit?",
+      "options": [
+        { "id": "a", "text": "Eventual" },
+        { "id": "b", "text": "Consistent prefix" },
+        { "id": "c", "text": "Bounded staleness" },
+        { "id": "d", "text": "Session" }
+      ],
+      "answer": "d",
+      "explanation": "Session consistency guarantees read-your-writes within the user's own session via the session token, so the author always sees their new post while keeping low latency and high throughput for everyone else; it is also the account default.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels"
+      ]
+    },
+    {
+      "id": "q2-006",
+      "objective": "2.1.6",
+      "type": "multi",
+      "stem": "Which statements about the impact of consistency level on request unit cost and availability are correct? (Select all that apply.)",
+      "options": [
+        { "id": "a", "text": "Strong and Bounded staleness reads cost roughly 2x the RUs of the weaker levels" },
+        { "id": "b", "text": "Write RU cost is identical across all consistency levels for a given operation" },
+        { "id": "c", "text": "Strong consistency is supported together with multi-region writes" },
+        { "id": "d", "text": "Weaker levels such as Session, Consistent prefix, and Eventual offer higher availability and throughput" },
+        { "id": "e", "text": "Strong reads consume the same RUs as Eventual reads" }
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Strong and Bounded staleness reads use a two-replica local quorum (~2x RUs), write RU cost does not vary by level, and weaker levels give higher availability and throughput. Strong is not supported with multi-region writes, and Strong reads cost more than Eventual reads.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels",
+        "https://learn.microsoft.com/en-us/azure/reliability/reliability-cosmos-db"
+      ]
+    },
+    {
+      "id": "q2-007",
+      "objective": "2.1.7",
+      "type": "single",
+      "stem": "In which scenario does Azure Cosmos DB fail to meet the usual sub-10 ms P99 latency guarantee?",
+      "options": [
+        { "id": "a", "text": "Session reads served from a single region" },
+        { "id": "b", "text": "Eventual writes replicated across two regions" },
+        { "id": "c", "text": "Strong writes that must commit across multiple regions" },
+        { "id": "d", "text": "Bounded staleness reads served from a single region" }
+      ],
+      "answer": "c",
+      "explanation": "Only Strong multi-region writes break the sub-10 ms P99 guarantee, because the write must commit in every region first; its latency is roughly <code>2x RTT + 10 ms</code> between the farthest regions. Reads stay under 10 ms P99 at every level.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels"
+      ]
+    },
+    {
+      "id": "q2-008",
+      "objective": "2.2.1",
+      "type": "multi",
+      "stem": "Which statements accurately describe multi-region writes (active-active) in Azure Cosmos DB? (Select all that apply.)",
+      "options": [
+        { "id": "a", "text": "Every associated region can accept writes (active-active)" },
+        { "id": "b", "text": "The topology provides 99.999% read and write availability" },
+        { "id": "c", "text": "Strong consistency can be enabled to guarantee correctness" },
+        { "id": "d", "text": "Concurrent writes to the same item in different regions can conflict" },
+        { "id": "e", "text": "Bounded staleness is the recommended consistency level" }
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Multi-region writes make every region writable, deliver 99.999% read+write availability, and allow cross-region conflicts that require a conflict-resolution policy. Strong consistency is not supported and Bounded staleness is an anti-pattern with multi-region writes.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/distribute-data-globally",
+        "https://learn.microsoft.com/en-us/azure/reliability/reliability-cosmos-db"
+      ]
+    },
+    {
+      "id": "q2-009",
+      "objective": "2.2.3",
+      "type": "single",
+      "stem": "A new API for NoSQL container must resolve concurrent cross-region updates by keeping the record with the highest application-supplied version number, using no server-side code. Which configuration fits?",
+      "options": [
+        { "id": "a", "text": "Custom policy with a registered merge stored procedure" },
+        { "id": "b", "text": "Last Write Wins using the default <code>_ts</code> timestamp" },
+        { "id": "c", "text": "Last Write Wins with a custom numeric conflict-resolution path such as <code>/version</code>" },
+        { "id": "d", "text": "Change the existing container's policy to LWW after creation" }
+      ],
+      "answer": "c",
+      "explanation": "In Last Write Wins you can name a custom numeric conflict-resolution path where the highest value wins, with no stored procedure. It must be set at container creation because the policy is immutable afterward.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/conflict-resolution-policies",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-manage-conflicts"
+      ]
+    },
+    {
+      "id": "q2-010",
+      "objective": "2.2.1",
+      "scenario_id": "s-global",
+      "type": "single",
+      "stem": "Which single-account configuration best meets Tailwind Global's requirements?",
+      "options": [
+        { "id": "a", "text": "Single write region with Strong consistency and service-managed failover" },
+        { "id": "b", "text": "Multi-region writes with Session consistency and a Last Write Wins conflict-resolution policy" },
+        { "id": "c", "text": "Multi-region writes with Strong consistency and a custom merge stored procedure" },
+        { "id": "d", "text": "Single write region with Bounded staleness and an ordered preferred-region list" }
+      ],
+      "answer": "b",
+      "explanation": "Only multi-region writes give lowest local read and write latency in every region plus survival of a regional outage; Session is a supported level for active-active, and Last Write Wins resolves the acceptable cross-region conflicts deterministically. Strong consistency is incompatible with multi-region writes.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/distribute-data-globally",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-multi-master"
+      ]
+    }
+  ]
+}

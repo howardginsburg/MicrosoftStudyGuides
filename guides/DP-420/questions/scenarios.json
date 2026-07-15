@@ -1,0 +1,24 @@
+{
+  "scenarios": [
+    {
+      "id": "s-social",
+      "text": "Contoso Social runs a high-traffic social feed on Azure Cosmos DB for NoSQL. Users create short posts; each post can accumulate an unbounded number of comments and reactions over time. The most frequent operation by far is loading a single user's profile page with their most recent posts. The team wants cheap, single-partition reads for that page and predictable cost as the app grows."
+    },
+    {
+      "id": "s-retail",
+      "text": "Fabrikam Retail stores orders, order line items, and product catalog entries in Azure Cosmos DB for NoSQL. Orders are written once and rarely change; catalog entries are read constantly but updated occasionally. Reporting queries frequently read an order together with all of its line items, and the checkout service must update an order and its inventory record atomically when they share a partition key value."
+    },
+    {
+      "id": "s-global",
+      "text": "Tailwind Global serves customers on three continents from a single Azure Cosmos DB for NoSQL account. Leadership wants the lowest possible read and write latency for users in every region and the ability to keep operating if one Azure region becomes unavailable. Occasional conflicting writes to the same item from different regions are acceptable as long as they are resolved deterministically."
+    },
+    {
+      "id": "s-iot",
+      "text": "Adatum IoT ingests millions of device telemetry events per hour into Azure Cosmos DB for NoSQL. A downstream service must react to every new or changed item in near real time to update aggregates and push alerts, and the analytics team needs to run large historical aggregations without affecting the write throughput of the transactional workload."
+    },
+    {
+      "id": "s-fin",
+      "text": "Woodgrove Bank operates a regulated workload on Azure Cosmos DB for NoSQL. Auditors require point-in-time restore to recover from accidental deletes, least-privilege access with no account keys in application code, network isolation from the public internet, and encryption using keys the bank controls. The operations team manages everything through declarative infrastructure-as-code."
+    }
+  ]
+}

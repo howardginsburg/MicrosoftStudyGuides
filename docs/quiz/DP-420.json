@@ -1,0 +1,4225 @@
+{
+  "exam": "DP-420",
+  "title": "Designing and Implementing Cloud-Native Applications Using Microsoft Azure Cosmos DB",
+  "generated": "2026-07-15",
+  "weights": {
+    "Design and implement data models": "35–40%",
+    "Design and implement data distribution": "5–10%",
+    "Integrate an Azure Cosmos DB solution": "5–10%",
+    "Optimize an Azure Cosmos DB solution": "15–20%",
+    "Maintain an Azure Cosmos DB solution": "25–30%"
+  },
+  "passing_note": "DP-420 passes at 700/1000. Microsoft does not publish the raw-score mapping, so the readiness estimate below is unofficial and based on percent correct only.",
+  "readiness_bands": [
+    {
+      "min": 75,
+      "label": "Ready",
+      "note": "Consistently strong — you're tracking well above the pass line."
+    },
+    {
+      "min": 60,
+      "label": "Approaching",
+      "note": "Close — shore up weaker domains before test day."
+    },
+    {
+      "min": 0,
+      "label": "Not ready yet",
+      "note": "Keep studying — focus on your lowest-scoring domains."
+    }
+  ],
+  "scenarios": {
+    "s-social": "Contoso Social runs a high-traffic social feed on Azure Cosmos DB for NoSQL. Users create short posts; each post can accumulate an unbounded number of comments and reactions over time. The most frequent operation by far is loading a single user's profile page with their most recent posts. The team wants cheap, single-partition reads for that page and predictable cost as the app grows.",
+    "s-retail": "Fabrikam Retail stores orders, order line items, and product catalog entries in Azure Cosmos DB for NoSQL. Orders are written once and rarely change; catalog entries are read constantly but updated occasionally. Reporting queries frequently read an order together with all of its line items, and the checkout service must update an order and its inventory record atomically when they share a partition key value.",
+    "s-global": "Tailwind Global serves customers on three continents from a single Azure Cosmos DB for NoSQL account. Leadership wants the lowest possible read and write latency for users in every region and the ability to keep operating if one Azure region becomes unavailable. Occasional conflicting writes to the same item from different regions are acceptable as long as they are resolved deterministically.",
+    "s-iot": "Adatum IoT ingests millions of device telemetry events per hour into Azure Cosmos DB for NoSQL. A downstream service must react to every new or changed item in near real time to update aggregates and push alerts, and the analytics team needs to run large historical aggregations without affecting the write throughput of the transactional workload.",
+    "s-fin": "Woodgrove Bank operates a regulated workload on Azure Cosmos DB for NoSQL. Auditors require point-in-time restore to recover from accidental deletes, least-privilege access with no account keys in application code, network isolation from the public internet, and encryption using keys the bank controls. The operations team manages everything through declarative infrastructure-as-code."
+  },
+  "domains": [
+    {
+      "domain": 1,
+      "title": "Design and implement data models",
+      "count": 48
+    },
+    {
+      "domain": 2,
+      "title": "Design and implement data distribution",
+      "count": 10
+    },
+    {
+      "domain": 3,
+      "title": "Integrate an Azure Cosmos DB solution",
+      "count": 10
+    },
+    {
+      "domain": 4,
+      "title": "Optimize an Azure Cosmos DB solution",
+      "count": 24
+    },
+    {
+      "domain": 5,
+      "title": "Maintain an Azure Cosmos DB solution",
+      "count": 36
+    }
+  ],
+  "questions": [
+    {
+      "id": "q1-001",
+      "objective": "1.1.1",
+      "type": "single",
+      "stem": "A container holds both <code>book</code> and <code>review</code> items. How does application code tell one entity type from another when reading them?",
+      "options": [
+        {
+          "id": "a",
+          "text": "By the item's partition key path"
+        },
+        {
+          "id": "b",
+          "text": "By a discriminator property such as <code>type</code> that each item carries"
+        },
+        {
+          "id": "c",
+          "text": "By the container's unique key policy"
+        },
+        {
+          "id": "d",
+          "text": "By storing each type in a separate database"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Cosmos DB containers are schema-agnostic, so applications rely on a discriminator property (commonly <code>type</code>) to branch logic and filter queries. The partition key and unique key policy are separate concepts and are not used to identify entity shape.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/resource-model"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-002",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "An order always displays a handful of line items together with the order, and the list never grows large. What is the best modeling choice?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Store each line item in its own container"
+        },
+        {
+          "id": "b",
+          "text": "Reference the line items from a second container synced by the change feed"
+        },
+        {
+          "id": "c",
+          "text": "Embed the line items inside the order document"
+        },
+        {
+          "id": "d",
+          "text": "Store the line items in a separate database"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Bounded, one-to-few data that is always read together should be embedded so a single point read returns everything. Referencing or splitting into separate containers would add extra reads for no benefit here.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/concepts-limits"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-003",
+      "objective": "1.1.2",
+      "type": "multi",
+      "stem": "Which conditions favor <b>embedding</b> related data in a single item? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "The data is read together in the same operation"
+        },
+        {
+          "id": "b",
+          "text": "The relationship is one-to-few and bounded"
+        },
+        {
+          "id": "c",
+          "text": "The child collection grows without limit"
+        },
+        {
+          "id": "d",
+          "text": "The related data changes together"
+        },
+        {
+          "id": "e",
+          "text": "The child list is very large and written independently"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "Embed for contained one-to-few relationships, data that changes together, and data read together. Unbounded growth or very large, independently written child lists should be referenced because an item has a hard 2 MB limit.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/concepts-limits"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-004",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "A book listing shows the author's name on every card, and author names almost never change. What denormalization improves read performance while staying correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Reference the author and join at read time"
+        },
+        {
+          "id": "b",
+          "text": "Enforce a foreign key from book to author"
+        },
+        {
+          "id": "c",
+          "text": "Copy <code>authorName</code> into each book and update the copies via the change feed on the rare rename"
+        },
+        {
+          "id": "d",
+          "text": "Store author names in a separate database and query both"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Duplicating a few stable, read-together fields (like <code>authorName</code>) removes a second lookup; the change feed keeps the copies in sync when the source of truth changes. Cosmos DB has no joins or foreign keys.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-005",
+      "objective": "1.1.4",
+      "type": "single",
+      "stem": "Each publisher has thousands of books, and book records change often. Should a book embed its publisher or reference it?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Reference the publisher by storing a <code>publisherId</code>"
+        },
+        {
+          "id": "b",
+          "text": "Embed the full publisher document in every book"
+        },
+        {
+          "id": "c",
+          "text": "Duplicate every publisher field into each book"
+        },
+        {
+          "id": "d",
+          "text": "Add a unique key on the publisher name"
+        }
+      ],
+      "answer": "a",
+      "explanation": "One-to-many-unbounded, frequently changing data should be referenced. Embedding or duplicating the publisher would bloat items and force volatile data to be kept in sync across thousands of books.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-006",
+      "objective": "1.1.4",
+      "type": "multi",
+      "stem": "Which situations call for <b>referencing</b> (normalization) between documents rather than embedding? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "A one-to-many relationship that is unbounded"
+        },
+        {
+          "id": "b",
+          "text": "A many-to-many relationship"
+        },
+        {
+          "id": "c",
+          "text": "Small, stable data that is always read together"
+        },
+        {
+          "id": "d",
+          "text": "Related data that changes frequently or is large"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "Reference for unbounded one-to-many, many-to-many, and frequently changing or large related data. Small, stable, read-together data is the classic case for embedding instead.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-007",
+      "objective": "1.1.4",
+      "type": "single",
+      "stem": "In a referenced design, who ensures that a stored <code>publisherId</code> actually points to a publisher that exists?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Cosmos DB foreign-key constraints"
+        },
+        {
+          "id": "b",
+          "text": "The container's unique key policy"
+        },
+        {
+          "id": "c",
+          "text": "Automatic cascading deletes"
+        },
+        {
+          "id": "d",
+          "text": "The application, optionally aided by triggers or change-feed processing"
+        }
+      ],
+      "answer": "d",
+      "explanation": "Cosmos DB enforces no foreign keys or referential integrity, so maintaining valid references is the application's responsibility (optionally with triggers or the change feed). There are no cascading deletes.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-008",
+      "objective": "1.1.5",
+      "type": "single",
+      "stem": "A developer wants to change an item's partition key value after it was inserted. What must they do?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Update the item's partition key property in place"
+        },
+        {
+          "id": "b",
+          "text": "Use a patch operation to replace the partition key path"
+        },
+        {
+          "id": "c",
+          "text": "Delete the item and recreate it with the new partition key value"
+        },
+        {
+          "id": "d",
+          "text": "Alter the container's partition key definition"
+        }
+      ],
+      "answer": "c",
+      "explanation": "The partition key value is immutable once an item exists, so the only way to \"change\" it is to delete and recreate the item. The container's partition key path also cannot be altered after creation.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/unique-keys",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-009",
+      "objective": "1.1.5",
+      "type": "multi",
+      "stem": "Which statements about <code>id</code> and unique keys in Cosmos DB are true? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Unique keys are enforced within a single logical partition, not globally"
+        },
+        {
+          "id": "b",
+          "text": "Unique keys can be added or changed at any time after the container exists"
+        },
+        {
+          "id": "c",
+          "text": "Unique keys are defined only at container creation"
+        },
+        {
+          "id": "d",
+          "text": "<code>id</code> is case-sensitive and unique within a logical partition"
+        }
+      ],
+      "answer": [
+        "a",
+        "c",
+        "d"
+      ],
+      "explanation": "Uniqueness (both <code>id</code> and unique keys) is scoped to a logical partition, and unique-key policies are immutable, set only at container creation. So the same value can repeat under a different partition key value.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/unique-keys",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-010",
+      "objective": "1.1.6",
+      "type": "single",
+      "stem": "Before choosing embed vs. reference and a partition key, what should you enumerate first?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A fully normalized entity-relationship diagram"
+        },
+        {
+          "id": "b",
+          "text": "The application's read and write access patterns"
+        },
+        {
+          "id": "c",
+          "text": "The container's indexing policy"
+        },
+        {
+          "id": "d",
+          "text": "The account's default consistency level"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Cosmos DB modeling is access-pattern driven: list the queries and mutations (frequency, latency, volume) first, then shape items and pick a partition key to serve the top ones as cheap single-partition operations. You do not start from a normalized ER diagram.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-model-partition-example"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-011",
+      "objective": "1.1.7",
+      "type": "single",
+      "stem": "You want most items to live forever, but a few to self-expire using their own <code>ttl</code>. What container <code>DefaultTimeToLive</code> value do you set?",
+      "options": [
+        {
+          "id": "a",
+          "text": "<code>null</code>"
+        },
+        {
+          "id": "b",
+          "text": "<code>0</code>"
+        },
+        {
+          "id": "c",
+          "text": "<code>-1</code>"
+        },
+        {
+          "id": "d",
+          "text": "A large positive number of seconds"
+        }
+      ],
+      "answer": "c",
+      "explanation": "<code>-1</code> enables TTL with no blanket expiry, so only items that set their own <code>ttl</code> expire. <code>null</code> disables TTL entirely (item <code>ttl</code> is ignored), and a positive value would expire everything by default.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/time-to-live",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-time-to-live"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-012",
+      "objective": "1.1.9",
+      "type": "tf",
+      "stem": "Document <b>schema</b> versioning (tracking an item's shape with a <code>schemaVersion</code> property) is the same thing as document <b>versioning</b> (keeping a history of an entity's data).",
+      "answer": "false",
+      "explanation": "They are different concerns: schema versioning tracks how to interpret an item's shape as it evolves, while document versioning preserves a history of an entity's data by storing prior states as separate items.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-013",
+      "objective": "1.2.1",
+      "type": "single",
+      "stem": "A single partition key value is projected to store 35 GB. What limit does this violate, and what should change?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The 2 MB item limit; split the item into smaller documents"
+        },
+        {
+          "id": "b",
+          "text": "The 20 GB logical-partition limit; choose a higher-cardinality, synthetic, or hierarchical key"
+        },
+        {
+          "id": "c",
+          "text": "The 50 GB physical-partition limit; add more RU/s"
+        },
+        {
+          "id": "d",
+          "text": "The 10,000 RU/s limit; enable autoscale"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A logical partition (all items sharing one key value) cannot exceed 20 GB, so 35 GB requires a key that keeps any single value below the ceiling — for example a synthetic or hierarchical key.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-014",
+      "objective": "1.2.2",
+      "type": "single",
+      "scenario_id": "s-social",
+      "stem": "Which partition key makes loading one user's recent posts a cheap single-partition read while still spreading load evenly across the user base?",
+      "options": [
+        {
+          "id": "a",
+          "text": "<code>/postId</code>, a random GUID assigned per post"
+        },
+        {
+          "id": "b",
+          "text": "<code>/createdDate</code>, today's date"
+        },
+        {
+          "id": "c",
+          "text": "<code>/userId</code>"
+        },
+        {
+          "id": "d",
+          "text": "<code>/status</code>"
+        }
+      ],
+      "answer": "c",
+      "explanation": "<code>/userId</code> has high cardinality, spreads load across many users, and appears as the equality filter for the hottest query, so a user's posts land in one logical partition. A random GUID forces fan-out, a date creates a write hotspot, and status is low-cardinality.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-model-partition-example"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-015",
+      "objective": "1.2.2",
+      "type": "multi",
+      "stem": "Which of the following are partition key <b>anti-patterns</b>? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "A low-cardinality field such as <code>/status</code>"
+        },
+        {
+          "id": "b",
+          "text": "<code>/customerId</code> when it is high-cardinality and the common query filter"
+        },
+        {
+          "id": "c",
+          "text": "A monotonically increasing value such as today's <code>/eventDate</code>"
+        },
+        {
+          "id": "d",
+          "text": "A random GUID that never appears in any query filter"
+        }
+      ],
+      "answer": [
+        "a",
+        "c",
+        "d"
+      ],
+      "explanation": "Low-cardinality keys create hot partitions, a monotonically increasing key concentrates current writes on one partition, and a GUID never used in filters forces every query to fan out. A high-cardinality key aligned to the common filter (customerId) is the good choice.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-model-partition-example"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-016",
+      "objective": "1.2.3",
+      "type": "single",
+      "stem": "A funds transfer must debit one account and credit another atomically. What partition-key constraint does this impose?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Both account items must share the same partition key value"
+        },
+        {
+          "id": "b",
+          "text": "The two accounts must be in different logical partitions"
+        },
+        {
+          "id": "c",
+          "text": "A cross-partition transaction must be enabled on the account"
+        },
+        {
+          "id": "d",
+          "text": "Multi-region writes must be turned on"
+        }
+      ],
+      "answer": "a",
+      "explanation": "Transactional batches and server-side scripts operate within a single logical partition only, so items that must change atomically must share the same partition key value. There are no cross-partition transactions.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/transactional-batch",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-017",
+      "objective": "1.2.4",
+      "type": "single",
+      "stem": "A container is partitioned by <code>/customerId</code>. Which query is cheaper in RUs?",
+      "options": [
+        {
+          "id": "a",
+          "text": "<code>SELECT * FROM c WHERE c.status = \"open\"</code>"
+        },
+        {
+          "id": "b",
+          "text": "<code>SELECT * FROM c WHERE c.customerId = \"C-1001\" AND c.status = \"open\"</code>"
+        },
+        {
+          "id": "c",
+          "text": "Both cost the same"
+        },
+        {
+          "id": "d",
+          "text": "Neither can use the index"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Including the partition key in the filter makes the query single-partition, which is the cheapest read. Filtering by status alone omits the partition key and fans out to every physical partition, raising RU cost and latency.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics-performance",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-018",
+      "objective": "1.2.6",
+      "type": "single",
+      "stem": "A container provisioned at 40,000 RU/s throttles requests to one popular product while overall usage is low. What is the most likely diagnosis?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The account has run out of storage"
+        },
+        {
+          "id": "b",
+          "text": "A hot partition — that key value receives disproportionate requests and exceeds its per-partition RU slice"
+        },
+        {
+          "id": "c",
+          "text": "The consistency level is set too weak"
+        },
+        {
+          "id": "d",
+          "text": "The index on the product name is missing"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Provisioned RU/s is divided evenly across physical partitions, so concentrating requests on one key value can trigger 429s even while total RU/s has headroom. The remedy is to repartition (for example a synthetic or hierarchical key) to spread the load.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/troubleshoot-request-rate-too-large"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-019",
+      "objective": "1.2.7",
+      "type": "single",
+      "stem": "Devices all report under a handful of tenant IDs, causing hot partitions. Which synthetic partition key improves distribution while keeping tenant+device queries targeted?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Partition by <code>/tenantId</code> alone"
+        },
+        {
+          "id": "b",
+          "text": "Concatenate <code>tenantId</code> and <code>deviceId</code> (e.g., <code>tenantId-deviceId</code>) and store it as the partition key"
+        },
+        {
+          "id": "c",
+          "text": "Partition by a random GUID"
+        },
+        {
+          "id": "d",
+          "text": "Partition by the ingestion timestamp"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Concatenating tenant and device into one stored property raises cardinality and spreads writes, and queries that supply both components stay targeted. The synthetic value must be a real, stored property to partition on it.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/synthetic-partition-keys",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-020",
+      "objective": "1.2.8",
+      "type": "single",
+      "stem": "A multi-tenant app has a few huge tenants that break the 20 GB limit, but most queries filter by tenant and then by user. Which partitioning solves both problems?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A synthetic key with a random suffix on <code>tenantId</code>"
+        },
+        {
+          "id": "b",
+          "text": "A hierarchical partition key <code>/tenantId</code> then <code>/userId</code>"
+        },
+        {
+          "id": "c",
+          "text": "Partition by <code>/userId</code> only"
+        },
+        {
+          "id": "d",
+          "text": "A single container partitioned by <code>/country</code>"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A hierarchical (subpartitioned) key lets a first-level value exceed 20 GB, while queries supplying the leading prefix (tenant, or tenant+user) still route to a small subset of partitions. A random suffix would scatter a tenant's data across buckets.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/hierarchical-partition-keys",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-model-partition-example"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-021",
+      "objective": "1.2.9",
+      "type": "single",
+      "stem": "Orders are queried by <code>customerId</code> and, separately, by <code>productId</code>, both needing single-partition speed. How do you serve both efficiently?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Keep one container by <code>/customerId</code> and rely on cross-partition queries for product lookups"
+        },
+        {
+          "id": "b",
+          "text": "Add a unique key on <code>productId</code>"
+        },
+        {
+          "id": "c",
+          "text": "Enable multi-region writes so both queries are fast"
+        },
+        {
+          "id": "d",
+          "text": "Keep the primary container by <code>/customerId</code> and maintain a second container by <code>/productId</code>, synced via the change feed"
+        }
+      ],
+      "answer": "d",
+      "explanation": "A container has exactly one partition key definition, so a differently-partitioned second copy (kept in sync with the change feed) serves the other access path with cheap single-partition reads.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-022",
+      "objective": "1.3.1",
+      "type": "single",
+      "stem": "Roughly how many RUs does a 1-KB point read consume, and what increases that number?",
+      "options": [
+        {
+          "id": "a",
+          "text": "About 1 RU; larger items, more indexed paths, complex queries, and stronger consistency increase it"
+        },
+        {
+          "id": "b",
+          "text": "About 10 RU regardless of item size or consistency"
+        },
+        {
+          "id": "c",
+          "text": "About 1 RU, and nothing increases it"
+        },
+        {
+          "id": "d",
+          "text": "0 RU, because point reads are free"
+        }
+      ],
+      "answer": "a",
+      "explanation": "A 1-KB point read is the anchor cost of about 1 RU. RU cost rises with item size, the number of indexed properties, query complexity, and stronger (strong/bounded) consistency, which roughly doubles read cost.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/request-units",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/estimate-ru-with-capacity-planner"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-023",
+      "objective": "1.3.2",
+      "type": "single",
+      "stem": "A dev/test workload has bursty, unpredictable traffic in a single region and you don't want to manage RU/s. Which capacity mode fits best?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Provisioned manual throughput"
+        },
+        {
+          "id": "b",
+          "text": "Provisioned autoscale"
+        },
+        {
+          "id": "c",
+          "text": "Serverless"
+        },
+        {
+          "id": "d",
+          "text": "Database-level shared throughput"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Serverless bills per consumed RU with nothing to provision, which suits spiky, intermittent, single-region workloads like dev/test. Provisioned modes require reserving RU/s and target sustained traffic.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/throughput-serverless",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/provision-throughput-autoscale"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-024",
+      "objective": "1.3.2",
+      "type": "multi",
+      "stem": "Which statements about Cosmos DB capacity models are true? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Serverless is available in a single region only"
+        },
+        {
+          "id": "b",
+          "text": "Free tier waives the first 1000 RU/s and 25 GB per account"
+        },
+        {
+          "id": "c",
+          "text": "A provisioned container has a minimum of 400 RU/s"
+        },
+        {
+          "id": "d",
+          "text": "Serverless supports multi-region writes"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Serverless is single-region and pay-per-use, free tier gives the first 1000 RU/s + 25 GB per account, and provisioned containers have a 400 RU/s minimum. Global distribution and multi-region writes require provisioned throughput.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/throughput-serverless",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/free-tier"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-025",
+      "objective": "1.3.3",
+      "type": "single",
+      "stem": "You have 20 rarely-used containers and want to minimize cost without a strict per-container SLA. Which throughput model fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Dedicated container-level throughput on each container"
+        },
+        {
+          "id": "b",
+          "text": "Database-level (shared) provisioned throughput"
+        },
+        {
+          "id": "c",
+          "text": "Serverless on each container"
+        },
+        {
+          "id": "d",
+          "text": "A high autoscale maximum on every container"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Database-level shared throughput spreads one RU/s pool across up to 25 containers economically, at the cost of no per-container guarantee (noisy-neighbor risk). Dedicated throughput is the choice when predictable performance is required.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/set-throughput",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/distribute-throughput-across-partitions"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-026",
+      "objective": "1.3.5",
+      "type": "single",
+      "stem": "A container provisioned at 10,000 RU/s is replicated to three regions. Roughly what is the throughput cost relative to a single region?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The same as one region"
+        },
+        {
+          "id": "b",
+          "text": "About 2×"
+        },
+        {
+          "id": "c",
+          "text": "About 3× (each region provisions 10,000 RU/s)"
+        },
+        {
+          "id": "d",
+          "text": "About one-third"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Throughput is provisioned per region, so provisioned cost is roughly RU/s × number of regions. Enabling multi-region writes would add still more cost.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/optimize-cost-regions",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/distribute-data-globally"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-027",
+      "objective": "1.3.6",
+      "type": "single",
+      "stem": "In the Azure portal, where do you change a container's RU/s and pick manual vs. autoscale?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The Keys blade"
+        },
+        {
+          "id": "b",
+          "text": "The Firewall and virtual networks blade"
+        },
+        {
+          "id": "c",
+          "text": "Data Explorer under the container's Scale & Settings (or the Scale blade)"
+        },
+        {
+          "id": "d",
+          "text": "The Replicate data globally blade"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Throughput mode (Manual or Autoscale) and RU/s are configured in Data Explorer under Scale & Settings (or the Scale blade); you can switch between modes later (with a cooldown).",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/set-throughput",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-provision-container-throughput"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-028",
+      "objective": "1.4.1",
+      "type": "single",
+      "stem": "A corporate firewall allows only outbound port 443. Which SDK connection mode must the application use?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Direct mode"
+        },
+        {
+          "id": "b",
+          "text": "Gateway mode"
+        },
+        {
+          "id": "c",
+          "text": "Either mode works equally well"
+        },
+        {
+          "id": "d",
+          "text": "Direct mode over TCP ports 10000–20000"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Gateway mode routes all requests over HTTPS on port 443, making it firewall-friendly. Direct mode needs a range of TCP ports that the firewall blocks, so it is unavailable here.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/sdk-connection-modes"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-029",
+      "objective": "1.4.3",
+      "type": "single",
+      "stem": "What is the recommended, key-free way to authenticate a <code>CosmosClient</code> to the data plane?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Embed the account primary key in configuration"
+        },
+        {
+          "id": "b",
+          "text": "Use a connection string that includes the account key"
+        },
+        {
+          "id": "c",
+          "text": "Use a Microsoft Entra ID credential (e.g., <code>DefaultAzureCredential</code>) with Cosmos DB data-plane RBAC"
+        },
+        {
+          "id": "d",
+          "text": "Generate a shared access signature per request"
+        }
+      ],
+      "answer": "c",
+      "explanation": "A Microsoft Entra ID <code>TokenCredential</code> avoids storing account keys and enables least-privilege, RBAC-based data-plane access — the preferred approach over keys or connection strings.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-get-started",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/security/how-to-grant-data-plane-role-based-access"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-030",
+      "objective": "1.4.4",
+      "type": "single",
+      "stem": "A team wants to run integration tests with no Azure resources or cost. What tool enables this, and what is a key limitation?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The Azure Cosmos DB emulator at <code>https://localhost:8081/</code>, which is single-region with no global distribution and uses a fixed local key/endpoint"
+        },
+        {
+          "id": "b",
+          "text": "A free-tier account, which is limited to one region"
+        },
+        {
+          "id": "c",
+          "text": "A serverless account, which cannot be used in CI"
+        },
+        {
+          "id": "d",
+          "text": "A production account restricted to RBAC only"
+        }
+      ],
+      "answer": "a",
+      "explanation": "The emulator reproduces the NoSQL API locally for free at a fixed endpoint and well-known key, so tests run offline. Its main limitation is single-region operation with no global distribution or multi-write; never use its well-known key in production.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-develop-emulator",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/emulator"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-031",
+      "objective": "1.4.5",
+      "type": "multi",
+      "stem": "Which HTTP status codes from Cosmos DB are transient and retriable? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "429 (request rate too large)"
+        },
+        {
+          "id": "b",
+          "text": "404 (not found)"
+        },
+        {
+          "id": "c",
+          "text": "503 (service unavailable)"
+        },
+        {
+          "id": "d",
+          "text": "408 (timeout)"
+        },
+        {
+          "id": "e",
+          "text": "409 (conflict)"
+        }
+      ],
+      "answer": [
+        "a",
+        "c",
+        "d"
+      ],
+      "explanation": "429, 449, 503, and 408 are transient/retriable and largely handled by the SDK. 404 and 409 are non-retriable client errors (not found and conflict).",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/troubleshoot-dotnet-sdk",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/conceptual-resilient-sdk-applications"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-032",
+      "objective": "1.4.6",
+      "type": "single",
+      "stem": "An app creates a new <code>CosmosClient</code> on every request and suffers latency spikes and socket exhaustion. What is the fix?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Create a client per request but dispose it promptly"
+        },
+        {
+          "id": "b",
+          "text": "Use a single, long-lived <code>CosmosClient</code> (a DI singleton) reused for all requests"
+        },
+        {
+          "id": "c",
+          "text": "Switch the client to Gateway mode"
+        },
+        {
+          "id": "d",
+          "text": "Lower <code>MaxItemCount</code> on all queries"
+        }
+      ],
+      "answer": "b",
+      "explanation": "<code>CosmosClient</code> is thread-safe and caches connections and routing metadata, so one long-lived instance should be reused. Creating one per request causes socket/SNAT exhaustion and cold caches on every call.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/best-practice-dotnet",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-get-started"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-033",
+      "objective": "1.5.1",
+      "type": "single",
+      "stem": "In the Cosmos DB NoSQL query language, what does <code>JOIN t IN c.tags</code> actually do?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Joins each item to a matching item in another container"
+        },
+        {
+          "id": "b",
+          "text": "Unwinds the <code>tags</code> array within each item (an intra-item self-join)"
+        },
+        {
+          "id": "c",
+          "text": "Performs a cross-partition join across documents"
+        },
+        {
+          "id": "d",
+          "text": "Joins the container to another database"
+        }
+      ],
+      "answer": "b",
+      "explanation": "JOIN in Cosmos DB is a self-join within a single item that unwinds (flattens) an array. There are no cross-document or cross-container joins.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/working-with-json",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/order-by"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-034",
+      "objective": "1.5.3",
+      "type": "multi",
+      "stem": "Which built-in functions help you query schema-flexible arrays and property types? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "<code>ARRAY_CONTAINS</code>"
+        },
+        {
+          "id": "b",
+          "text": "<code>IS_DEFINED</code>"
+        },
+        {
+          "id": "c",
+          "text": "<code>IS_STRING</code>"
+        },
+        {
+          "id": "d",
+          "text": "<code>CROSS_JOIN</code>"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "<code>ARRAY_CONTAINS</code> is an array function and <code>IS_DEFINED</code>/<code>IS_STRING</code> are type-checking functions for schema-flexible data. <code>CROSS_JOIN</code> is not a Cosmos DB function.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/array-functions",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/type-checking-functions"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-035",
+      "objective": "1.5.2",
+      "type": "single",
+      "stem": "You need items that have any tag with <code>weight &gt; 10</code>, without exploding the array through a JOIN cross-product. Which construct is best?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A <code>GROUP BY</code> over the tags"
+        },
+        {
+          "id": "b",
+          "text": "A correlated subquery with <code>EXISTS</code> over <code>c.tags</code>"
+        },
+        {
+          "id": "c",
+          "text": "A <code>DISTINCT</code> projection"
+        },
+        {
+          "id": "d",
+          "text": "An <code>ORDER BY</code> on tag weight"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A correlated subquery with <code>EXISTS</code> evaluates the array condition once per item without producing the full JOIN cross-product, lowering RU cost on large arrays.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/subquery"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-036",
+      "objective": "1.5.4",
+      "type": "single",
+      "stem": "A case-insensitive search using <code>WHERE LOWER(c.name) = @n</code> is expensive. What design keeps it index-served?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Add a composite index on <code>name</code>"
+        },
+        {
+          "id": "b",
+          "text": "Store a precomputed lowercase property (e.g., <code>nameLower</code>) and filter on it directly"
+        },
+        {
+          "id": "c",
+          "text": "Use <code>UPPER</code> instead of <code>LOWER</code>"
+        },
+        {
+          "id": "d",
+          "text": "Increase the container's provisioned RU/s"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Wrapping the filtered property in a function like <code>LOWER()</code> defeats the index and forces a scan. Storing a normalized lowercase copy and filtering on it keeps the query index-served.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/string-functions",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/date-time-functions"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-037",
+      "objective": "1.5.5",
+      "type": "single",
+      "stem": "Why should user-supplied filter values be passed via <code>QueryDefinition.WithParameter</code> rather than string-concatenated into the query text?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It reduces network latency between the app and the service"
+        },
+        {
+          "id": "b",
+          "text": "It is the only way to run a query with a <code>WHERE</code> clause"
+        },
+        {
+          "id": "c",
+          "text": "It prevents query injection and enables query-plan reuse"
+        },
+        {
+          "id": "d",
+          "text": "It automatically strengthens the read consistency level"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Parameterized queries bind values safely instead of interpolating raw input, preventing injection and allowing query-plan reuse. It has no effect on consistency.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/parameterized-queries",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-query-items"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-038",
+      "objective": "1.6.1",
+      "type": "single",
+      "stem": "You already have an item's <code>id</code> and its partition key. Should you use <code>ReadItemAsync</code> or a <code>SELECT * FROM c WHERE c.id = @id</code> query?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The query, because it can use the index"
+        },
+        {
+          "id": "b",
+          "text": "<code>ReadItemAsync</code> (a point read), because it is ~1 RU and lowest latency"
+        },
+        {
+          "id": "c",
+          "text": "Either — they cost the same"
+        },
+        {
+          "id": "d",
+          "text": "A stored procedure, to reduce RU cost"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A point read by <code>id</code> + partition key bypasses the query engine and is the cheapest, lowest-latency operation (~1 RU for ~1 KB). Even a single-item query invokes the engine and costs more.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/point-operations-vs-queries",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/optimize-cost-reads-writes"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-039",
+      "objective": "1.6.2",
+      "type": "multi",
+      "stem": "Which statements about the SDK point-operation methods are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "<code>CreateItemAsync</code> fails with 409 if the <code>id</code> already exists in the partition"
+        },
+        {
+          "id": "b",
+          "text": "<code>ReplaceItemAsync</code> requires the <code>id</code> to already exist"
+        },
+        {
+          "id": "c",
+          "text": "<code>UpsertItemAsync</code> creates the item if absent or replaces it if present"
+        },
+        {
+          "id": "d",
+          "text": "<code>CreateItemAsync</code> overwrites an existing item with the same <code>id</code>"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "<code>Create</code> inserts and returns 409 on a conflicting id, <code>Replace</code> overwrites an existing item, and <code>Upsert</code> does whichever applies. <code>Create</code> never overwrites an existing item.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-create-item",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-read-item"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-040",
+      "objective": "1.6.3",
+      "type": "single",
+      "stem": "You need to flip a single field on a large document without transferring the whole item back and forth. Which operation is ideal?",
+      "options": [
+        {
+          "id": "a",
+          "text": "<code>ReplaceItemAsync</code> after reading the full item"
+        },
+        {
+          "id": "b",
+          "text": "<code>UpsertItemAsync</code> with the full item"
+        },
+        {
+          "id": "c",
+          "text": "A patch (partial document update) with a <code>Set</code> operation"
+        },
+        {
+          "id": "d",
+          "text": "A stored procedure that reads then rewrites the item"
+        }
+      ],
+      "answer": "c",
+      "explanation": "A patch sends only the changed path to the server, avoiding a full read-modify-write and reducing RU and bandwidth. It also avoids the round-trip race that a read-then-replace introduces.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/partial-document-update",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-patch-item"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-041",
+      "objective": "1.6.4",
+      "type": "single",
+      "scenario_id": "s-retail",
+      "stem": "The service must update an order and its inventory record atomically, and both items share a partition key value. Which SDK feature guarantees all-or-nothing?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Bulk execution with <code>AllowBulkExecution = true</code>"
+        },
+        {
+          "id": "b",
+          "text": "A <code>TransactionalBatch</code> executed on that partition key"
+        },
+        {
+          "id": "c",
+          "text": "Two separate <code>UpsertItemAsync</code> calls"
+        },
+        {
+          "id": "d",
+          "text": "Propagating a change-feed event to the inventory record"
+        }
+      ],
+      "answer": "b",
+      "explanation": "A transactional batch groups the operations into one all-or-nothing transaction within a single logical partition, so the shared partition key value makes it possible. Bulk is high-throughput but not atomic, and separate calls are not transactional.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/transactional-batch"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-042",
+      "objective": "1.6.4",
+      "type": "multi",
+      "stem": "Which constraints apply to a Cosmos DB <code>TransactionalBatch</code>? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "All operations must target the same partition key value"
+        },
+        {
+          "id": "b",
+          "text": "It is bounded to 100 operations"
+        },
+        {
+          "id": "c",
+          "text": "It is bounded to a 2 MB payload"
+        },
+        {
+          "id": "d",
+          "text": "It can span multiple logical partitions"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "A transactional batch is atomic within a single logical partition and is limited to 100 operations or 2 MB. There is no cross-partition transactional batch.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/transactional-batch"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-043",
+      "objective": "1.6.5",
+      "type": "single",
+      "stem": "You need to import millions of documents as fast as possible, and atomicity across them is not required. Which SDK feature fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "<code>TransactionalBatch</code>"
+        },
+        {
+          "id": "b",
+          "text": "Bulk execution (<code>AllowBulkExecution = true</code>) with many concurrent operations"
+        },
+        {
+          "id": "c",
+          "text": "One-by-one <code>CreateItemAsync</code> calls awaited sequentially"
+        },
+        {
+          "id": "d",
+          "text": "A stored procedure loop over all items"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Bulk execution maximizes write throughput by grouping concurrent operations per physical partition; it is not transactional. Temporarily raising RU/s during the load helps avoid 429s.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/tutorial-dotnet-bulk-import",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-bulk-import"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-044",
+      "objective": "1.6.6",
+      "type": "single",
+      "stem": "Two clients read the same item and both try to update it. How do you prevent the second write from silently overwriting the first, without locking?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Acquire a pessimistic lock on the item before updating"
+        },
+        {
+          "id": "b",
+          "text": "Switch the account to Strong consistency"
+        },
+        {
+          "id": "c",
+          "text": "Pass the read <code>_etag</code> in <code>IfMatchEtag</code>; the stale writer gets HTTP 412 and must re-read and retry"
+        },
+        {
+          "id": "d",
+          "text": "Add a unique key on the item's version field"
+        }
+      ],
+      "answer": "c",
+      "explanation": "ETag-based optimistic concurrency compares the item's <code>_etag</code>; if it changed, the write fails with HTTP 412 (Precondition Failed), so the caller re-reads and retries. This is lock-free and prevents lost updates.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/database-transactions-optimistic-concurrency",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/optimistic-concurrency-control"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-045",
+      "objective": "1.6.7",
+      "type": "tf",
+      "stem": "A per-request <code>ConsistencyLevel</code> override can set an individual read to a <b>stronger</b> level than the account's default consistency.",
+      "answer": "false",
+      "explanation": "A per-request override can only relax (weaken) the account default, never strengthen it. Weakening to session or eventual reduces RU cost and latency for reads that tolerate slightly stale data.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-manage-consistency"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-046",
+      "objective": "1.6.11",
+      "type": "multi",
+      "stem": "Which statements about HTTP 429 responses from Cosmos DB are true? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "It means the operation exceeded the provisioned RU/s (\"request rate too large\")"
+        },
+        {
+          "id": "b",
+          "text": "The response includes an <code>x-ms-retry-after-ms</code> hint"
+        },
+        {
+          "id": "c",
+          "text": "Fixes include increasing RU/s (or autoscale) and reducing hot-partition skew"
+        },
+        {
+          "id": "d",
+          "text": "It indicates a code bug and is never retriable"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "429 is RU throttling, not a bug; it carries a retry-after hint the SDK honors, and the real fix is adding RU/s or spreading load off a hot partition. It is retriable.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/troubleshoot-request-rate-too-large",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/conceptual-resilient-sdk-applications"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-047",
+      "objective": "1.7.1",
+      "type": "single",
+      "stem": "When you execute a stored procedure, what must you always provide, and why?",
+      "options": [
+        {
+          "id": "a",
+          "text": "An index policy, so the procedure can query efficiently"
+        },
+        {
+          "id": "b",
+          "text": "A partition key value, because the procedure runs against a single logical partition"
+        },
+        {
+          "id": "c",
+          "text": "A continuation token to resume prior execution"
+        },
+        {
+          "id": "d",
+          "text": "An <code>_etag</code> for concurrency control"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Stored procedures execute against a single logical partition, so the runtime requires a partition key value at execution to scope the operation. All of the procedure's work runs in one implicit, partition-scoped transaction.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-write-stored-procedures-triggers-udfs",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/stored-procedures-triggers-udfs"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q1-048",
+      "objective": "1.7.4",
+      "type": "single",
+      "stem": "How is a user-defined function (UDF) invoked, and why is filtering a <code>WHERE</code> clause on a UDF a performance concern?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It is called inside a query with the <code>udf.</code> prefix; filtering on it cannot use the index, so the query scans"
+        },
+        {
+          "id": "b",
+          "text": "It is called as an SDK point operation and is fully index-served"
+        },
+        {
+          "id": "c",
+          "text": "It runs automatically on every write and blocks the operation"
+        },
+        {
+          "id": "d",
+          "text": "It is invoked from a stored procedure and reads data directly"
+        }
+      ],
+      "answer": "a",
+      "explanation": "A UDF is a scalar JavaScript function callable only from within a query via the <code>udf.</code> prefix; it has no data access and is not index-backed, so filtering on it forces a scan. Prefer UDFs in projections rather than filters when performance matters.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-write-stored-procedures-triggers-udfs",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/udfs"
+      ],
+      "domain": 1,
+      "domain_title": "Design and implement data models"
+    },
+    {
+      "id": "q2-001",
+      "objective": "2.1.1",
+      "type": "single",
+      "stem": "A team runs a serverless Azure Cosmos DB account and now needs it to serve low-latency reads from three continents while surviving a regional outage. What must change first before any additional regions can be associated?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Enable availability zones on the existing serverless account"
+        },
+        {
+          "id": "b",
+          "text": "Convert the account to provisioned (or autoscale) throughput"
+        },
+        {
+          "id": "c",
+          "text": "Redeploy the application with a multi-region connection string"
+        },
+        {
+          "id": "d",
+          "text": "Add the new regions during a scheduled maintenance window"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Serverless accounts are single-region only, so global distribution is impossible until the account uses provisioned throughput; only then can additional regions be associated. Adding regions itself needs no redeploy or downtime.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/serverless",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/distribute-data-globally"
+      ],
+      "domain": 2,
+      "domain_title": "Design and implement data distribution"
+    },
+    {
+      "id": "q2-002",
+      "objective": "2.1.2",
+      "type": "single",
+      "stem": "A single-write-region account has service-managed failover enabled but no failover priority order configured. The write region goes down. What happens?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The lowest-priority read region is promoted to write automatically"
+        },
+        {
+          "id": "b",
+          "text": "All read regions are promoted to write simultaneously"
+        },
+        {
+          "id": "c",
+          "text": "No region is promoted automatically, so a manual forced failover is required"
+        },
+        {
+          "id": "d",
+          "text": "The original write region auto-resumes as soon as it recovers"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Automatic promotion needs both the feature enabled and a ranked failover priority list; with no ranked target, the reliable fix during the outage is a manual forced failover to a healthy region.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/reliability/reliability-cosmos-db",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-database-account"
+      ],
+      "domain": 2,
+      "domain_title": "Design and implement data distribution"
+    },
+    {
+      "id": "q2-003",
+      "objective": "2.1.3",
+      "type": "single",
+      "stem": "During a normal maintenance window with all regions healthy, an operations team wants to move the write region from East US to West Europe with no data loss. Which operation fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Forced (customer-managed) failover of the write region"
+        },
+        {
+          "id": "b",
+          "text": "Service-managed failover"
+        },
+        {
+          "id": "c",
+          "text": "Change write region (planned failover)"
+        },
+        {
+          "id": "d",
+          "text": "Disable service-managed failover and delete the East US region"
+        }
+      ],
+      "answer": "c",
+      "explanation": "With all regions healthy, <code>change write region</code> lets replication catch up before promoting West Europe, so there is no data loss; a forced failover would risk losing unreplicated writes and planned failover cannot run during an actual outage.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-database-account",
+        "https://learn.microsoft.com/en-us/azure/reliability/reliability-cosmos-db"
+      ],
+      "domain": 2,
+      "domain_title": "Design and implement data distribution"
+    },
+    {
+      "id": "q2-004",
+      "objective": "2.1.4",
+      "type": "single",
+      "stem": "Which sequence lists the five Azure Cosmos DB consistency levels correctly from strongest to weakest?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Strong, Session, Bounded staleness, Consistent prefix, Eventual"
+        },
+        {
+          "id": "b",
+          "text": "Strong, Bounded staleness, Session, Consistent prefix, Eventual"
+        },
+        {
+          "id": "c",
+          "text": "Bounded staleness, Strong, Session, Eventual, Consistent prefix"
+        },
+        {
+          "id": "d",
+          "text": "Strong, Bounded staleness, Consistent prefix, Session, Eventual"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The defined order from strongest to weakest is Strong, Bounded staleness, Session, Consistent prefix, Eventual, with Session as the account default.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels"
+      ],
+      "domain": 2,
+      "domain_title": "Design and implement data distribution"
+    },
+    {
+      "id": "q2-005",
+      "objective": "2.1.5",
+      "type": "single",
+      "stem": "A social app must ensure each user always sees their own most recent post immediately, while other users can tolerate slight delays. Which consistency level is the best fit?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Eventual"
+        },
+        {
+          "id": "b",
+          "text": "Consistent prefix"
+        },
+        {
+          "id": "c",
+          "text": "Bounded staleness"
+        },
+        {
+          "id": "d",
+          "text": "Session"
+        }
+      ],
+      "answer": "d",
+      "explanation": "Session consistency guarantees read-your-writes within the user's own session via the session token, so the author always sees their new post while keeping low latency and high throughput for everyone else; it is also the account default.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels"
+      ],
+      "domain": 2,
+      "domain_title": "Design and implement data distribution"
+    },
+    {
+      "id": "q2-006",
+      "objective": "2.1.6",
+      "type": "multi",
+      "stem": "Which statements about the impact of consistency level on request unit cost and availability are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Strong and Bounded staleness reads cost roughly 2x the RUs of the weaker levels"
+        },
+        {
+          "id": "b",
+          "text": "Write RU cost is identical across all consistency levels for a given operation"
+        },
+        {
+          "id": "c",
+          "text": "Strong consistency is supported together with multi-region writes"
+        },
+        {
+          "id": "d",
+          "text": "Weaker levels such as Session, Consistent prefix, and Eventual offer higher availability and throughput"
+        },
+        {
+          "id": "e",
+          "text": "Strong reads consume the same RUs as Eventual reads"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "Strong and Bounded staleness reads use a two-replica local quorum (~2x RUs), write RU cost does not vary by level, and weaker levels give higher availability and throughput. Strong is not supported with multi-region writes, and Strong reads cost more than Eventual reads.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels",
+        "https://learn.microsoft.com/en-us/azure/reliability/reliability-cosmos-db"
+      ],
+      "domain": 2,
+      "domain_title": "Design and implement data distribution"
+    },
+    {
+      "id": "q2-007",
+      "objective": "2.1.7",
+      "type": "single",
+      "stem": "In which scenario does Azure Cosmos DB fail to meet the usual sub-10 ms P99 latency guarantee?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Session reads served from a single region"
+        },
+        {
+          "id": "b",
+          "text": "Eventual writes replicated across two regions"
+        },
+        {
+          "id": "c",
+          "text": "Strong writes that must commit across multiple regions"
+        },
+        {
+          "id": "d",
+          "text": "Bounded staleness reads served from a single region"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Only Strong multi-region writes break the sub-10 ms P99 guarantee, because the write must commit in every region first; its latency is roughly <code>2x RTT + 10 ms</code> between the farthest regions. Reads stay under 10 ms P99 at every level.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels"
+      ],
+      "domain": 2,
+      "domain_title": "Design and implement data distribution"
+    },
+    {
+      "id": "q2-008",
+      "objective": "2.2.1",
+      "type": "multi",
+      "stem": "Which statements accurately describe multi-region writes (active-active) in Azure Cosmos DB? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Every associated region can accept writes (active-active)"
+        },
+        {
+          "id": "b",
+          "text": "The topology provides 99.999% read and write availability"
+        },
+        {
+          "id": "c",
+          "text": "Strong consistency can be enabled to guarantee correctness"
+        },
+        {
+          "id": "d",
+          "text": "Concurrent writes to the same item in different regions can conflict"
+        },
+        {
+          "id": "e",
+          "text": "Bounded staleness is the recommended consistency level"
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "Multi-region writes make every region writable, deliver 99.999% read+write availability, and allow cross-region conflicts that require a conflict-resolution policy. Strong consistency is not supported and Bounded staleness is an anti-pattern with multi-region writes.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/distribute-data-globally",
+        "https://learn.microsoft.com/en-us/azure/reliability/reliability-cosmos-db"
+      ],
+      "domain": 2,
+      "domain_title": "Design and implement data distribution"
+    },
+    {
+      "id": "q2-009",
+      "objective": "2.2.3",
+      "type": "single",
+      "stem": "A new API for NoSQL container must resolve concurrent cross-region updates by keeping the record with the highest application-supplied version number, using no server-side code. Which configuration fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Custom policy with a registered merge stored procedure"
+        },
+        {
+          "id": "b",
+          "text": "Last Write Wins using the default <code>_ts</code> timestamp"
+        },
+        {
+          "id": "c",
+          "text": "Last Write Wins with a custom numeric conflict-resolution path such as <code>/version</code>"
+        },
+        {
+          "id": "d",
+          "text": "Change the existing container's policy to LWW after creation"
+        }
+      ],
+      "answer": "c",
+      "explanation": "In Last Write Wins you can name a custom numeric conflict-resolution path where the highest value wins, with no stored procedure. It must be set at container creation because the policy is immutable afterward.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/conflict-resolution-policies",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-manage-conflicts"
+      ],
+      "domain": 2,
+      "domain_title": "Design and implement data distribution"
+    },
+    {
+      "id": "q2-010",
+      "objective": "2.2.1",
+      "scenario_id": "s-global",
+      "type": "single",
+      "stem": "Which single-account configuration best meets Tailwind Global's requirements?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Single write region with Strong consistency and service-managed failover"
+        },
+        {
+          "id": "b",
+          "text": "Multi-region writes with Session consistency and a Last Write Wins conflict-resolution policy"
+        },
+        {
+          "id": "c",
+          "text": "Multi-region writes with Strong consistency and a custom merge stored procedure"
+        },
+        {
+          "id": "d",
+          "text": "Single write region with Bounded staleness and an ordered preferred-region list"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Only multi-region writes give lowest local read and write latency in every region plus survival of a regional outage; Session is a supported level for active-active, and Last Write Wins resolves the acceptable cross-region conflicts deterministically. Strong consistency is incompatible with multi-region writes.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/distribute-data-globally",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-multi-master"
+      ],
+      "domain": 2,
+      "domain_title": "Design and implement data distribution"
+    },
+    {
+      "id": "q3-001",
+      "objective": "3.1.1",
+      "type": "single",
+      "stem": "A team needs near real-time Power BI reporting over an Azure Cosmos DB for NoSQL container, but the production workload cannot tolerate any additional Request Unit pressure or ETL to maintain. Which integration should they configure?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Read the transactional store from Synapse Spark with the cosmos.oltp format"
+        },
+        {
+          "id": "b",
+          "text": "Azure Cosmos DB mirroring for Microsoft Fabric"
+        },
+        {
+          "id": "c",
+          "text": "An Azure Data Factory copy pipeline on a nightly schedule"
+        },
+        {
+          "id": "d",
+          "text": "An Azure Functions change-feed trigger writing to Blob Storage"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Mirroring continuously replicates the database into OneLake as Delta/Parquet in near real-time with <strong>no RU consumption</strong> and no transactional impact, and Power BI reads it in Direct Lake mode — no ETL pipeline to build. See <a href=\"https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db\">Mirroring Azure Cosmos DB in Microsoft Fabric</a>.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db"
+      ],
+      "domain": 3,
+      "domain_title": "Integrate an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q3-002",
+      "objective": "3.1.1",
+      "type": "single",
+      "stem": "An engineer tries to enable Fabric mirroring for an Azure Cosmos DB for NoSQL account that has a single write region, but the option is unavailable. Which prerequisite is most likely missing?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The analytical store must be enabled on every container first"
+        },
+        {
+          "id": "b",
+          "text": "Azure Synapse Link must be turned on at the account level"
+        },
+        {
+          "id": "c",
+          "text": "Continuous backup (7-day or 30-day) must be enabled on the account"
+        },
+        {
+          "id": "d",
+          "text": "A second write region must be added to the account"
+        }
+      ],
+      "answer": "c",
+      "explanation": "Mirroring requires <strong>continuous backup</strong> on the account; enabling 7-day continuous backup (which is free) satisfies the prerequisite. Mirroring does not depend on the analytical store or Synapse Link, and multiple write regions are actually unsupported.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-tutorial"
+      ],
+      "domain": 3,
+      "domain_title": "Integrate an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q3-003",
+      "objective": "3.1.2",
+      "type": "multi",
+      "stem": "Which statements about the Azure Cosmos DB Spark connector (versus Fabric mirroring) are true? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Reading the transactional store with the cosmos.oltp format consumes Request Units."
+        },
+        {
+          "id": "b",
+          "text": "Mirroring, unlike the Spark connector, can write results back into Cosmos DB."
+        },
+        {
+          "id": "c",
+          "text": "The Spark connector can write data back to a Cosmos DB container."
+        },
+        {
+          "id": "d",
+          "text": "The cosmos.olap format reads the analytical store read-only and RU-free."
+        }
+      ],
+      "answer": [
+        "a",
+        "c",
+        "d"
+      ],
+      "explanation": "The <code>cosmos.oltp</code> format reads/writes the transactional store and <strong>consumes RUs</strong>, and only the Spark connector (not mirroring) can write back; <code>cosmos.olap</code> reads the analytical store RU-free and read-only. Mirroring is one-way and read-only, so option b is false.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db",
+        "https://learn.microsoft.com/en-us/azure/synapse-analytics/synapse-link/how-to-query-analytical-store-spark-3"
+      ],
+      "domain": 3,
+      "domain_title": "Integrate an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q3-004",
+      "objective": "3.1.3",
+      "type": "single",
+      "stem": "When enabling the analytical store on a container, which Analytical TTL value keeps all history indefinitely?",
+      "options": [
+        {
+          "id": "a",
+          "text": "0"
+        },
+        {
+          "id": "b",
+          "text": "1"
+        },
+        {
+          "id": "c",
+          "text": "A positive number of seconds, such as 86400"
+        },
+        {
+          "id": "d",
+          "text": "-1"
+        }
+      ],
+      "answer": "d",
+      "explanation": "Analytical TTL of <code>-1</code> means infinite retention (keep all history), a positive <code>n</code> expires analytical data after <code>n</code> seconds, and <code>0</code> disables the analytical store. See <a href=\"https://learn.microsoft.com/en-us/azure/cosmos-db/analytical-store-introduction\">What is Azure Cosmos DB analytical store?</a>.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/analytical-store-introduction"
+      ],
+      "domain": 3,
+      "domain_title": "Integrate an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q3-005",
+      "objective": "3.1.4",
+      "type": "single",
+      "stem": "Which Azure Synapse serverless SQL pool construct queries the Azure Cosmos DB analytical store over Synapse Link without impacting the transactional workload?",
+      "options": [
+        {
+          "id": "a",
+          "text": "spark.read.format(\"cosmos.oltp\")"
+        },
+        {
+          "id": "b",
+          "text": "OPENROWSET with PROVIDER = 'CosmosDB'"
+        },
+        {
+          "id": "c",
+          "text": "A linked-server query with OPENQUERY"
+        },
+        {
+          "id": "d",
+          "text": "BULK INSERT from the container endpoint"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Serverless SQL reads the isolated analytical store with <code>OPENROWSET(PROVIDER = 'CosmosDB', ...)</code>, so there is no RU cost and no transactional impact. The <code>cosmos.oltp</code> format is a Spark option that reads the transactional store and consumes RUs.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/configure-synapse-link"
+      ],
+      "domain": 3,
+      "domain_title": "Integrate an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q3-006",
+      "objective": "3.1.5",
+      "type": "single",
+      "stem": "A Spark job must read the most up-to-the-second state of a container using spark.read.format(\"cosmos.oltp\"). What is the key trade-off of this approach?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It can only read data that is older than two minutes"
+        },
+        {
+          "id": "b",
+          "text": "It cannot be used for streaming or write-back"
+        },
+        {
+          "id": "c",
+          "text": "It reads the transactional store and consumes provisioned RUs, affecting OLTP performance"
+        },
+        {
+          "id": "d",
+          "text": "It requires the analytical store to be disabled first"
+        }
+      ],
+      "answer": "c",
+      "explanation": "The <code>cosmos.oltp</code> format reads the transactional store directly, returning live data but <strong>consuming RUs</strong> and potentially affecting transactional performance. When a scenario stresses no transactional impact, the analytical store (<code>cosmos.olap</code>) is the intended answer.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/synapse-analytics/synapse-link/how-to-query-analytical-store-spark-3"
+      ],
+      "domain": 3,
+      "domain_title": "Integrate an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q3-007",
+      "objective": "3.1.7",
+      "type": "single",
+      "stem": "You need an incremental feed that includes deletes and TTL removals, writes to a data lake through no-code mapping data flows, and does not consume Request Units. Which capability fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Change data capture in the Azure Cosmos DB analytical store"
+        },
+        {
+          "id": "b",
+          "text": "The transactional change feed in latest-version mode"
+        },
+        {
+          "id": "c",
+          "text": "A custom _ts-based incremental query against the container"
+        },
+        {
+          "id": "d",
+          "text": "Fabric mirroring to OneLake"
+        }
+      ],
+      "answer": "a",
+      "explanation": "Analytical-store CDC natively captures deletes and TTL operations, runs <strong>RU-free</strong> off the analytical store through ADF/Synapse mapping data flows, and manages GLSN-based checkpoints internally for exactly-once delivery. Latest-version change feed does not emit deletes.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/analytical-store-change-data-capture",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/get-started-change-data-capture"
+      ],
+      "domain": 3,
+      "domain_title": "Integrate an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q3-008",
+      "objective": "3.1.8",
+      "type": "single",
+      "stem": "In a Microsoft Fabric Warehouse using time travel with OPTION (FOR TIMESTAMP AS OF '...'), what is the default data retention window within which you can query the past?",
+      "options": [
+        {
+          "id": "a",
+          "text": "7 days"
+        },
+        {
+          "id": "b",
+          "text": "30 days"
+        },
+        {
+          "id": "c",
+          "text": "90 days"
+        },
+        {
+          "id": "d",
+          "text": "120 days"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Fabric Warehouse time-travel retention defaults to <strong>30 days</strong> and is configurable from 1 to 120 days; a query to a point in time outside the window fails. See <a href=\"https://learn.microsoft.com/en-us/fabric/data-warehouse/data-retention\">Configurable data retention in Fabric Data Warehouse</a>.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/fabric/data-warehouse/time-travel",
+        "https://learn.microsoft.com/en-us/fabric/data-warehouse/data-retention"
+      ],
+      "domain": 3,
+      "domain_title": "Integrate an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q3-009",
+      "objective": "3.2.1",
+      "type": "single",
+      "scenario_id": "s-iot",
+      "stem": "Which serverless design lets the downstream service react to every new or changed item in near real time and fan those events out to multiple decoupled consumers?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Enable the analytical store and query it from Synapse serverless SQL"
+        },
+        {
+          "id": "b",
+          "text": "Mirror the database to OneLake and read it with Power BI Direct Lake"
+        },
+        {
+          "id": "c",
+          "text": "Schedule an Azure Data Factory copy pipeline every five minutes"
+        },
+        {
+          "id": "d",
+          "text": "An Azure Functions Cosmos DB trigger that publishes each change to Azure Event Hubs"
+        }
+      ],
+      "answer": "d",
+      "explanation": "The Azure Functions Cosmos DB trigger reads the change feed with automatic checkpointing and scaling (via a lease container), and an Event Hubs output binding fans each event out to multiple decoupled consumers in near real time. Mirroring and the analytical store serve the historical-analytics need, not low-latency reaction.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-functions",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-design-patterns"
+      ],
+      "domain": 3,
+      "domain_title": "Integrate an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q3-010",
+      "objective": "3.2.6",
+      "type": "multi",
+      "stem": "When configuring an Azure AI Search indexer over Azure Cosmos DB for NoSQL, which configurations are required to incrementally pick up new/changed documents and to remove deleted ones from the index? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "A HighWaterMarkChangeDetectionPolicy on the _ts column"
+        },
+        {
+          "id": "b",
+          "text": "A SoftDeleteColumnDeletionDetectionPolicy using a Boolean flag such as isDeleted"
+        },
+        {
+          "id": "c",
+          "text": "A GROUP BY clause in the data-source query to deduplicate results"
+        },
+        {
+          "id": "d",
+          "text": "Hard-delete detection that automatically removes purged items"
+        }
+      ],
+      "answer": [
+        "a",
+        "b"
+      ],
+      "explanation": "Incremental indexing relies on the <code>HighWaterMarkChangeDetectionPolicy</code> on <code>_ts</code>, and only <strong>soft-delete</strong> detection is supported (hard deletes are not detected). <code>GROUP BY</code>/<code>DISTINCT</code> in the data-source query are unsupported because they break continuation-token pagination.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/search/search-how-to-index-cosmosdb-sql",
+        "https://learn.microsoft.com/en-us/azure/search/search-indexer-overview"
+      ],
+      "domain": 3,
+      "domain_title": "Integrate an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-001",
+      "objective": "4.1.1",
+      "type": "single",
+      "stem": "A write-heavy container automatically indexes several large text fields that are never queried, and write RU charges are high. What is the least-effort change that lowers write cost while still auto-indexing any new properties added later?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Increase the container's provisioned RU/s."
+        },
+        {
+          "id": "b",
+          "text": "Set the indexing mode to <code>none</code>."
+        },
+        {
+          "id": "c",
+          "text": "Keep the included path <code>/*</code> and add the unqueried fields to the excluded paths."
+        },
+        {
+          "id": "d",
+          "text": "Exclude <code>/*</code> and include only <code>/id</code>."
+        }
+      ],
+      "answer": "c",
+      "explanation": "Keeping <code>/*</code> included lets new properties auto-index, while explicitly excluding the unqueried paths stops indexing them and reduces write RUs. Setting mode <code>none</code> would disable queries and TTL.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-indexing-policy"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-002",
+      "objective": "4.1.1",
+      "type": "single",
+      "stem": "An engineer removes a property path from a container's indexing policy. When does the removal take effect?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Immediately."
+        },
+        {
+          "id": "b",
+          "text": "After the asynchronous index transformation completes."
+        },
+        {
+          "id": "c",
+          "text": "Only after the container is restarted."
+        },
+        {
+          "id": "d",
+          "text": "After the next write touches each affected item."
+        }
+      ],
+      "answer": "a",
+      "explanation": "Index removals take effect right away; only index additions require an asynchronous, online transformation to finish before the new index is used.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-003",
+      "objective": "4.1.1",
+      "type": "multi",
+      "stem": "Which statements about the <code>none</code> indexing mode are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "It disables all queries on the container."
+        },
+        {
+          "id": "b",
+          "text": "It blocks setting TTL on the container."
+        },
+        {
+          "id": "c",
+          "text": "It is the recommended mode for read-heavy reporting containers."
+        },
+        {
+          "id": "d",
+          "text": "It speeds up bulk ingestion by removing secondary-index write overhead."
+        },
+        {
+          "id": "e",
+          "text": "New containers can enable lazy indexing as an alternative to it."
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "Mode <code>none</code> turns a container into a pure key/value store: queries are disabled and TTL cannot be set, but it makes bulk loads faster by dropping index maintenance. New containers cannot use lazy indexing.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-indexing-policy"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-004",
+      "objective": "4.1.2",
+      "type": "single",
+      "stem": "A query <code>SELECT * FROM c WHERE c.status = 'active'</code> runs against a container partitioned by <code>/tenantId</code> and is expensive. Which single change most reduces its RU cost?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Raise the provisioned RU/s on the container."
+        },
+        {
+          "id": "b",
+          "text": "Add an <code>ORDER BY</code> clause to the query."
+        },
+        {
+          "id": "c",
+          "text": "Wrap the filter in <code>LOWER(c.status)</code>."
+        },
+        {
+          "id": "d",
+          "text": "Add a <code>c.tenantId = @id</code> predicate so the query targets a single partition."
+        }
+      ],
+      "answer": "d",
+      "explanation": "Filtering on the partition key converts a cross-partition fan-out into a single-partition query, sharply lowering RU cost and latency. Higher RU/s only lets you run more queries before rate limiting.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/request-units"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-005",
+      "objective": "4.1.2",
+      "type": "single",
+      "stem": "Which query characteristic prevents index use and forces a full scan?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Filtering on the partition key."
+        },
+        {
+          "id": "b",
+          "text": "Performing a point read by id and partition key."
+        },
+        {
+          "id": "c",
+          "text": "Applying <code>LOWER()</code> to a property in the <code>WHERE</code> clause."
+        },
+        {
+          "id": "d",
+          "text": "Projecting a single property in the <code>SELECT</code> list."
+        }
+      ],
+      "answer": "c",
+      "explanation": "System functions that transform a property, such as <code>LOWER()</code> and <code>UPPER()</code>, defeat the index and cause a full scan that retrieves many documents to return few.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-006",
+      "objective": "4.1.2",
+      "type": "multi",
+      "stem": "Which statements about query cost and query execution metrics are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "A point read by id and partition key is the cheapest read operation."
+        },
+        {
+          "id": "b",
+          "text": "A low IndexHitRatio with <code>RetrievedDocumentCount</code> much larger than <code>OutputDocumentCount</code> indicates a scan."
+        },
+        {
+          "id": "c",
+          "text": "Raising provisioned RU/s lowers an individual query's request charge."
+        },
+        {
+          "id": "d",
+          "text": "Cross-partition queries fan out to every physical partition and merge results client-side."
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "d"
+      ],
+      "explanation": "Point reads are the cheapest operation, a large retrieved-vs-output gap with a low IndexHitRatio signals a scan, and cross-partition queries execute on every partition and merge client-side. Higher RU/s does not reduce a query's per-operation charge.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/request-units"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-007",
+      "objective": "4.1.3",
+      "type": "single",
+      "stem": "Using the .NET v3 SDK, which response member returns the RU cost of a point read?",
+      "options": [
+        {
+          "id": "a",
+          "text": "<code>response.ActivityId</code>"
+        },
+        {
+          "id": "b",
+          "text": "<code>response.RequestCharge</code>"
+        },
+        {
+          "id": "c",
+          "text": "<code>response.ETag</code>"
+        },
+        {
+          "id": "d",
+          "text": "<code>response.Diagnostics</code>"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Every .NET v3 response exposes <code>RequestCharge</code> as a <code>double</code> holding the RUs consumed by that operation. The underlying HTTP header is <code>x-ms-request-charge</code>.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/find-request-unit-charge"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-008",
+      "objective": "4.1.3",
+      "type": "tf",
+      "stem": "For a paged query, the <code>RequestCharge</code> reported on a single page equals the total RU cost of the entire query.",
+      "answer": "false",
+      "explanation": "A query can span multiple pages, so you must sum <code>RequestCharge</code> across every page to get the total cost; one page's charge is not the whole cost.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/find-request-unit-charge"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-009",
+      "objective": "4.1.4",
+      "type": "single",
+      "stem": "A read-heavy app connects through a dedicated gateway in gateway mode but still incurs RU charges on repeated identical point reads. The account uses bounded staleness consistency. What explains this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The integrated cache serves only session or eventual reads, so bounded staleness bypasses it."
+        },
+        {
+          "id": "b",
+          "text": "Gateway connection mode disables the integrated cache."
+        },
+        {
+          "id": "c",
+          "text": "The item cache never caches point reads."
+        },
+        {
+          "id": "d",
+          "text": "The integrated cache requires strong consistency to return 0-RU hits."
+        }
+      ],
+      "answer": "a",
+      "explanation": "The integrated cache only serves reads at session or eventual consistency; strong, bounded staleness, and consistent prefix bypass it. Switch the request or account to session or eventual to get 0-RU cache hits.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/integrated-cache",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-integrated-cache"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-010",
+      "objective": "4.1.4",
+      "type": "single",
+      "stem": "An app can tolerate data up to 10 minutes old and wants to maximize integrated-cache hits. What should it configure?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Lower <code>MaxIntegratedCacheStaleness</code> to 0."
+        },
+        {
+          "id": "b",
+          "text": "Set <code>MaxIntegratedCacheStaleness</code> to 10 minutes."
+        },
+        {
+          "id": "c",
+          "text": "Switch the account to strong consistency."
+        },
+        {
+          "id": "d",
+          "text": "Use direct connection mode."
+        }
+      ],
+      "answer": "b",
+      "explanation": "Raising <code>MaxIntegratedCacheStaleness</code> lets more repeated reads be served from cache before entries are treated as stale, increasing the hit rate. A value of 0 would force fresh reads and reduce hits.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-integrated-cache",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/integrated-cache"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-011",
+      "objective": "4.1.4",
+      "type": "multi",
+      "stem": "Which conditions are required to use the Azure Cosmos DB integrated cache? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "A provisioned dedicated gateway."
+        },
+        {
+          "id": "b",
+          "text": "Gateway connection mode."
+        },
+        {
+          "id": "c",
+          "text": "Session or eventual consistency."
+        },
+        {
+          "id": "d",
+          "text": "Strong consistency."
+        },
+        {
+          "id": "e",
+          "text": "Direct connection mode."
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "The integrated cache lives in the dedicated gateway and needs the dedicated-gateway connection, gateway connection mode, and session or eventual consistency. Strong consistency and direct mode bypass the cache.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/integrated-cache",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-integrated-cache"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-012",
+      "objective": "4.2.1",
+      "type": "single",
+      "stem": "A team wants to run code on every insert and update to a container with zero worker infrastructure and automatic scaling. What should they use?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A change feed pull-model loop."
+        },
+        {
+          "id": "b",
+          "text": "A stored procedure."
+        },
+        {
+          "id": "c",
+          "text": "A materialized view."
+        },
+        {
+          "id": "d",
+          "text": "An Azure Functions Cosmos DB trigger."
+        }
+      ],
+      "answer": "d",
+      "explanation": "The Azure Functions Cosmos DB trigger wraps the change feed processor to deliver serverless, auto-scaling change-feed processing without managing any hosts.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-functions",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-013",
+      "objective": "4.2.1",
+      "type": "single",
+      "stem": "An Azure Functions Cosmos DB trigger fails to start because no lease container exists. What is the simplest fix in the trigger binding?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Manually pre-create a lease container with a <code>/category</code> partition key."
+        },
+        {
+          "id": "b",
+          "text": "Set <code>CreateLeaseContainerIfNotExists = true</code> in the binding."
+        },
+        {
+          "id": "c",
+          "text": "Switch the trigger to all-versions-and-deletes mode."
+        },
+        {
+          "id": "d",
+          "text": "Enable continuous backup on the account."
+        }
+      ],
+      "answer": "b",
+      "explanation": "Setting <code>CreateLeaseContainerIfNotExists = true</code> auto-creates the lease container (with a <code>/id</code> partition key) so processing can begin.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-functions"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-014",
+      "objective": "4.2.2",
+      "type": "multi",
+      "stem": "Which statements about the change feed processor are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "It requires both a monitored container and a lease container."
+        },
+        {
+          "id": "b",
+          "text": "Delivery is at-least-once, so the delegate should be idempotent."
+        },
+        {
+          "id": "c",
+          "text": "You scale out by starting instances that share the processor name and lease container but use different instance names."
+        },
+        {
+          "id": "d",
+          "text": "It is provided as the change feed processor in the Python and Node.js SDKs."
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "The processor reads from the monitored container and checkpoints in the lease container, delivers changes at least once, and rebalances leases when you add instances with the same processor name. Python and Node.js use the pull model instead.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-processor"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-015",
+      "objective": "4.2.2",
+      "type": "single",
+      "stem": "A Python developer wants to consume the change feed from within their application using the SDK. Which model must they use?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The change feed pull model."
+        },
+        {
+          "id": "b",
+          "text": "The change feed processor."
+        },
+        {
+          "id": "c",
+          "text": "An Azure Functions trigger is the only supported option."
+        },
+        {
+          "id": "d",
+          "text": "The change feed is not available in Python."
+        }
+      ],
+      "answer": "a",
+      "explanation": "The change feed processor is a .NET v3 and Java v4 feature; Python and Node.js consume the change feed via the pull model with manual continuation tokens.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-processor",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-016",
+      "objective": "4.2.3",
+      "type": "single",
+      "stem": "The change feed estimator for a processor reports steadily increasing lag. What action does this suggest?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Reduce the number of processor instances."
+        },
+        {
+          "id": "b",
+          "text": "Increase <code>MaxIntegratedCacheStaleness</code>."
+        },
+        {
+          "id": "c",
+          "text": "Scale out by adding more processor instances."
+        },
+        {
+          "id": "d",
+          "text": "Switch to all-versions-and-deletes mode."
+        }
+      ],
+      "answer": "c",
+      "explanation": "Growing lag means changes arrive faster than they are processed; adding instances distributes leases across hosts and increases throughput.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-use-change-feed-estimator"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-017",
+      "objective": "4.2.4",
+      "type": "single",
+      "stem": "You use the change feed to copy data into a read-optimized container that has a different partition key. Which statement is true?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Propagation through the change feed is strongly consistent."
+        },
+        {
+          "id": "b",
+          "text": "Replication is eventually consistent, and the destination partition key should suit the target query."
+        },
+        {
+          "id": "c",
+          "text": "Ordering is guaranteed across the entire destination container."
+        },
+        {
+          "id": "d",
+          "text": "The destination container must reuse the source partition key."
+        }
+      ],
+      "answer": "b",
+      "explanation": "Change-feed replication is eventually consistent, and you choose the destination partition key for the target query. Order is guaranteed only within a single partition key value.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-018",
+      "objective": "4.2.5",
+      "type": "single",
+      "stem": "When a customer is deleted, all their orders must be archived, but the change feed in latest version mode never delivers deletes. How do you trigger the cascade?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Add a foreign-key constraint on the orders container."
+        },
+        {
+          "id": "b",
+          "text": "Switch the account to strong consistency."
+        },
+        {
+          "id": "c",
+          "text": "Poll the customers container on a timer to find deletions."
+        },
+        {
+          "id": "d",
+          "text": "Soft-delete the customer with a <code>deleted:true</code> flag so the update flows through the change feed."
+        }
+      ],
+      "answer": "d",
+      "explanation": "Latest version mode omits hard deletes, so modeling the delete as a soft-delete update lets the consumer detect the flag and cascade the archival. Cosmos DB has no server-side foreign keys.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-modes"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-019",
+      "objective": "4.2.6",
+      "type": "single",
+      "stem": "A leaderboard is maintained by incrementing per-player totals in a summary container from the change feed. Why must the increment logic be idempotent?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Because the change feed guarantees exactly-once delivery."
+        },
+        {
+          "id": "b",
+          "text": "Because delivery is at-least-once, so a reprocessed event could double-count."
+        },
+        {
+          "id": "c",
+          "text": "Because point reads of the summary document cost RUs."
+        },
+        {
+          "id": "d",
+          "text": "Because a composite index is required to increment values."
+        }
+      ],
+      "answer": "b",
+      "explanation": "The change feed delivers at least once, so an event may be processed more than once; without idempotency a naive increment would double-count and corrupt the persisted aggregate.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-020",
+      "objective": "4.2.7",
+      "type": "single",
+      "stem": "A container grows without bound, but only the last 90 days are queried. How do you keep it lean while retaining history cheaply?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Increase the provisioned RU/s on the container."
+        },
+        {
+          "id": "b",
+          "text": "Set the indexing mode to <code>none</code>."
+        },
+        {
+          "id": "c",
+          "text": "Use the change feed to copy aged items to Azure Blob Storage and set TTL to expire them from Cosmos DB."
+        },
+        {
+          "id": "d",
+          "text": "Add composite indexes for the history queries."
+        }
+      ],
+      "answer": "c",
+      "explanation": "Tiering with the change feed copies aged records to cheap Blob Storage, and TTL then expires the live copies automatically, shrinking RU and storage cost on the operational container.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-modes"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-021",
+      "objective": "4.3.1",
+      "type": "single",
+      "stem": "A telemetry container ingests millions of writes per hour and is queried only occasionally on two fields. Which indexing strategy minimizes write cost?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Keep the default policy that indexes <code>/*</code>."
+        },
+        {
+          "id": "b",
+          "text": "Exclude <code>/*</code> and include only the two queried paths."
+        },
+        {
+          "id": "c",
+          "text": "Set the indexing mode to <code>none</code>."
+        },
+        {
+          "id": "d",
+          "text": "Add composite indexes on every property."
+        }
+      ],
+      "answer": "b",
+      "explanation": "Indexing only the two paths you actually query minimizes per-write index maintenance on a high-ingest workload. Mode <code>none</code> would break the occasional queries and block TTL.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/index-overview",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-022",
+      "objective": "4.3.2",
+      "type": "single",
+      "stem": "An app runs proximity searches over GPS coordinates, but the queries are slow and unindexed. Which index kind is needed?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A range index."
+        },
+        {
+          "id": "b",
+          "text": "A composite index."
+        },
+        {
+          "id": "c",
+          "text": "A spatial index, which is not created by default."
+        },
+        {
+          "id": "d",
+          "text": "A tuple index."
+        }
+      ],
+      "answer": "c",
+      "explanation": "Geospatial queries over Point, Polygon, MultiPolygon, and LineString require a spatial index, which is not part of the default policy and must be added explicitly.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/index-overview",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/sql-query-geospatial-index"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-023",
+      "objective": "4.3.5",
+      "type": "multi",
+      "stem": "Which techniques help optimize indexing for the least write overhead while keeping queries fast? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Keep <code>/*</code> included and exclude large unqueried subtrees."
+        },
+        {
+          "id": "b",
+          "text": "Add composite indexes for multi-property <code>ORDER BY</code> and multi-filter queries."
+        },
+        {
+          "id": "c",
+          "text": "Add the new index before removing the old one when swapping indexes."
+        },
+        {
+          "id": "d",
+          "text": "Leave <code>PopulateIndexMetrics</code> enabled permanently in production."
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Excluding unqueried subtrees lowers write RUs, composite indexes serve real query shapes, and add-before-remove avoids a coverage gap because removals are instant while additions require a transformation. <code>PopulateIndexMetrics</code> adds overhead and is for debugging only.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/index-metrics",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q4-024",
+      "objective": "4.3.4",
+      "type": "single",
+      "scenario_id": "s-social",
+      "stem": "The hottest operation loads a single user's most recent posts by filtering on <code>userId</code> and sorting by <code>createdAt</code> descending, and the team wants cheap, predictable reads. Which single change best serves this query?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Add a composite index on <code>(userId ASC, createdAt DESC)</code> to serve the filter-and-sort."
+        },
+        {
+          "id": "b",
+          "text": "Set the indexing mode to <code>none</code> on the posts container."
+        },
+        {
+          "id": "c",
+          "text": "Remove all indexes to lower write cost."
+        },
+        {
+          "id": "d",
+          "text": "Wrap <code>createdAt</code> in <code>LOWER()</code> in the query."
+        }
+      ],
+      "answer": "a",
+      "explanation": "A query that filters on one property and orders by another needs a composite index whose path sequence and sort orders match; <code>(userId ASC, createdAt DESC)</code> serves loading a user's recent posts efficiently and predictably.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-indexing-policy"
+      ],
+      "domain": 4,
+      "domain_title": "Optimize an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-001",
+      "objective": "5.1.1",
+      "type": "single",
+      "stem": "During traffic spikes, an app's telemetry shows a rising count of HTTP 429 responses from Azure Cosmos DB. What does a 429 indicate, and what is the appropriate first response?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The request rate exceeded the provisioned RU/s budget on a partition; increase throughput (or enable autoscale) and/or fix a hot partition key."
+        },
+        {
+          "id": "b",
+          "text": "The request was unauthorized; rotate the account keys."
+        },
+        {
+          "id": "c",
+          "text": "A transient write conflict occurred; permanently abandon the operation."
+        },
+        {
+          "id": "d",
+          "text": "The container was not found; recreate it."
+        }
+      ],
+      "answer": "a",
+      "explanation": "A <code>429</code> means the per-second RU budget for a physical partition was exhausted; the SDK auto-retries, but sustained 429s call for more RU/s or a better partition key.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-reference"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-002",
+      "objective": "5.1.2",
+      "type": "single",
+      "stem": "Normalized RU Consumption is pinned at 100% and clients receive 429s, yet the account's total RU usage is far below its provisioned throughput. What is the most likely cause?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The account is under-provisioned overall."
+        },
+        {
+          "id": "b",
+          "text": "A network outage between regions."
+        },
+        {
+          "id": "c",
+          "text": "A single hot partition, because the metric is the maximum utilization across all partition key ranges."
+        },
+        {
+          "id": "d",
+          "text": "TTL is deleting documents too quickly."
+        }
+      ],
+      "answer": "c",
+      "explanation": "Normalized RU Consumption is a maximum (not an average) across partition key ranges, so one overloaded partition can pin it at 100% while total account usage stays low.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-normalized-request-units"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-003",
+      "objective": "5.1.3",
+      "type": "single",
+      "stem": "Clients observe about 120 ms request latency, but the Azure Monitor server-side latency metric reports about 4 ms for the same operations. Where should you focus your investigation?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The Cosmos DB indexing policy."
+        },
+        {
+          "id": "b",
+          "text": "The network, SDK configuration, or client resource pressure, because server-side latency excludes network round-trip."
+        },
+        {
+          "id": "c",
+          "text": "The backup policy."
+        },
+        {
+          "id": "d",
+          "text": "The partition key storage size."
+        }
+      ],
+      "answer": "b",
+      "explanation": "The server-side latency metric measures time inside the service and excludes network time, so a large client-vs-server gap points to the network, gateway mode, or client-side pressure.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-server-side-latency"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-004",
+      "objective": "5.1.4",
+      "type": "single",
+      "stem": "You must be notified automatically whenever the account performs a regional failover. Which monitoring construct is the best fit?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A metric alert on Normalized RU Consumption."
+        },
+        {
+          "id": "b",
+          "text": "A log alert on DataPlaneRequests."
+        },
+        {
+          "id": "c",
+          "text": "An alert on the \"Region failed over\" activity/metric signal."
+        },
+        {
+          "id": "d",
+          "text": "A CORS configuration change notification."
+        }
+      ],
+      "answer": "c",
+      "explanation": "A regional failover is surfaced as an activity/metric event that alerting can watch, unlike RU or request-level data-plane signals.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-reference",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-005",
+      "objective": "5.1.5",
+      "type": "multi",
+      "stem": "Which Azure Cosmos DB alerting scenarios are best implemented as activity-log alerts rather than metric alerts? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Account keys were rotated."
+        },
+        {
+          "id": "b",
+          "text": "Requests are being throttled (429)."
+        },
+        {
+          "id": "c",
+          "text": "A region failed over."
+        },
+        {
+          "id": "d",
+          "text": "Normalized RU Consumption exceeds 90%."
+        }
+      ],
+      "answer": [
+        "a",
+        "c"
+      ],
+      "explanation": "Key rotation and region failover are control-plane events surfaced in the activity log, whereas throttling and RU utilization are metric-based alerts.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/create-alerts"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-006",
+      "objective": "5.1.6",
+      "type": "tf",
+      "stem": "True or false: Platform metrics for an Azure Cosmos DB account are collected automatically, but resource logs must be explicitly enabled with a diagnostic setting before you can query them.",
+      "answer": "true",
+      "explanation": "Metrics flow automatically at one-minute granularity, whereas resource logs require a diagnostic setting routing them to Log Analytics, a storage account, or Event Hubs.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-resource-logs"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-007",
+      "objective": "5.1.7",
+      "type": "single",
+      "stem": "You suspect one tenant's logical partition key is consuming most of your container's RUs. Which resource log category confirms which keys burn the most throughput?",
+      "options": [
+        {
+          "id": "a",
+          "text": "PartitionKeyStatistics"
+        },
+        {
+          "id": "b",
+          "text": "ControlPlaneRequests"
+        },
+        {
+          "id": "c",
+          "text": "QueryRuntimeStatistics"
+        },
+        {
+          "id": "d",
+          "text": "PartitionKeyRUConsumption"
+        }
+      ],
+      "answer": "d",
+      "explanation": "<code>PartitionKeyRUConsumption</code> aggregates RU charge per logical partition key, exposing hot keys; <code>PartitionKeyStatistics</code> reports storage instead.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-resource-logs"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-008",
+      "objective": "5.1.8",
+      "type": "single",
+      "stem": "Which resource log category reports the storage size of your largest logical partition keys so you can detect a key approaching its hard limit, and what is that limit?",
+      "options": [
+        {
+          "id": "a",
+          "text": "PartitionKeyRUConsumption; 10 GB"
+        },
+        {
+          "id": "b",
+          "text": "PartitionKeyStatistics; 20 GB"
+        },
+        {
+          "id": "c",
+          "text": "DataPlaneRequests; 50 GB"
+        },
+        {
+          "id": "d",
+          "text": "ControlPlaneRequests; 20 GB"
+        }
+      ],
+      "answer": "b",
+      "explanation": "<code>PartitionKeyStatistics</code> reports per-logical-partition storage size, and a logical partition is capped at 20 GB, after which further writes for that key fail.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-resource-logs",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-alert-on-logical-partition-key-storage-size"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-009",
+      "objective": "5.1.9",
+      "type": "single",
+      "stem": "Your security team needs an audit trail of every throughput change, firewall/network change, and key operation on the account. Which resource log category should you enable?",
+      "options": [
+        {
+          "id": "a",
+          "text": "DataPlaneRequests"
+        },
+        {
+          "id": "b",
+          "text": "PartitionKeyStatistics"
+        },
+        {
+          "id": "c",
+          "text": "ControlPlaneRequests"
+        },
+        {
+          "id": "d",
+          "text": "QueryRuntimeStatistics"
+        }
+      ],
+      "answer": "c",
+      "explanation": "<code>ControlPlaneRequests</code> audits management operations such as throughput, firewall/network, and key changes; DataPlaneRequests audits document operations.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/audit-control-plane-logs"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-010",
+      "objective": "5.2.1",
+      "type": "single",
+      "scenario_id": "s-fin",
+      "stem": "Auditors require the ability to restore data to the exact second before an accidental delete, using self-service with no support ticket. Which backup mode must the account use?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Periodic backup with the default 4-hour interval."
+        },
+        {
+          "id": "b",
+          "text": "Continuous backup with point-in-time restore."
+        },
+        {
+          "id": "c",
+          "text": "Periodic backup with locally redundant storage."
+        },
+        {
+          "id": "d",
+          "text": "Manual export to Blob Storage via Data Factory."
+        }
+      ],
+      "answer": "b",
+      "explanation": "Only continuous backup offers self-service point-in-time restore to any second within the 7- or 30-day window; periodic-mode restores require a Microsoft support ticket.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/continuous-backup-restore-introduction",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/periodic-backup-restore-introduction"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-011",
+      "objective": "5.2.2",
+      "type": "multi",
+      "stem": "After a periodic-mode restore into a new account, which of the following are NOT carried over and must be reconfigured? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Account keys (new ones are generated)."
+        },
+        {
+          "id": "b",
+          "text": "The documents that existed at the backup time."
+        },
+        {
+          "id": "c",
+          "text": "Firewall, VNet, and private-endpoint configuration."
+        },
+        {
+          "id": "d",
+          "text": "RBAC role assignments and stored procedures/triggers/UDFs."
+        }
+      ],
+      "answer": [
+        "a",
+        "c",
+        "d"
+      ],
+      "explanation": "A restore recreates the data into a new single-region account but does not bring back keys, network rules, RBAC assignments, or server-side scripts.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/periodic-backup-restore-introduction"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-012",
+      "objective": "5.2.3",
+      "type": "tf",
+      "stem": "True or false: After migrating an Azure Cosmos DB account from periodic to continuous backup, you can later switch it back to periodic backup.",
+      "answer": "false",
+      "explanation": "The periodic-to-continuous migration is one-way and cannot be reversed.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/migrate-continuous-backup"
+      ],
+      "options": [
+        {
+          "id": "true",
+          "text": "True"
+        },
+        {
+          "id": "false",
+          "text": "False"
+        }
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-013",
+      "objective": "5.2.4",
+      "type": "single",
+      "stem": "Before initiating a point-in-time restore, you want to confirm the most recent moment you can restore to for a container. What should you retrieve?",
+      "options": [
+        {
+          "id": "a",
+          "text": "The latest restorable timestamp for the container."
+        },
+        {
+          "id": "b",
+          "text": "The account's provisioned RU/s."
+        },
+        {
+          "id": "c",
+          "text": "The container's indexing policy version."
+        },
+        {
+          "id": "d",
+          "text": "The Normalized RU Consumption value."
+        }
+      ],
+      "answer": "a",
+      "explanation": "The latest restorable timestamp defines the most recent valid restore point within the retention window; the event feed helps locate a moment just before a destructive change.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/get-latest-restore-timestamp",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/restore-account-continuous-backup"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-014",
+      "objective": "5.2.5",
+      "type": "single",
+      "stem": "After a continuous-backup restore, documents with a short TTL disappear almost immediately from the new account. How do you preserve them on the next restore?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Increase the RU/s before restoring."
+        },
+        {
+          "id": "b",
+          "text": "Restore into the same source account in place."
+        },
+        {
+          "id": "c",
+          "text": "Restore with <code>--disable-ttl True</code>."
+        },
+        {
+          "id": "d",
+          "text": "Enable analytical store on the container."
+        }
+      ],
+      "answer": "c",
+      "explanation": "TTL is restored by default, so aged documents expire on arrival unless you pass <code>--disable-ttl True</code> during the restore.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/restore-account-continuous-backup"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-015",
+      "objective": "5.3.1",
+      "type": "single",
+      "stem": "A compliance policy requires your organization to control and be able to revoke the encryption key protecting data at rest. Which option satisfies this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Disable encryption at rest and manage it in the application."
+        },
+        {
+          "id": "b",
+          "text": "Service-managed keys."
+        },
+        {
+          "id": "c",
+          "text": "Always Encrypted deterministic fields."
+        },
+        {
+          "id": "d",
+          "text": "Customer-managed keys (CMK) stored in Azure Key Vault."
+        }
+      ],
+      "answer": "d",
+      "explanation": "Encryption at rest is always on; CMK adds a customer-controlled key layer in Key Vault with rotation and revocation control, which service-managed keys do not provide.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/database-encryption-at-rest",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-setup-customer-managed-keys"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-016",
+      "objective": "5.3.2",
+      "type": "multi",
+      "stem": "Which mechanisms can you use to restrict from where requests are allowed to reach an Azure Cosmos DB account? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "IP firewall (ipRules / CIDR ranges)."
+        },
+        {
+          "id": "b",
+          "text": "VNet service endpoints for specific subnets."
+        },
+        {
+          "id": "c",
+          "text": "Private endpoints (Private Link)."
+        },
+        {
+          "id": "d",
+          "text": "A container-level CORS allowedOrigins list."
+        },
+        {
+          "id": "e",
+          "text": "An Always Encrypted encryption policy."
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "The IP firewall, VNet service endpoints, and Private Link private endpoints all control network reachability; CORS governs browser origins and Always Encrypted protects fields, not network access.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-private-endpoints"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-017",
+      "objective": "5.3.3",
+      "type": "single",
+      "stem": "With customer-managed keys (CMK) enabled, which statement is true about what the customer key protects?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It double-encrypts the main transactional store, but container names and partition key values (metadata) are not encrypted with the CMK."
+        },
+        {
+          "id": "b",
+          "text": "It encrypts all metadata, including container and stored-procedure names."
+        },
+        {
+          "id": "c",
+          "text": "It double-encrypts the Synapse Link analytical store."
+        },
+        {
+          "id": "d",
+          "text": "It replaces the automatic AES-256 encryption at rest."
+        }
+      ],
+      "answer": "a",
+      "explanation": "CMK double-encrypts stored transactional data, but metadata such as names, index paths, and partition key values — plus the analytical store and continuous backups — fall outside CMK.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/database-encryption-at-rest"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-018",
+      "objective": "5.3.4",
+      "type": "single",
+      "stem": "You need a team to create databases and change throughput on an account but never read account keys, connection strings, or documents. Which built-in role should you assign?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Cosmos DB Built-in Data Contributor"
+        },
+        {
+          "id": "b",
+          "text": "Cosmos DB Operator"
+        },
+        {
+          "id": "c",
+          "text": "Owner"
+        },
+        {
+          "id": "d",
+          "text": "Cosmos DB Built-in Data Reader"
+        }
+      ],
+      "answer": "b",
+      "explanation": "The control-plane <code>Cosmos DB Operator</code> role manages accounts and resources while explicitly blocking access to keys, connection strings, and data.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/security/how-to-grant-control-plane-role-based-access"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-019",
+      "objective": "5.3.5",
+      "type": "single",
+      "stem": "A user with the Reader role can browse containers in Data Explorer, but with account keys disabled they get errors when reading items. What is missing?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A CORS allowedOrigins entry."
+        },
+        {
+          "id": "b",
+          "text": "A private endpoint."
+        },
+        {
+          "id": "c",
+          "text": "A data-plane RBAC role assignment (for example, Data Reader)."
+        },
+        {
+          "id": "d",
+          "text": "The Cosmos DB Operator role."
+        }
+      ],
+      "answer": "c",
+      "explanation": "Control-plane RBAC lets a user see resources in Data Explorer, but reading or writing data without keys additionally requires a data-plane RBAC assignment.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/security/how-to-grant-control-plane-role-based-access"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-020",
+      "objective": "5.3.6",
+      "type": "single",
+      "scenario_id": "s-fin",
+      "stem": "The application must read and write documents with no account keys anywhere in code, using least-privilege access. Which combination meets this requirement?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Store the primary key in Key Vault and read it with a managed identity."
+        },
+        {
+          "id": "b",
+          "text": "Assign the Cosmos DB Operator role to the app."
+        },
+        {
+          "id": "c",
+          "text": "Assign the Cosmos DB Built-in Data Contributor role to the app's Entra identity and set <code>disableLocalAuth = true</code>."
+        },
+        {
+          "id": "d",
+          "text": "Enable CORS and use a wildcard origin."
+        }
+      ],
+      "answer": "c",
+      "explanation": "Data-plane RBAC grants keyless read/write through Microsoft Entra ID, and <code>disableLocalAuth = true</code> eliminates key-based access entirely.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/security/how-to-grant-data-plane-role-based-access",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/reference-data-plane-security"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-021",
+      "objective": "5.3.7",
+      "type": "single",
+      "stem": "A single-page app at https://app.contoso.com is blocked by a CORS error when calling the API for NoSQL. Which statement about resolving this is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "CORS is unavailable for Cosmos DB; use a backend proxy only."
+        },
+        {
+          "id": "b",
+          "text": "Add the exact origin to the account's CORS allowedOrigins list; per-subdomain wildcards like https://*.contoso.com are not supported."
+        },
+        {
+          "id": "c",
+          "text": "CORS applies to all Cosmos DB APIs equally."
+        },
+        {
+          "id": "d",
+          "text": "Set publicNetworkAccess = Disabled to fix the CORS error."
+        }
+      ],
+      "answer": "b",
+      "explanation": "CORS is supported for the API for NoSQL; you list exact origins (or <code>*</code>), but sub-domain wildcard patterns are not accepted.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-cross-origin-resource-sharing"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-022",
+      "objective": "5.3.8",
+      "type": "single",
+      "stem": "Account keys are still required by a legacy component, but they must never appear in source code or configuration. What is the recommended pattern?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Store the key as an Azure Key Vault secret and retrieve it at runtime with a managed identity."
+        },
+        {
+          "id": "b",
+          "text": "Hard-code the key but obfuscate it."
+        },
+        {
+          "id": "c",
+          "text": "Email the key to the operations team."
+        },
+        {
+          "id": "d",
+          "text": "Store the key in an app setting in plain text."
+        }
+      ],
+      "answer": "a",
+      "explanation": "Storing keys as Key Vault secrets fetched via managed identity keeps secrets out of code/config and centralizes rotation; disabling keys and using Entra ID is stronger still.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-setup-managed-identity",
+        "https://learn.microsoft.com/en-us/azure/key-vault/general/overview"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-023",
+      "objective": "5.3.9",
+      "type": "multi",
+      "stem": "You are enabling customer-managed keys (CMK) for a new Cosmos DB account. Which of the following are required for the setup to succeed? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Azure Key Vault must have Soft Delete enabled."
+        },
+        {
+          "id": "b",
+          "text": "Azure Key Vault must have Purge Protection enabled."
+        },
+        {
+          "id": "c",
+          "text": "Cosmos DB must be granted Get / WrapKey / UnwrapKey on the key."
+        },
+        {
+          "id": "d",
+          "text": "The account must use the API for Cassandra."
+        },
+        {
+          "id": "e",
+          "text": "Encryption at rest must first be manually turned on."
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "CMK requires a Key Vault with Soft Delete and Purge Protection, and the Cosmos DB principal must have Get/WrapKey/UnwrapKey (or the Key Vault Crypto Service Encryption User role).",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-setup-customer-managed-keys"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-024",
+      "objective": "5.3.10",
+      "type": "single",
+      "stem": "You must encrypt an SSN field with Always Encrypted while still supporting equality (exact-match) queries on it. Which encryption type do you choose?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Randomized"
+        },
+        {
+          "id": "b",
+          "text": "Deterministic"
+        },
+        {
+          "id": "c",
+          "text": "Service-managed key"
+        },
+        {
+          "id": "d",
+          "text": "Transparent data encryption"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Deterministic encryption produces identical ciphertext for identical plaintext, enabling equality filters; randomized is stronger but not queryable.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-always-encrypted"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-025",
+      "objective": "5.4.1",
+      "type": "multi",
+      "stem": "Which data-movement tools are appropriate for continuous, streaming ingestion into or out of Azure Cosmos DB? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "Apache Kafka connector."
+        },
+        {
+          "id": "b",
+          "text": "Azure Stream Analytics output sink."
+        },
+        {
+          "id": "c",
+          "text": "Azure IoT Hub custom endpoint routing."
+        },
+        {
+          "id": "d",
+          "text": "SDK bulk import (AllowBulkExecution)."
+        },
+        {
+          "id": "e",
+          "text": "Azure Data Factory scheduled Copy activity."
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Kafka, Stream Analytics, and IoT Hub routing handle streaming scenarios; SDK bulk suits one-off high-volume imports and Data Factory suits scheduled no-code ETL.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/tutorial-dotnet-bulk-import",
+        "https://learn.microsoft.com/en-us/azure/data-factory/connector-azure-cosmos-db"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-026",
+      "objective": "5.4.2",
+      "type": "single",
+      "stem": "You must import millions of documents from custom .NET code as fast as possible. How do you enable bulk mode, and when is the setting fixed?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Set AllowBulkExecution = true per request; it can change at any time."
+        },
+        {
+          "id": "b",
+          "text": "Call a BulkImport() method on the container."
+        },
+        {
+          "id": "c",
+          "text": "Set AllowBulkExecution = true in CosmosClientOptions at client creation; it is immutable afterward."
+        },
+        {
+          "id": "d",
+          "text": "Enable it in the account's ARM template."
+        }
+      ],
+      "answer": "c",
+      "explanation": "<code>AllowBulkExecution = true</code> is set on <code>CosmosClientOptions</code> at construction and can't change later; the SDK then batches concurrent operations per partition.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/tutorial-dotnet-bulk-import"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-027",
+      "objective": "5.4.3",
+      "type": "single",
+      "stem": "You need a scheduled, no-code export of Cosmos DB data to Azure Blob Storage, and later to also load data back in. What is true of the Azure Data Factory/Synapse Cosmos DB connector?",
+      "options": [
+        {
+          "id": "a",
+          "text": "It works as both a source and a sink, supporting scheduled copy in and out."
+        },
+        {
+          "id": "b",
+          "text": "It can only read from Cosmos DB, never write."
+        },
+        {
+          "id": "c",
+          "text": "It only supports streaming, not scheduled copies."
+        },
+        {
+          "id": "d",
+          "text": "It requires custom code for each direction."
+        }
+      ],
+      "answer": "a",
+      "explanation": "The connector is bidirectional (source and sink) and supports no-code, schedulable copy activities in and out of Cosmos DB.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/data-factory/connector-azure-cosmos-db"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-028",
+      "objective": "5.4.4",
+      "type": "multi",
+      "stem": "Which statements about the Azure Cosmos DB Kafka Connect connectors are correct? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "The sink connector writes Kafka topic records into Cosmos DB."
+        },
+        {
+          "id": "b",
+          "text": "The source connector reads the Cosmos DB change feed and publishes to Kafka."
+        },
+        {
+          "id": "c",
+          "text": "The containers.topicmap setting maps each topic to a container using topic#container."
+        },
+        {
+          "id": "d",
+          "text": "The source connector writes into Cosmos DB using the transactional store."
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Sink means Kafka to Cosmos DB; source reads the change feed to Kafka; <code>containers.topicmap</code> pairs topics with containers.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/kafka-connector",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/kafka-connector-source"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-029",
+      "objective": "5.4.5",
+      "type": "single",
+      "stem": "A Stream Analytics job cannot write to Cosmos DB because of the account's IP firewall. What is the correct fix?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Add the job's static outbound IP to the firewall."
+        },
+        {
+          "id": "b",
+          "text": "Enable \"Accept connections from within Azure datacenters\" (0.0.0.0), because Stream Analytics has no fixed IP."
+        },
+        {
+          "id": "c",
+          "text": "Disable public network access on the account."
+        },
+        {
+          "id": "d",
+          "text": "Switch the account to periodic backup."
+        }
+      ],
+      "answer": "b",
+      "explanation": "Stream Analytics has no static IP to allowlist, so you permit Azure-internal traffic; the sink then upserts documents by <code>id</code>.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/stream-analytics/stream-analytics-documentdb-output"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-030",
+      "objective": "5.4.6",
+      "type": "single",
+      "stem": "You want to run heavy Spark analytics over Cosmos DB data without consuming transactional RUs, then write curated results back into a container. Which Spark data source formats do you use?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Read with cosmos.oltp; write with cosmos.olap."
+        },
+        {
+          "id": "b",
+          "text": "Read with cosmos.olap (analytical store, RU-free); write with cosmos.oltp (transactional store)."
+        },
+        {
+          "id": "c",
+          "text": "Read and write both with cosmos.oltp."
+        },
+        {
+          "id": "d",
+          "text": "Read and write both with cosmos.olap."
+        }
+      ],
+      "answer": "b",
+      "explanation": "<code>cosmos.olap</code> reads the RU-free analytical store via Synapse Link, while <code>cosmos.oltp</code> reads/writes the transactional store (consuming RUs).",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/quickstart-spark"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-031",
+      "objective": "5.4.7",
+      "type": "single",
+      "stem": "Device messages routed by IoT Hub are landing in Cosmos DB as base64 strings instead of JSON. What did the devices fail to set on the messages?",
+      "options": [
+        {
+          "id": "a",
+          "text": "A synthetic partition key template."
+        },
+        {
+          "id": "b",
+          "text": "The Cosmos DB Built-in Data Reader role."
+        },
+        {
+          "id": "c",
+          "text": "A CORS allowedOrigins entry."
+        },
+        {
+          "id": "d",
+          "text": "contentType = application/json and contentEncoding = UTF-8."
+        }
+      ],
+      "answer": "d",
+      "explanation": "Without <code>contentType = application/json</code> and <code>contentEncoding = UTF-8</code>, IoT Hub stores the message body base64-encoded rather than as JSON.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-endpoints"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-032",
+      "objective": "5.5.1",
+      "type": "single",
+      "stem": "A team wants identical Cosmos DB environments provisioned repeatably and reviewably through a release pipeline. Which approach best fits?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Declarative ARM/Bicep templates, which are idempotent and version-controlled."
+        },
+        {
+          "id": "b",
+          "text": "Imperative Azure CLI scripts run manually per environment."
+        },
+        {
+          "id": "c",
+          "text": "Portal clicks documented in a runbook."
+        },
+        {
+          "id": "d",
+          "text": "SDK calls from application startup."
+        }
+      ],
+      "answer": "a",
+      "explanation": "Declarative tools describe the desired end state and are idempotent, repeatable, and source-controllable, making them ideal for CI/CD and environment parity.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/manage-with-templates",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/manage-with-cli"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-033",
+      "objective": "5.5.2",
+      "type": "single",
+      "stem": "You want a container's indexing policy defined in source control and deployed with the rest of the infrastructure. Which statement is correct?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Indexing policy can only be set through the portal."
+        },
+        {
+          "id": "b",
+          "text": "Include indexingPolicy in the ARM/Bicep template and deploy via the pipeline, alongside throughput, firewall, RBAC, and backup policy."
+        },
+        {
+          "id": "c",
+          "text": "ARM templates can only create the account shell, not indexing policy."
+        },
+        {
+          "id": "d",
+          "text": "Indexing policy must be set with the SDK at runtime."
+        }
+      ],
+      "answer": "b",
+      "explanation": "ARM/Bicep templates manage indexing policy declaratively along with the account, databases, containers, throughput, firewall, CORS, RBAC, and backup policy.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/manage-with-templates",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/manage-with-bicep"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-034",
+      "objective": "5.5.3",
+      "type": "multi",
+      "stem": "Switching a container between manual (standard) and autoscale throughput is supported through which of the following? (Select all that apply.)",
+      "options": [
+        {
+          "id": "a",
+          "text": "The Azure portal."
+        },
+        {
+          "id": "b",
+          "text": "Azure CLI."
+        },
+        {
+          "id": "c",
+          "text": "PowerShell."
+        },
+        {
+          "id": "d",
+          "text": "An ARM/Bicep template deployment."
+        },
+        {
+          "id": "e",
+          "text": "The client SDK."
+        }
+      ],
+      "answer": [
+        "a",
+        "b",
+        "c"
+      ],
+      "explanation": "Throughput-type migration is imperative-only — portal, CLI, or PowerShell — and cannot be performed via an ARM/Bicep template or the SDK.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-provision-autoscale-throughput",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-choose-offer"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-035",
+      "objective": "5.5.4",
+      "type": "single",
+      "stem": "You need to deliberately promote West US to the write region of a single-write-region account for a planned test. Which action accomplishes this?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Run az cosmosdb failover-priority-change with westus=0, making West US priority 0 (the write region)."
+        },
+        {
+          "id": "b",
+          "text": "Delete and recreate the account in West US."
+        },
+        {
+          "id": "c",
+          "text": "Change the default consistency level."
+        },
+        {
+          "id": "d",
+          "text": "Set publicNetworkAccess = Disabled."
+        }
+      ],
+      "answer": "a",
+      "explanation": "Failover priority 0 is always the write region, so setting <code>westus=0</code> promotes West US via <code>az cosmosdb failover-priority-change</code>.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-database-account",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/manage-with-cli"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    },
+    {
+      "id": "q5-036",
+      "objective": "5.5.5",
+      "type": "single",
+      "stem": "You deploy a new indexing policy to a production container through your CI/CD pipeline. What is the impact on write availability?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Writes are blocked until the transformation completes."
+        },
+        {
+          "id": "b",
+          "text": "The container must be recreated."
+        },
+        {
+          "id": "c",
+          "text": "None — the index transformation runs online, so production queries and writes keep working."
+        },
+        {
+          "id": "d",
+          "text": "The account fails over to another region."
+        }
+      ],
+      "answer": "c",
+      "explanation": "Index changes trigger an online transformation applied asynchronously in place, so there is no write-availability downtime.",
+      "refs": [
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-indexing-policy",
+        "https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy"
+      ],
+      "domain": 5,
+      "domain_title": "Maintain an Azure Cosmos DB solution"
+    }
+  ]
+}

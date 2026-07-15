@@ -1,0 +1,476 @@
+{
+  "domain": 1,
+  "domain_title": "Maintain a data analytics solution",
+  "questions": [
+    {
+      "id": "q1-001",
+      "objective": "1.1.1",
+      "type": "single",
+      "stem": "An analyst must be able to create and run notebooks and pipelines against a Lakehouse and schedule refreshes, but must not be allowed to delete the workspace or change who belongs to it. Which workspace role is the least-privilege fit?",
+      "options": [
+        {"id": "a", "text": "Viewer"},
+        {"id": "b", "text": "Contributor"},
+        {"id": "c", "text": "Member"},
+        {"id": "d", "text": "Admin"}
+      ],
+      "answer": "b",
+      "explanation": "Contributor can create, run, and delete items and read Lakehouse data through OneLake APIs and Spark, which covers notebooks, pipelines, and scheduled refresh. It cannot manage workspace membership or delete the workspace, so it is the smallest role that satisfies the requirement. Member and Admin grant more than is needed.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/fundamentals/roles-workspaces", "https://learn.microsoft.com/en-us/fabric/security/permission-model"]
+    },
+    {
+      "id": "q1-002",
+      "objective": "1.1.1",
+      "type": "single",
+      "stem": "A user connects to a Lakehouse SQL analytics endpoint from a client tool. They hold only the Viewer workspace role and no OneLake data-access role. What can they do with the data?",
+      "options": [
+        {"id": "a", "text": "Read data through T-SQL over the endpoint, but not through Spark or OneLake APIs"},
+        {"id": "b", "text": "Nothing — Viewers cannot query data at all"},
+        {"id": "c", "text": "Read and write data through both T-SQL and Spark"},
+        {"id": "d", "text": "Read data only through Spark notebooks"}
+      ],
+      "answer": "a",
+      "explanation": "All four workspace roles, including Viewer, can connect to the SQL analytics endpoint and read data with T-SQL (ReadData over the TDS endpoint). Reading through OneLake APIs or Spark (ReadAll) requires Contributor or higher, so a Viewer is limited to T-SQL reads.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/fundamentals/roles-workspaces", "https://learn.microsoft.com/en-us/fabric/security/permission-model"]
+    },
+    {
+      "id": "q1-003",
+      "objective": "1.1.1",
+      "type": "multi",
+      "stem": "Which actions require at least the Member workspace role (that is, a Contributor cannot perform them)? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Adding a Contributor to the workspace"},
+        {"id": "b", "text": "Editing OneLake security roles"},
+        {"id": "c", "text": "Creating and running a notebook"},
+        {"id": "d", "text": "Reading Lakehouse data through Spark"},
+        {"id": "e", "text": "Adding another Member to the workspace"}
+      ],
+      "answer": ["a", "b", "e"],
+      "explanation": "Adding Members or lower roles and editing OneLake security roles require Admin or Member; a Contributor can do neither, and adding Members is limited to Admin and Member. Creating and running items and reading data through Spark are Contributor-level capabilities.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/fundamentals/roles-workspaces", "https://learn.microsoft.com/en-us/fabric/security/permission-model"]
+    },
+    {
+      "id": "q1-004",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "A business analyst in a different workspace needs to build brand-new reports on a published semantic model, but must not be able to edit the model or browse the source workspace. What is the minimum permission to grant on the model?",
+      "options": [
+        {"id": "a", "text": "Read"},
+        {"id": "b", "text": "Write"},
+        {"id": "c", "text": "Build"},
+        {"id": "d", "text": "Reshare"}
+      ],
+      "answer": "c",
+      "explanation": "Build permission lets a consumer author new reports and dashboards on a shared semantic model without exposing the source workspace or allowing model edits. Read alone cannot create new reports, and Write would allow modifying the model definition.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-share", "https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-permissions"]
+    },
+    {
+      "id": "q1-005",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "A user is granted item-level Read on a report backed by a Direct Lake semantic model. The report opens but every visual is empty. What is the most likely missing permission?",
+      "options": [
+        {"id": "a", "text": "Build permission on the report"},
+        {"id": "b", "text": "A OneLake data-access permission on the underlying Delta tables"},
+        {"id": "c", "text": "Reshare permission on the semantic model"},
+        {"id": "d", "text": "The Admin workspace role"}
+      ],
+      "answer": "b",
+      "explanation": "Direct Lake reads Parquet directly from OneLake, so item-level Read on the report does not by itself grant storage access. The user also needs a OneLake data-access role that allows Read on the relevant Delta tables for data to appear.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/security/permission-model", "https://learn.microsoft.com/en-us/fabric/onelake/security/data-access-control-model"]
+    },
+    {
+      "id": "q1-006",
+      "objective": "1.1.2",
+      "type": "single",
+      "stem": "An administrator removes a user's item-level share on a semantic model, but the user still has the Viewer workspace role. Can the user still reach the model?",
+      "options": [
+        {"id": "a", "text": "No — removing the share always fully revokes access"},
+        {"id": "b", "text": "Yes — the Viewer workspace role still grants access, so both layers must be removed"},
+        {"id": "c", "text": "No — Viewer roles cannot see semantic models"},
+        {"id": "d", "text": "Yes, but only for 30 days after the share is removed"}
+      ],
+      "answer": "b",
+      "explanation": "Workspace roles and item permissions are evaluated independently. A Viewer can already see every item in the workspace, so revoking only the item-level share leaves workspace access intact. Both the item permission and the workspace role must be removed to block access.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/security/permission-model", "https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-share"]
+    },
+    {
+      "id": "q1-007",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "A report must show each salesperson only the rows for their own territory, driven automatically by who signs in, using a single role definition for everyone. Which DAX function underpins this dynamic pattern?",
+      "options": [
+        {"id": "a", "text": "SELECTEDVALUE()"},
+        {"id": "b", "text": "USERPRINCIPALNAME()"},
+        {"id": "c", "text": "ALLEXCEPT()"},
+        {"id": "d", "text": "LOOKUPVALUE()"}
+      ],
+      "answer": "b",
+      "explanation": "Dynamic row-level security relies on USERPRINCIPALNAME() to return the signed-in user's UPN, which is matched against a mapping column so one role adapts to every user. A static filter would hard-code a value and require a role per person.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/enterprise/service-admin-rls", "https://learn.microsoft.com/en-us/dax/userprincipalname-function-dax"]
+    },
+    {
+      "id": "q1-008",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "A finance model contains a Salary column that must be entirely invisible to most consumers — absent from field lists, visuals, and metadata, as though it does not exist. Which mechanism achieves this?",
+      "options": [
+        {"id": "a", "text": "Row-level security with a DAX filter on Salary"},
+        {"id": "b", "text": "A workspace Viewer role"},
+        {"id": "c", "text": "Object-level security hiding the column via columnPermissions set to none"},
+        {"id": "d", "text": "A sensitivity label set to Highly Confidential"}
+      ],
+      "answer": "c",
+      "explanation": "Object-level security (column-level security) hides both the data and the column's metadata name by setting metadataPermission to none, so the column appears not to exist. Row-level security only filters rows and would leave the column name visible in field lists.",
+      "refs": ["https://learn.microsoft.com/en-us/analysis-services/tabular-models/object-level-security", "https://learn.microsoft.com/en-us/power-bi/enterprise/service-admin-object-level-security"]
+    },
+    {
+      "id": "q1-009",
+      "objective": "1.1.3",
+      "type": "tf",
+      "stem": "A developer holding the Contributor workspace role opens a report that has row-level security defined. The RLS filters are applied to that developer's session.",
+      "answer": "false",
+      "explanation": "Row-level security applies only to Viewer-level consumers. Admin, Member, and Contributor workspace roles bypass RLS and always see all rows. To simulate a filtered experience the developer must use View as / Test as role.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/enterprise/service-admin-rls", "https://learn.microsoft.com/en-us/fabric/security/permission-model"]
+    },
+    {
+      "id": "q1-010",
+      "objective": "1.1.3",
+      "type": "multi",
+      "stem": "Which statements about OneLake data-access roles for a Lakehouse are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "The model is deny-by-default; users get no data access unless a role grants it"},
+        {"id": "b", "text": "A role can scope permissions to specific folders or tables"},
+        {"id": "c", "text": "A OneLake role can strip Write access away from a workspace Contributor"},
+        {"id": "d", "text": "Only Admin and Member can manage OneLake security roles"},
+        {"id": "e", "text": "Viewers automatically get Read on every folder without any role"}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "OneLake roles are deny-by-default, can be scoped to folders/tables, and are manageable only by Admin and Member. Workspace Admin, Member, and Contributor retain Write to OneLake and cannot be restricted below it, and Viewers have no OneLake access unless a role explicitly grants it.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/onelake/security/data-access-control-model", "https://learn.microsoft.com/en-us/fabric/security/permission-model"]
+    },
+    {
+      "id": "q1-011",
+      "objective": "1.1.3",
+      "type": "single",
+      "stem": "A Lakehouse owner wants to give an external team Read access to only the folder SalesData/2024/, while keeping every other folder inaccessible to them. Which approach is correct?",
+      "options": [
+        {"id": "a", "text": "Grant the team the Viewer workspace role"},
+        {"id": "b", "text": "Create a custom OneLake data-access role with Read scoped to that folder"},
+        {"id": "c", "text": "Define row-level security on the Lakehouse tables"},
+        {"id": "d", "text": "Apply object-level security to the folder"}
+      ],
+      "answer": "b",
+      "explanation": "OneLake data-access roles support folder-level scoping. A custom role granting Read only on SalesData/2024/ leaves other folders inaccessible. Workspace roles are not folder-scoped, and RLS/OLS operate inside the semantic model, not at the storage folder level.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/onelake/security/data-access-control-model", "https://learn.microsoft.com/en-us/fabric/security/permission-model"]
+    },
+    {
+      "id": "q1-012",
+      "objective": "1.1.4",
+      "type": "single",
+      "stem": "A sensitivity label was created in the Microsoft Purview portal, but it does not appear for users in Fabric. What is the most likely reason?",
+      "options": [
+        {"id": "a", "text": "The label was never published to users through a label policy"},
+        {"id": "b", "text": "The label needs a Fabric capacity to appear"},
+        {"id": "c", "text": "Labels only appear after a workspace is connected to Git"},
+        {"id": "d", "text": "The label must be applied by an administrator before others can see it"}
+      ],
+      "answer": "a",
+      "explanation": "A label surfaces in Fabric only after it is both created and published to users through a label policy in Purview. Simply creating the label, or listing users as allowed, is not enough on its own.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/governance/information-protection", "https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-overview"]
+    },
+    {
+      "id": "q1-013",
+      "objective": "1.1.4",
+      "type": "single",
+      "stem": "A compliance team requires that no Power BI report can be saved without a sensitivity label. Which labeling capability enforces this?",
+      "options": [
+        {"id": "a", "text": "Default labeling"},
+        {"id": "b", "text": "Downstream inheritance"},
+        {"id": "c", "text": "Mandatory labeling"},
+        {"id": "d", "text": "Programmatic labeling"}
+      ],
+      "answer": "c",
+      "explanation": "Mandatory labeling blocks saving a Power BI item until a label is chosen and is fully supported for Power BI items. Default labeling only pre-selects a label, and inheritance and programmatic labeling do not force a user to choose one before saving.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/governance/information-protection", "https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-overview"]
+    },
+    {
+      "id": "q1-014",
+      "objective": "1.1.4",
+      "type": "multi",
+      "stem": "From which export paths does a Power BI item's sensitivity label travel with the exported content? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Export to Excel"},
+        {"id": "b", "text": "Export to PDF"},
+        {"id": "c", "text": "Export to CSV"},
+        {"id": "d", "text": "Download the .pbix file"},
+        {"id": "e", "text": "Export to a plain TXT file"}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Structured export paths — Excel, PDF, PowerPoint, and .pbix download — carry the label with the file. CSV and TXT exports strip the label because they are unstructured formats.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-overview", "https://learn.microsoft.com/en-us/fabric/governance/information-protection"]
+    },
+    {
+      "id": "q1-015",
+      "objective": "1.1.5",
+      "type": "single",
+      "stem": "A data engineer wants to mark a Lakehouse as the single authoritative source for all customer reference data across the organization. Which endorsement level fits, and who can apply it?",
+      "options": [
+        {"id": "a", "text": "Promoted, applied by anyone with Write permission"},
+        {"id": "b", "text": "Certified, applied by any workspace Member"},
+        {"id": "c", "text": "Master data, applied by an admin-designated user"},
+        {"id": "d", "text": "Master data, applied by anyone with Write permission"}
+      ],
+      "answer": "c",
+      "explanation": "Master data marks a core, single-source-of-truth reference asset and can only be granted by an admin-designated user; the item must contain data, which a Lakehouse does. Promoted is self-serve but does not convey authoritative single-source status.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/governance/endorsement-overview", "https://learn.microsoft.com/en-us/fabric/fundamentals/endorsement-promote-certify"]
+    },
+    {
+      "id": "q1-016",
+      "objective": "1.1.5",
+      "type": "single",
+      "stem": "A report author with Write permission on a semantic model wants to signal that it is production-ready, without contacting an administrator. Which endorsement can they apply themselves?",
+      "options": [
+        {"id": "a", "text": "Certified"},
+        {"id": "b", "text": "Master data"},
+        {"id": "c", "text": "Promoted"},
+        {"id": "d", "text": "None — all endorsements require an administrator"}
+      ],
+      "answer": "c",
+      "explanation": "Promoted is the only tier a user can self-apply, and it requires just Write permission on the item. Certified and Master data must be granted by an admin-designated approver.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/fundamentals/endorsement-promote-certify", "https://learn.microsoft.com/en-us/fabric/governance/endorsement-overview"]
+    },
+    {
+      "id": "q1-017",
+      "objective": "1.1.5",
+      "type": "multi",
+      "stem": "Which statements about Fabric endorsement are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Power BI dashboards cannot be endorsed at any level"},
+        {"id": "b", "text": "Master data can only be applied to items that contain data"},
+        {"id": "c", "text": "Any user can request Certified status even though only approvers can grant it"},
+        {"id": "d", "text": "Certified is available by default without any admin enablement"},
+        {"id": "e", "text": "Promoted requires a Fabric administrator to grant it"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Dashboards cannot be endorsed, Master data applies only to data-bearing items, and anyone can request Certified while only approvers grant it. Certified must first be enabled by an administrator, and Promoted is self-applied with Write permission — no admin needed.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/governance/endorsement-overview", "https://learn.microsoft.com/en-us/fabric/admin/endorsement-certification-enable"]
+    },
+    {
+      "id": "q1-018",
+      "objective": "1.2.1",
+      "type": "single",
+      "stem": "A team wants to connect their Fabric workspace to a self-hosted, on-premises Azure DevOps Server for version control. Is this supported?",
+      "options": [
+        {"id": "a", "text": "Yes, with a standard-mode gateway installed"},
+        {"id": "b", "text": "No — only cloud-hosted Git providers such as Azure DevOps and GitHub are supported"},
+        {"id": "c", "text": "Yes, once the relevant tenant switch is enabled"},
+        {"id": "d", "text": "Yes, but only for semantic models"}
+      ],
+      "answer": "b",
+      "explanation": "Fabric Git integration supports only cloud-hosted providers — Azure DevOps (cloud), GitHub, and GitHub Enterprise (cloud). On-premises Azure DevOps Server is explicitly not supported, regardless of gateways or tenant switches.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/cicd/git-integration/intro-to-git-integration", "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/git-get-started"]
+    },
+    {
+      "id": "q1-019",
+      "objective": "1.2.1",
+      "type": "single",
+      "stem": "In Fabric Git integration, how are semantic models and reports stored so they can be reviewed as text diffs in pull requests?",
+      "options": [
+        {"id": "a", "text": "Semantic models as binary .pbix; reports as PNG snapshots"},
+        {"id": "b", "text": "Semantic models as TMDL; reports as PBIR"},
+        {"id": "c", "text": "Both as a single compressed .pbip archive"},
+        {"id": "d", "text": "Both as CSV exports"}
+      ],
+      "answer": "b",
+      "explanation": "Semantic models are serialized as TMDL (a YAML-like text format) and reports as PBIR (JSON). Both are plain text and diffable line by line, which enables proper code review of analytics assets.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/cicd/git-integration/source-code-format", "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/intro-to-git-integration"]
+    },
+    {
+      "id": "q1-020",
+      "objective": "1.2.1",
+      "type": "tf",
+      "stem": "A workspace Contributor can connect the workspace to a GitHub repository without any Admin involvement.",
+      "answer": "false",
+      "explanation": "Only a workspace Admin can connect or disconnect a workspace from Git. A Contributor cannot perform the connection; at most an Admin can enable a setting that lets Contributors and Members switch branches after the connection exists.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/cicd/git-integration/git-get-started", "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/intro-to-git-integration"]
+    },
+    {
+      "id": "q1-021",
+      "objective": "1.2.2",
+      "type": "single",
+      "stem": "A developer edits a measure directly in the TMDL file of a .pbip project in VS Code while Power BI Desktop has that project open. When will Desktop reflect the change?",
+      "options": [
+        {"id": "a", "text": "Immediately, as soon as the file is saved"},
+        {"id": "b", "text": "After Power BI Desktop is restarted"},
+        {"id": "c", "text": "Only after the project is published to the service"},
+        {"id": "d", "text": "Never — external edits are ignored"}
+      ],
+      "answer": "b",
+      "explanation": "External edits to TMDL or PBIR files are picked up only after restarting Power BI Desktop, not in real time. The change is valid and preserved; Desktop simply needs to reload the project to recognize it.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-overview", "https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-dataset"]
+    },
+    {
+      "id": "q1-022",
+      "objective": "1.2.2",
+      "type": "single",
+      "stem": "A team wants several report authors to develop separate reports that all use one shared semantic model definition inside a single .pbip project, without duplicating the model. How does .pbip support this?",
+      "options": [
+        {"id": "a", "text": "Each report needs its own copy of the SemanticModel folder"},
+        {"id": "b", "text": "Multiple Report folders can point at a single shared SemanticModel folder"},
+        {"id": "c", "text": "The model must be published first, then linked by URL"},
+        {"id": "d", "text": ".pbip does not allow more than one report per project"}
+      ],
+      "answer": "b",
+      "explanation": "A .pbip project can contain multiple report (PBIR) folders that all reference one SemanticModel (TMDL) folder, so authors work independently against a single shared model definition without copying it.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-report", "https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-dataset"]
+    },
+    {
+      "id": "q1-023",
+      "objective": "1.2.3",
+      "type": "single",
+      "scenario_id": "s-governance",
+      "stem": "The platform team needs the Production stage of a deployment pipeline to connect to a different Azure SQL Database than Development uses. Which rule type accomplishes this, and where is it configured?",
+      "options": [
+        {"id": "a", "text": "A parameter rule configured on the Development stage"},
+        {"id": "b", "text": "A data source rule configured on the Production (target) stage"},
+        {"id": "c", "text": "A default lakehouse rule configured on the Test stage"},
+        {"id": "d", "text": "A data source rule configured on the Development stage"}
+      ],
+      "answer": "b",
+      "explanation": "Data source rules override connection strings during promotion and are always defined on the target stage — here Production. The source types must match (Azure SQL to Azure SQL). Rules cannot be created on the Development stage.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/create-rules", "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines"]
+    },
+    {
+      "id": "q1-024",
+      "objective": "1.2.3",
+      "type": "multi",
+      "stem": "Which statements about Fabric deployment pipelines are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "A pipeline can have between 2 and 10 stages"},
+        {"id": "b", "text": "Deployment copies content rather than moving it"},
+        {"id": "c", "text": "Deployment rules can be created on the Development stage"},
+        {"id": "d", "text": "A Fabric capacity is required; shared capacity is not supported"},
+        {"id": "e", "text": "Items added after workspace assignment are auto-paired on the next deployment"}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Pipelines allow 2 to 10 stages, copy (not move) content, and require a Fabric capacity. Rules cannot be created on Development, and items added after assignment are not auto-paired — they need an explicit deployment to create the pairing.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines", "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/create-rules"]
+    },
+    {
+      "id": "q1-025",
+      "objective": "1.2.3",
+      "type": "single",
+      "stem": "After deploying once to Test, a developer adds a new notebook to Development and deploys to Test again, but the notebook does not appear in Test. Why?",
+      "options": [
+        {"id": "a", "text": "Notebooks are never supported in deployment pipelines"},
+        {"id": "b", "text": "The notebook was added after workspace assignment and is not yet paired; it must be included in an explicit deployment"},
+        {"id": "c", "text": "A data source rule blocked it"},
+        {"id": "d", "text": "The Test stage is read-only"}
+      ],
+      "answer": "b",
+      "explanation": "Items added to a workspace after it was assigned to a pipeline are not automatically paired to the next stage. The developer must include the notebook in an explicit deployment to create the pairing for the first time.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/get-started-with-deployment-pipelines", "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines"]
+    },
+    {
+      "id": "q1-026",
+      "objective": "1.2.3",
+      "type": "single",
+      "scenario_id": "s-governance",
+      "stem": "A Production data source rule references an Azure SQL source. A developer then changes the Development semantic model to use a completely different source type. What happens at the next deployment?",
+      "options": [
+        {"id": "a", "text": "The rule silently adapts to the new source type"},
+        {"id": "b", "text": "The deployment succeeds but the rule is skipped"},
+        {"id": "c", "text": "The deployment fails because the rule can no longer be resolved"},
+        {"id": "d", "text": "The rule is automatically deleted and deployment continues"}
+      ],
+      "answer": "c",
+      "explanation": "If the data source a rule depends on is removed or changed to a different type in the source stage, the rule becomes invalid. Fabric validates rules before deploying and blocks the deployment with an error.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/create-rules", "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines"]
+    },
+    {
+      "id": "q1-027",
+      "objective": "1.2.4",
+      "type": "single",
+      "stem": "Before making breaking changes to a shared semantic model, an engineer wants to know how many reports and dashboards depend on it and how heavily each is used. Which feature provides this?",
+      "options": [
+        {"id": "a", "text": "The workspace activity log"},
+        {"id": "b", "text": "Semantic model impact analysis in lineage view"},
+        {"id": "c", "text": "The OneLake catalog search"},
+        {"id": "d", "text": "A deployment pipeline comparison"}
+      ],
+      "answer": "b",
+      "explanation": "Impact analysis, opened from the semantic model's lineage card, shows counts of downstream workspaces, reports, and dashboards plus 30-day usage metrics, and can notify affected workspace contacts. That is exactly what the engineer needs to prioritize communication.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-dataset-impact-analysis", "https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-data-lineage"]
+    },
+    {
+      "id": "q1-028",
+      "objective": "1.2.4",
+      "type": "single",
+      "stem": "A workspace Viewer wants to open lineage view to review data dependencies. Can they?",
+      "options": [
+        {"id": "a", "text": "Yes — all workspace roles can use lineage view"},
+        {"id": "b", "text": "No — lineage view requires at least the Contributor role"},
+        {"id": "c", "text": "Yes, but only for their own items"},
+        {"id": "d", "text": "No — lineage view requires the Admin role"}
+      ],
+      "answer": "b",
+      "explanation": "Lineage view requires at least a Contributor workspace role and a Power BI Pro license. Viewers are excluded from the feature.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-data-lineage", "https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-dataset-impact-analysis"]
+    },
+    {
+      "id": "q1-029",
+      "objective": "1.2.5",
+      "type": "single",
+      "stem": "A capacity administrator wants Tabular Editor to deploy schema changes to semantic models on a Premium capacity via the XMLA endpoint. What must be configured?",
+      "options": [
+        {"id": "a", "text": "Set the XMLA endpoint to Read Write at the capacity level in the Admin portal"},
+        {"id": "b", "text": "Enable the XMLA endpoint on each report individually"},
+        {"id": "c", "text": "Install a standard-mode data gateway"},
+        {"id": "d", "text": "Switch the workspace to shared capacity"}
+      ],
+      "answer": "a",
+      "explanation": "The XMLA endpoint is read-only by default. Enabling Read Write at the capacity level in the Admin portal unlocks write operations for all tools connecting to workspaces on that capacity, including Tabular Editor.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-connect-tools", "https://learn.microsoft.com/en-us/analysis-services/tmsl/tabular-model-scripting-language-tmsl-reference"]
+    },
+    {
+      "id": "q1-030",
+      "objective": "1.2.5",
+      "type": "tf",
+      "stem": "The Az.AnalysisServices PowerShell module is the supported way to refresh a Power BI semantic model through the XMLA endpoint.",
+      "answer": "false",
+      "explanation": "Az.AnalysisServices targets Azure Analysis Services and is not supported for Power BI semantic models. The supported approach is the SqlServer PowerShell module with the powerbi:// connection string.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-connect-tools", "https://learn.microsoft.com/en-us/analysis-services/tmsl/tabular-model-scripting-language-tmsl-reference"]
+    },
+    {
+      "id": "q1-031",
+      "objective": "1.2.6",
+      "type": "single",
+      "stem": "An architect must ensure every report developer connects to the correct Azure SQL server and database, without distributing any credentials or predefining tables. Which file format fits best?",
+      "options": [
+        {"id": "a", "text": "A .pbit template file"},
+        {"id": "b", "text": "A .pbids data source file"},
+        {"id": "c", "text": "A .pbix file"},
+        {"id": "d", "text": "A .pbip project folder"}
+      ],
+      "answer": "b",
+      "explanation": "A .pbids file carries only the connection address (protocol, server, database) — no credentials and no schema. Authors open it, are prompted for credentials, and then choose their own tables, which standardizes the target without sharing secrets.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/connect-data/desktop-data-sources", "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-templates"]
+    },
+    {
+      "id": "q1-032",
+      "objective": "1.2.6",
+      "type": "multi",
+      "stem": "Which statements correctly distinguish these reusable Power BI asset formats? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "A .pbit contains report structure and model schema but no data"},
+        {"id": "b", "text": "A .pbids contains a connection address but no credentials or schema"},
+        {"id": "c", "text": "Build permission on a shared semantic model is required to author new reports on it"},
+        {"id": "d", "text": "A .pbids can define multiple data sources in one file"},
+        {"id": "e", "text": "A .pbit already includes a cached copy of the data"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "A .pbit packages structure and schema with no data, a .pbids carries only a connection address, and Build permission is needed to author reports on a shared model. A .pbids supports only a single data source, and a .pbit contains no cached data.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-templates", "https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-build-permissions"]
+    }
+  ]
+}

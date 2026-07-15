@@ -1,0 +1,483 @@
+{
+  "domain": 3,
+  "domain_title": "Implement and manage semantic models",
+  "questions": [
+    {
+      "id": "q3-001",
+      "objective": "3.1.1",
+      "type": "single",
+      "stem": "A model must serve sub-second visuals over a 40 GB Fabric lakehouse Delta table whose data changes hourly, with minimal refresh cost. Which storage mode fits best?",
+      "options": [
+        {"id": "a", "text": "Import"},
+        {"id": "b", "text": "DirectQuery"},
+        {"id": "c", "text": "Direct Lake"},
+        {"id": "d", "text": "Dual"}
+      ],
+      "answer": "c",
+      "explanation": "Direct Lake gives VertiPaq-class query speed while reading Delta columns from OneLake on demand, and its refresh is metadata-only framing that completes in seconds. Import would require an expensive reload, and DirectQuery would be slower per query.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview", "https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand"]
+    },
+    {
+      "id": "q3-002",
+      "objective": "3.1.1",
+      "type": "single",
+      "stem": "In a DirectQuery composite model, which storage mode should dimension tables use to minimize source queries when joined to DirectQuery facts?",
+      "options": [
+        {"id": "a", "text": "Import"},
+        {"id": "b", "text": "DirectQuery"},
+        {"id": "c", "text": "Dual"},
+        {"id": "d", "text": "Direct Lake"}
+      ],
+      "answer": "c",
+      "explanation": "Dual dimensions can serve cached results when queried alone and also fold into a single native join with DirectQuery facts, avoiding extra source round-trips. Pure Import dimensions would force separate queries against the fact source.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand", "https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-composite-models"]
+    },
+    {
+      "id": "q3-003",
+      "objective": "3.1.1",
+      "type": "multi",
+      "stem": "Which statements about semantic model storage modes are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Only Direct Lake requires a Fabric capacity license"},
+        {"id": "b", "text": "Import caches data in the in-memory VertiPaq store and requires refresh"},
+        {"id": "c", "text": "DirectQuery caches all data in memory"},
+        {"id": "d", "text": "Direct Lake refresh is a metadata-only framing operation"},
+        {"id": "e", "text": "A single model cannot mix storage modes"}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Direct Lake alone requires a Fabric capacity, Import caches in VertiPaq and needs refresh, and Direct Lake refresh is framing. DirectQuery caches no data (metadata only), and composite models can mix storage modes.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand", "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"]
+    },
+    {
+      "id": "q3-004",
+      "objective": "3.1.2",
+      "type": "single",
+      "stem": "A Product table is normalized into Product, Subcategory, and Category tables. For a performant Power BI model, what should you do?",
+      "options": [
+        {"id": "a", "text": "Keep the snowflake and add bi-directional filters"},
+        {"id": "b", "text": "Denormalize the three tables into a single Product dimension"},
+        {"id": "c", "text": "Convert them into three fact tables"},
+        {"id": "d", "text": "Set all three to DirectQuery"}
+      ],
+      "answer": "b",
+      "explanation": "Denormalizing snowflaked tables into one flat dimension avoids extra joins, compresses better, and simplifies DAX. Keeping the snowflake or adding bi-directional filters increases complexity and can hurt performance.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/guidance/star-schema", "https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-relationships-understand"]
+    },
+    {
+      "id": "q3-005",
+      "objective": "3.1.2",
+      "type": "single",
+      "stem": "Sales has OrderDate, ShipDate, and DueDate, all referencing one Date table. How do you support all three roles without duplicating the Date table?",
+      "options": [
+        {"id": "a", "text": "Create three copies of the Date table"},
+        {"id": "b", "text": "Create one active and two inactive relationships, and activate the needed one in measures with USERELATIONSHIP"},
+        {"id": "c", "text": "Set all three relationships active"},
+        {"id": "d", "text": "Use a bridge table between Sales and Date"}
+      ],
+      "answer": "b",
+      "explanation": "A model allows only one active relationship between two tables. The role-playing pattern uses one active and two inactive relationships to a single Date table, activating the inactive ones per measure with USERELATIONSHIP.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-relationships-understand", "https://learn.microsoft.com/en-us/dax/userelationship-function-dax"]
+    },
+    {
+      "id": "q3-006",
+      "objective": "3.1.3",
+      "type": "single",
+      "stem": "Accounts and Customers have a many-to-many association and each must filter a Transactions fact. What is the recommended model design?",
+      "options": [
+        {"id": "a", "text": "A native many-to-many relationship between Accounts and Customers"},
+        {"id": "b", "text": "An AccountCustomer bridge table with two one-to-many relationships, one set to bi-directional"},
+        {"id": "c", "text": "Merge Accounts and Customers into one table"},
+        {"id": "d", "text": "Set every relationship to bi-directional"}
+      ],
+      "answer": "b",
+      "explanation": "A bridge (factless fact) table with two one-to-many relationships, one made bi-directional so filters reach the fact, resolves the many-to-many cleanly and outperforms native many-to-many cardinality.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/guidance/relationships-many-to-many", "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-bidirectional-filtering"]
+    },
+    {
+      "id": "q3-007",
+      "objective": "3.1.3",
+      "type": "single",
+      "stem": "A measure must count distinct customer countries filtering from Sales, but the relationship is single-direction. Which function enables this for that measure only?",
+      "options": [
+        {"id": "a", "text": "USERELATIONSHIP"},
+        {"id": "b", "text": "CROSSFILTER(..., BOTH) inside CALCULATE"},
+        {"id": "c", "text": "ALLEXCEPT"},
+        {"id": "d", "text": "TREATAS"}
+      ],
+      "answer": "b",
+      "explanation": "CROSSFILTER(..., BOTH) inside CALCULATE temporarily enables bidirectional filtering for that single expression without making the model relationship globally bi-directional. USERELATIONSHIP activates an inactive relationship, not a cross-filter change.",
+      "refs": ["https://learn.microsoft.com/en-us/dax/crossfilter-function-dax", "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-bidirectional-filtering"]
+    },
+    {
+      "id": "q3-008",
+      "objective": "3.1.3",
+      "type": "multi",
+      "stem": "Which statements about Power BI relationships are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Filters propagate automatically from the one side of a relationship"},
+        {"id": "b", "text": "Bi-directional filtering can create ambiguous filter paths and should be used sparingly"},
+        {"id": "c", "text": "USERELATIONSHIP works only inside CALCULATE"},
+        {"id": "d", "text": "Native many-to-many cardinality is always faster than a bridge table"},
+        {"id": "e", "text": "For Direct Lake, one-side columns may contain duplicates"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Filters flow from the one side, bi-directional filtering risks ambiguity, and USERELATIONSHIP is only valid inside CALCULATE. A well-designed bridge outperforms native many-to-many, and Direct Lake requires unique one-side columns or queries fail.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/guidance/relationships-many-to-many", "https://learn.microsoft.com/en-us/dax/userelationship-function-dax"]
+    },
+    {
+      "id": "q3-009",
+      "objective": "3.1.4",
+      "type": "single",
+      "stem": "A Revenue measure should equal the sum of Qty times UnitPrice computed per row. Why does <code>SUM(Sales[Qty]) * SUM(Sales[UnitPrice])</code> give the wrong answer?",
+      "options": [
+        {"id": "a", "text": "SUM cannot be multiplied"},
+        {"id": "b", "text": "It multiplies the two column totals instead of multiplying row by row"},
+        {"id": "c", "text": "It ignores the filter context"},
+        {"id": "d", "text": "UnitPrice must be a measure"}
+      ],
+      "answer": "b",
+      "explanation": "Multiplying two independent column sums is not the same as summing the per-row product. Use an iterator, SUMX(Sales, Sales[Qty] * Sales[UnitPrice]), to compute the product row by row and then aggregate.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables", "https://learn.microsoft.com/en-us/dax/userprincipalname-function-dax"]
+    },
+    {
+      "id": "q3-010",
+      "objective": "3.1.4",
+      "type": "single",
+      "stem": "You need a percent-of-category-total that ignores the current product filter but keeps the category filter. Which function provides the denominator?",
+      "options": [
+        {"id": "a", "text": "ALL('Product')"},
+        {"id": "b", "text": "ALLEXCEPT('Product', 'Product'[Category])"},
+        {"id": "c", "text": "REMOVEFILTERS()"},
+        {"id": "d", "text": "KEEPFILTERS('Product')"}
+      ],
+      "answer": "b",
+      "explanation": "ALLEXCEPT('Product', 'Product'[Category]) removes all Product filters except Category, yielding the category-level denominator. ALL('Product') would also remove the Category filter, giving the grand total instead.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables", "https://learn.microsoft.com/en-us/dax/datesytd-function-dax"]
+    },
+    {
+      "id": "q3-011",
+      "objective": "3.1.4",
+      "type": "tf",
+      "stem": "A DAX variable defined with VAR is re-evaluated each time it is referenced later in the expression.",
+      "answer": "false",
+      "explanation": "A VAR is evaluated once, in the filter context where it is defined, and its stored value is reused wherever it is referenced. This both improves performance and can change results compared with recomputing inline.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables", "https://learn.microsoft.com/en-us/dax/offset-function-dax"]
+    },
+    {
+      "id": "q3-012",
+      "objective": "3.1.4",
+      "type": "multi",
+      "stem": "Which DAX practices are recommended for correctness or clarity? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Use SELECTEDVALUE instead of IF+HASONEVALUE+VALUES"},
+        {"id": "b", "text": "Use DIVIDE for safe division"},
+        {"id": "c", "text": "Wrap OFFSET or INDEX in an aggregator such as SUMX when a single row is returned"},
+        {"id": "d", "text": "Always prefer FILTER over a Boolean filter argument for simple conditions"},
+        {"id": "e", "text": "Use USERPRINCIPALNAME to hard-code a region value"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "SELECTEDVALUE simplifies the older pattern, DIVIDE handles divide-by-zero, and OFFSET/INDEX return a single row that is typically aggregated. Boolean filter arguments are preferred over FILTER for simple conditions, and USERPRINCIPALNAME returns the signed-in user's UPN rather than a hard-coded value.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables", "https://learn.microsoft.com/en-us/dax/userprincipalname-function-dax"]
+    },
+    {
+      "id": "q3-013",
+      "objective": "3.1.5",
+      "type": "single",
+      "stem": "You have 12 base measures and need YTD, PY, and YoY% versions of each without authoring 36 more measures. What should you build?",
+      "options": [
+        {"id": "a", "text": "36 individual measures"},
+        {"id": "b", "text": "A calculation group with three calculation items using SELECTEDMEASURE()"},
+        {"id": "c", "text": "A field parameter"},
+        {"id": "d", "text": "Three composite models"}
+      ],
+      "answer": "b",
+      "explanation": "A calculation group with three items referencing SELECTEDMEASURE() applies dynamically to whichever measure is in context, avoiding measure explosion. Field parameters swap fields, not time-intelligence logic.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/transform-model/calculation-groups", "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-dynamic-format-strings"]
+    },
+    {
+      "id": "q3-014",
+      "objective": "3.1.5",
+      "type": "single",
+      "stem": "A YoY% calculation item should display as a percentage while the base measure remains formatted as currency. How do you achieve this?",
+      "options": [
+        {"id": "a", "text": "Wrap the result in FORMAT()"},
+        {"id": "b", "text": "Enable a dynamic format string on the calculation item"},
+        {"id": "c", "text": "Change the base measure's data type to text"},
+        {"id": "d", "text": "Add a field parameter"}
+      ],
+      "answer": "b",
+      "explanation": "A per-item dynamic format string overrides display for that calculation item while keeping the underlying numeric type, so other items retain the currency format. FORMAT() returns text and would break numeric visuals and sorting.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-dynamic-format-strings", "https://learn.microsoft.com/en-us/power-bi/transform-model/calculation-groups"]
+    },
+    {
+      "id": "q3-015",
+      "objective": "3.1.5",
+      "type": "single",
+      "stem": "Report readers want to switch a chart's axis between Customer, Category, and Color at runtime. Which feature enables this?",
+      "options": [
+        {"id": "a", "text": "A calculation group"},
+        {"id": "b", "text": "A field parameter added to a slicer"},
+        {"id": "c", "text": "A dynamic format string"},
+        {"id": "d", "text": "Object-level security"}
+      ],
+      "answer": "b",
+      "explanation": "A field parameter lets users choose which dimension or measure a visual uses at runtime, typically via a slicer, without editing the report. Calculation groups change measure logic, not which field is displayed.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/create-reports/power-bi-field-parameters", "https://learn.microsoft.com/en-us/power-bi/transform-model/calculation-groups"]
+    },
+    {
+      "id": "q3-016",
+      "objective": "3.1.6",
+      "type": "single",
+      "stem": "An Import model must grow to 18 GB in an F64 workspace and be deployed via the XMLA endpoint. What must be enabled?",
+      "options": [
+        {"id": "a", "text": "Direct Lake mode"},
+        {"id": "b", "text": "Large semantic model storage format"},
+        {"id": "c", "text": "Automatic aggregations"},
+        {"id": "d", "text": "Bi-directional filtering"}
+      ],
+      "answer": "b",
+      "explanation": "Large semantic model storage format raises the per-model limit to the capacity size and is required for XMLA write operations. Without it the model is capped at the default service limit and cannot grow to 18 GB.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-large-models", "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-scale-out"]
+    },
+    {
+      "id": "q3-017",
+      "objective": "3.1.6",
+      "type": "single",
+      "stem": "A team wants read-only replicas to distribute heavy query load across a large model. What is a prerequisite?",
+      "options": [
+        {"id": "a", "text": "DirectQuery storage mode"},
+        {"id": "b", "text": "Large semantic model storage format on a Premium or Fabric capacity"},
+        {"id": "c", "text": "A personal-mode gateway"},
+        {"id": "d", "text": "Disabling XMLA endpoints"}
+      ],
+      "answer": "b",
+      "explanation": "Scale-out to read-only replicas depends on the large semantic model storage format and a Premium or Fabric capacity. Disabling large format also disables scale-out.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-scale-out", "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-large-models"]
+    },
+    {
+      "id": "q3-018",
+      "objective": "3.1.7",
+      "type": "single",
+      "stem": "You must extend a certified published semantic model with a few local Excel tables. What action turns the live connection into a composite model?",
+      "options": [
+        {"id": "a", "text": "Import the published model as a copy"},
+        {"id": "b", "text": "Choose Make changes to this model, which converts the live connection to DirectQuery, then add local tables"},
+        {"id": "c", "text": "Export the model to .pbit"},
+        {"id": "d", "text": "Enable large model storage format"}
+      ],
+      "answer": "b",
+      "explanation": "Choosing Make changes to this model chains the published model by converting the live connection into a DirectQuery connection, allowing you to add local tables on top. This is the standard composite chaining pattern.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-composite-models", "https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand"]
+    },
+    {
+      "id": "q3-019",
+      "objective": "3.1.7",
+      "type": "single",
+      "stem": "Which Direct Lake variant cannot participate in a composite model?",
+      "options": [
+        {"id": "a", "text": "Direct Lake on OneLake"},
+        {"id": "b", "text": "Direct Lake on the SQL analytics endpoint"},
+        {"id": "c", "text": "Both variants support composite models"},
+        {"id": "d", "text": "Neither variant supports Direct Lake at all"}
+      ],
+      "answer": "b",
+      "explanation": "Direct Lake on the SQL analytics endpoint is single-source and cannot mix with DirectQuery, Dual, or Import. Only Direct Lake on OneLake supports composite models (combined with Import) via web modeling.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-composite-models", "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"]
+    },
+    {
+      "id": "q3-020",
+      "objective": "3.2.1",
+      "type": "single",
+      "scenario_id": "s-perf",
+      "stem": "The team needs the exact DAX that one slow card visual runs so they can tune the underlying measure. Which tool captures it?",
+      "options": [
+        {"id": "a", "text": "The Modeling ribbon's Manage relationships dialog"},
+        {"id": "b", "text": "Performance Analyzer, using Copy query or Run in DAX query view"},
+        {"id": "c", "text": "The OneLake catalog"},
+        {"id": "d", "text": "Lineage view"}
+      ],
+      "answer": "b",
+      "explanation": "Performance Analyzer records per-visual timing and lets you copy the exact DAX a visual runs or open it in DAX query view for tuning. It is the primary tool for locating slow visuals and their queries.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-performance-analyzer", "https://learn.microsoft.com/en-us/power-bi/guidance/report-performance-troubleshoot"]
+    },
+    {
+      "id": "q3-021",
+      "objective": "3.2.1",
+      "type": "single",
+      "stem": "Performance Analyzer shows most of a visual's time under Visual display rather than DAX query. What is the correct fix direction?",
+      "options": [
+        {"id": "a", "text": "Rewrite the measure to use variables"},
+        {"id": "b", "text": "Simplify the visual by reducing data points or elements"},
+        {"id": "c", "text": "Add more visuals to the page"},
+        {"id": "d", "text": "Switch the model to DirectQuery"}
+      ],
+      "answer": "b",
+      "explanation": "High Visual display time indicates the bottleneck is rendering, not the query, so reducing visual complexity or the number of data points helps more than tuning the measure.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-performance-analyzer", "https://learn.microsoft.com/en-us/power-bi/guidance/report-performance-troubleshoot"]
+    },
+    {
+      "id": "q3-022",
+      "objective": "3.2.2",
+      "type": "single",
+      "scenario_id": "s-perf",
+      "stem": "A measure computes an expensive prior-year value twice inside DIVIDE and runs slowly. What is the simplest optimization?",
+      "options": [
+        {"id": "a", "text": "Convert the measure to a calculated column"},
+        {"id": "b", "text": "Store the prior-year value in a VAR and reuse it"},
+        {"id": "c", "text": "Wrap the expression in FILTER"},
+        {"id": "d", "text": "Switch the table to DirectQuery"}
+      ],
+      "answer": "b",
+      "explanation": "Storing the prior-year CALCULATE result in a variable makes it evaluate once and reuse the value, cutting engine work in half. Calculated columns and FILTER would not address the duplicate evaluation.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables", "https://learn.microsoft.com/en-us/power-bi/guidance/dax-avoid-avoid-filter-as-filter-argument"]
+    },
+    {
+      "id": "q3-023",
+      "objective": "3.2.2",
+      "type": "single",
+      "stem": "Which is faster for filtering to red products: <code>CALCULATE([Sales], 'Product'[Color] = \"Red\")</code> or <code>CALCULATE([Sales], FILTER('Product', 'Product'[Color] = \"Red\"))</code>?",
+      "options": [
+        {"id": "a", "text": "The FILTER version, because it is explicit"},
+        {"id": "b", "text": "The Boolean version, because it uses the storage engine directly"},
+        {"id": "c", "text": "They perform identically"},
+        {"id": "d", "text": "Neither is valid DAX"}
+      ],
+      "answer": "b",
+      "explanation": "A Boolean filter argument folds to the fast storage engine, while FILTER iterates the table in the slower formula engine. Reserve FILTER for conditions needing multiple columns, a measure, or OR logic.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/guidance/dax-avoid-avoid-filter-as-filter-argument", "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables"]
+    },
+    {
+      "id": "q3-024",
+      "objective": "3.2.2",
+      "type": "multi",
+      "stem": "Which DAX choices generally improve performance? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Using Boolean column filters instead of FILTER for simple conditions"},
+        {"id": "b", "text": "Storing repeated sub-expressions in variables"},
+        {"id": "c", "text": "Using COUNTROWS instead of COUNT for row counts"},
+        {"id": "d", "text": "Adding complex calculated columns evaluated at query time"},
+        {"id": "e", "text": "Scanning large fact tables with FILTER for simple predicates"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Boolean filters, variables, and COUNTROWS are all storage-engine-friendly and efficient. Query-time calculated columns and scanning large facts with FILTER push work to the slower formula engine and should be avoided.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables", "https://learn.microsoft.com/en-us/power-bi/guidance/dax-countrows"]
+    },
+    {
+      "id": "q3-025",
+      "objective": "3.2.3",
+      "type": "single",
+      "scenario_id": "s-medallion",
+      "stem": "How long does a Direct Lake refresh (framing) typically take, and what does it do?",
+      "options": [
+        {"id": "a", "text": "Hours — it fully reloads all data into memory"},
+        {"id": "b", "text": "Seconds — it is metadata-only and repoints the model at the newest Delta Parquet files"},
+        {"id": "c", "text": "Minutes — it rewrites the Delta log"},
+        {"id": "d", "text": "It does not refresh; data is always live"}
+      ],
+      "answer": "b",
+      "explanation": "Framing is a metadata-only operation that completes in seconds by pointing the model at the newest Parquet files. No data reload occurs; column transcoding happens on demand at query time.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works", "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"]
+    },
+    {
+      "id": "q3-026",
+      "objective": "3.2.3",
+      "type": "single",
+      "stem": "During development you want any Direct Lake fallback condition to fail loudly instead of silently degrading to DirectQuery. Which setting achieves this?",
+      "options": [
+        {"id": "a", "text": "DirectLakeBehavior = Automatic"},
+        {"id": "b", "text": "DirectLakeBehavior = DirectLakeOnly"},
+        {"id": "c", "text": "DirectLakeBehavior = DirectQueryOnly"},
+        {"id": "d", "text": "Disable automatic updates"}
+      ],
+      "answer": "b",
+      "explanation": "Setting DirectLakeBehavior to DirectLakeOnly makes queries error when Direct Lake cannot be used, surfacing the root cause instead of hiding it behind DirectQuery. Automatic allows silent fallback and DirectQueryOnly forces DirectQuery for all queries.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works", "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"]
+    },
+    {
+      "id": "q3-027",
+      "objective": "3.2.3",
+      "type": "multi",
+      "stem": "Which conditions can trigger a Direct Lake on SQL model to fall back to DirectQuery? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "SQL RLS or OLS enforced on the endpoint"},
+        {"id": "b", "text": "A table sitting over an unmaterialized SQL view"},
+        {"id": "c", "text": "A single table exceeding capacity guardrails"},
+        {"id": "d", "text": "Using Boolean filters in a measure"},
+        {"id": "e", "text": "Renaming a measure"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "SQL security, unmaterialized views, and exceeding capacity guardrails all trigger DirectQuery fallback on the SQL variant. Measure-level DAX choices and renaming measures do not cause fallback.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works", "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"]
+    },
+    {
+      "id": "q3-028",
+      "objective": "3.2.4",
+      "type": "single",
+      "stem": "A new model must read Delta tables from two different lakehouses and add a small Import table. Which Direct Lake variant should you choose?",
+      "options": [
+        {"id": "a", "text": "Direct Lake on the SQL analytics endpoint"},
+        {"id": "b", "text": "Direct Lake on OneLake"},
+        {"id": "c", "text": "Either variant works identically"},
+        {"id": "d", "text": "Neither — use pure Import"}
+      ],
+      "answer": "b",
+      "explanation": "Direct Lake on OneLake can read from multiple Fabric Delta items and supports composite models with Import tables via web modeling. The SQL endpoint variant is single-source and non-composite.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview", "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works"]
+    },
+    {
+      "id": "q3-029",
+      "objective": "3.2.4",
+      "type": "single",
+      "stem": "Which Direct Lake variant guarantees the model never silently degrades to DirectQuery?",
+      "options": [
+        {"id": "a", "text": "Direct Lake on the SQL analytics endpoint"},
+        {"id": "b", "text": "Direct Lake on OneLake"},
+        {"id": "c", "text": "Both fall back equally"},
+        {"id": "d", "text": "Neither can avoid fallback"}
+      ],
+      "answer": "b",
+      "explanation": "Direct Lake on OneLake always runs in DirectLakeOnly mode and never falls back; if it exceeds a guardrail the refresh fails rather than degrading. The SQL endpoint variant can fall back to DirectQuery.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview", "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works"]
+    },
+    {
+      "id": "q3-030",
+      "objective": "3.2.5",
+      "type": "single",
+      "stem": "After configuring incremental refresh, Power BI Desktop warns that the query cannot fold. What is the impact and the likely cause?",
+      "options": [
+        {"id": "a", "text": "No impact; folding is optional for incremental refresh"},
+        {"id": "b", "text": "The RangeStart/RangeEnd filter cannot push to the source, so the whole table is scanned; a non-foldable step likely follows the source"},
+        {"id": "c", "text": "The parameters were named incorrectly"},
+        {"id": "d", "text": "The model is too small for incremental refresh"}
+      ],
+      "answer": "b",
+      "explanation": "Incremental refresh requires the RangeStart/RangeEnd filter to fold into a native source predicate. If a non-foldable step breaks folding, the filter cannot be pushed down and the entire table is scanned, losing the benefit.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-configure", "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-overview"]
+    },
+    {
+      "id": "q3-031",
+      "objective": "3.2.5",
+      "type": "tf",
+      "stem": "Incremental refresh requires two parameters named exactly RangeStart and RangeEnd, both of type DateTime.",
+      "answer": "true",
+      "explanation": "Power BI reserves the case-sensitive parameter names RangeStart and RangeEnd, both typed DateTime, to drive the partition boundaries for incremental refresh. Any other name or type will not work.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-configure", "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-overview"]
+    },
+    {
+      "id": "q3-032",
+      "objective": "3.2.5",
+      "type": "multi",
+      "stem": "Which statements about incremental refresh are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "The RangeStart/RangeEnd filter must be a folding step"},
+        {"id": "b", "text": "Detect data changes can skip partitions with no newer Last-Modified timestamp"},
+        {"id": "c", "text": "The first refresh loads all history and is slow, while later refreshes are fast"},
+        {"id": "d", "text": "The parameters can be named anything as long as they are DateTime"},
+        {"id": "e", "text": "Query folding is optional for the range filter"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "The range filter must fold, Detect data changes skips unchanged partitions, and the first refresh loads all history while subsequent ones are incremental. The parameters must be named exactly RangeStart and RangeEnd, and folding of the range filter is mandatory.",
+      "refs": ["https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-overview", "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-configure"]
+    }
+  ]
+}

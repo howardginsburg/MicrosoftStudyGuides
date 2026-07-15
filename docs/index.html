@@ -36,6 +36,12 @@
   .status.complete{background:#e6f4ec;color:var(--ok)}
   .status.draft{background:#fdf0dd;color:var(--draft)}
   .open{color:var(--blue);font-weight:600;font-size:13px}
+  .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .actions a{flex:1;text-align:center;text-decoration:none;font-weight:600;font-size:13px;border-radius:9px;padding:9px 10px;transition:background .15s,border-color .15s}
+  .actions .go-guide{background:var(--blue);color:#fff}
+  .actions .go-guide:hover{background:var(--navy)}
+  .actions .go-exam{background:#fff;border:1px solid var(--line);color:var(--blue)}
+  .actions .go-exam:hover{border-color:var(--blue2);background:var(--pale)}
   .empty,.error{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:32px;text-align:center;color:var(--mute)}
   .error{border-color:#e2b6b6;color:#8a3a3a}
   footer{border-top:1px solid var(--line);background:#fff}
@@ -79,6 +85,7 @@
   var countEl = document.getElementById("count");
   var searchEl = document.getElementById("search");
   var GUIDES = [];
+  var EXAMS = {};
 
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -92,8 +99,11 @@
     var status = (g.status==="complete") ? "complete" : "draft";
     var statusLabel = (status==="complete") ? "Complete" : "Draft";
     var refreshed = g.last_refreshed ? ("Updated "+esc(g.last_refreshed)) : "";
+    var exam = EXAMS[g.exam];
+    var examLink = exam
+      ? "<a class='go-exam' href='exam.html'>Practice exam ("+exam.total+" Q) &rarr;</a>" : "";
     return ""+
-      "<a class='card' href='"+esc(g.file)+"'>"+
+      "<div class='card'>"+
         "<span class='code'>"+esc(g.exam)+"</span>"+
         "<h2>"+esc(g.title||g.exam)+"</h2>"+
         "<p class='desc'>"+esc(g.description||"")+"</p>"+
@@ -101,9 +111,12 @@
         "<div class='meta'>"+
           "<span class='status "+status+"'>"+statusLabel+"</span>"+
           "<span>"+refreshed+"</span>"+
-          "<span class='open'>Open &rarr;</span>"+
         "</div>"+
-      "</a>";
+        "<div class='actions'>"+
+          "<a class='go-guide' href='"+esc(g.file)+"'>Open guide &rarr;</a>"+
+          examLink+
+        "</div>"+
+      "</div>";
   }
 
   function render(list){
@@ -127,18 +140,29 @@
 
   searchEl.addEventListener("input", applyFilter);
 
-  fetch("guides.json", {cache:"no-store"})
-    .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+  // Practice-exam catalog is optional; load it first so cards can show an exam link.
+  fetch("quiz/exams.json", {cache:"no-store"})
+    .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(data){
-      GUIDES = (data && data.guides) ? data.guides : [];
-      render(GUIDES);
+      if (data && data.exams){ data.exams.forEach(function(e){ EXAMS[e.exam] = e; }); }
     })
-    .catch(function(err){
-      catalog.innerHTML = "<div class='error'>Couldn&rsquo;t load the guide catalog (guides.json). "+
-        "If you opened this file directly, run it from a local server or view it on GitHub&nbsp;Pages.<br><small>"+
-        esc(err.message)+"</small></div>";
-      countEl.textContent = "";
-    });
+    .catch(function(){ /* no practice exams published yet — cards render without the link */ })
+    .then(loadGuides);
+
+  function loadGuides(){
+    fetch("guides.json", {cache:"no-store"})
+      .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+      .then(function(data){
+        GUIDES = (data && data.guides) ? data.guides : [];
+        render(GUIDES);
+      })
+      .catch(function(err){
+        catalog.innerHTML = "<div class='error'>Couldn&rsquo;t load the guide catalog (guides.json). "+
+          "If you opened this file directly, run it from a local server or view it on GitHub&nbsp;Pages.<br><small>"+
+          esc(err.message)+"</small></div>";
+        countEl.textContent = "";
+      });
+  }
 </script>
 </body>
 </html>

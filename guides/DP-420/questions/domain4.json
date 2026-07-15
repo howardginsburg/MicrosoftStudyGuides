@@ -1,0 +1,363 @@
+{
+  "domain": 4,
+  "domain_title": "Optimize an Azure Cosmos DB solution",
+  "questions": [
+    {
+      "id": "q4-001",
+      "objective": "4.1.1",
+      "type": "single",
+      "stem": "A write-heavy container automatically indexes several large text fields that are never queried, and write RU charges are high. What is the least-effort change that lowers write cost while still auto-indexing any new properties added later?",
+      "options": [
+        { "id": "a", "text": "Increase the container's provisioned RU/s." },
+        { "id": "b", "text": "Set the indexing mode to <code>none</code>." },
+        { "id": "c", "text": "Keep the included path <code>/*</code> and add the unqueried fields to the excluded paths." },
+        { "id": "d", "text": "Exclude <code>/*</code> and include only <code>/id</code>." }
+      ],
+      "answer": "c",
+      "explanation": "Keeping <code>/*</code> included lets new properties auto-index, while explicitly excluding the unqueried paths stops indexing them and reduces write RUs. Setting mode <code>none</code> would disable queries and TTL.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy", "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-indexing-policy"]
+    },
+    {
+      "id": "q4-002",
+      "objective": "4.1.1",
+      "type": "single",
+      "stem": "An engineer removes a property path from a container's indexing policy. When does the removal take effect?",
+      "options": [
+        { "id": "a", "text": "Immediately." },
+        { "id": "b", "text": "After the asynchronous index transformation completes." },
+        { "id": "c", "text": "Only after the container is restarted." },
+        { "id": "d", "text": "After the next write touches each affected item." }
+      ],
+      "answer": "a",
+      "explanation": "Index removals take effect right away; only index additions require an asynchronous, online transformation to finish before the new index is used.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy"]
+    },
+    {
+      "id": "q4-003",
+      "objective": "4.1.1",
+      "type": "multi",
+      "stem": "Which statements about the <code>none</code> indexing mode are correct? (Select all that apply.)",
+      "options": [
+        { "id": "a", "text": "It disables all queries on the container." },
+        { "id": "b", "text": "It blocks setting TTL on the container." },
+        { "id": "c", "text": "It is the recommended mode for read-heavy reporting containers." },
+        { "id": "d", "text": "It speeds up bulk ingestion by removing secondary-index write overhead." },
+        { "id": "e", "text": "New containers can enable lazy indexing as an alternative to it." }
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Mode <code>none</code> turns a container into a pure key/value store: queries are disabled and TTL cannot be set, but it makes bulk loads faster by dropping index maintenance. New containers cannot use lazy indexing.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy", "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-indexing-policy"]
+    },
+    {
+      "id": "q4-004",
+      "objective": "4.1.2",
+      "type": "single",
+      "stem": "A query <code>SELECT * FROM c WHERE c.status = 'active'</code> runs against a container partitioned by <code>/tenantId</code> and is expensive. Which single change most reduces its RU cost?",
+      "options": [
+        { "id": "a", "text": "Raise the provisioned RU/s on the container." },
+        { "id": "b", "text": "Add an <code>ORDER BY</code> clause to the query." },
+        { "id": "c", "text": "Wrap the filter in <code>LOWER(c.status)</code>." },
+        { "id": "d", "text": "Add a <code>c.tenantId = @id</code> predicate so the query targets a single partition." }
+      ],
+      "answer": "d",
+      "explanation": "Filtering on the partition key converts a cross-partition fan-out into a single-partition query, sharply lowering RU cost and latency. Higher RU/s only lets you run more queries before rate limiting.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics", "https://learn.microsoft.com/en-us/azure/cosmos-db/request-units"]
+    },
+    {
+      "id": "q4-005",
+      "objective": "4.1.2",
+      "type": "single",
+      "stem": "Which query characteristic prevents index use and forces a full scan?",
+      "options": [
+        { "id": "a", "text": "Filtering on the partition key." },
+        { "id": "b", "text": "Performing a point read by id and partition key." },
+        { "id": "c", "text": "Applying <code>LOWER()</code> to a property in the <code>WHERE</code> clause." },
+        { "id": "d", "text": "Projecting a single property in the <code>SELECT</code> list." }
+      ],
+      "answer": "c",
+      "explanation": "System functions that transform a property, such as <code>LOWER()</code> and <code>UPPER()</code>, defeat the index and cause a full scan that retrieves many documents to return few.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics"]
+    },
+    {
+      "id": "q4-006",
+      "objective": "4.1.2",
+      "type": "multi",
+      "stem": "Which statements about query cost and query execution metrics are correct? (Select all that apply.)",
+      "options": [
+        { "id": "a", "text": "A point read by id and partition key is the cheapest read operation." },
+        { "id": "b", "text": "A low IndexHitRatio with <code>RetrievedDocumentCount</code> much larger than <code>OutputDocumentCount</code> indicates a scan." },
+        { "id": "c", "text": "Raising provisioned RU/s lowers an individual query's request charge." },
+        { "id": "d", "text": "Cross-partition queries fan out to every physical partition and merge results client-side." }
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Point reads are the cheapest operation, a large retrieved-vs-output gap with a low IndexHitRatio signals a scan, and cross-partition queries execute on every partition and merge client-side. Higher RU/s does not reduce a query's per-operation charge.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics", "https://learn.microsoft.com/en-us/azure/cosmos-db/request-units"]
+    },
+    {
+      "id": "q4-007",
+      "objective": "4.1.3",
+      "type": "single",
+      "stem": "Using the .NET v3 SDK, which response member returns the RU cost of a point read?",
+      "options": [
+        { "id": "a", "text": "<code>response.ActivityId</code>" },
+        { "id": "b", "text": "<code>response.RequestCharge</code>" },
+        { "id": "c", "text": "<code>response.ETag</code>" },
+        { "id": "d", "text": "<code>response.Diagnostics</code>" }
+      ],
+      "answer": "b",
+      "explanation": "Every .NET v3 response exposes <code>RequestCharge</code> as a <code>double</code> holding the RUs consumed by that operation. The underlying HTTP header is <code>x-ms-request-charge</code>.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/find-request-unit-charge"]
+    },
+    {
+      "id": "q4-008",
+      "objective": "4.1.3",
+      "type": "tf",
+      "stem": "For a paged query, the <code>RequestCharge</code> reported on a single page equals the total RU cost of the entire query.",
+      "answer": "false",
+      "explanation": "A query can span multiple pages, so you must sum <code>RequestCharge</code> across every page to get the total cost; one page's charge is not the whole cost.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/find-request-unit-charge"]
+    },
+    {
+      "id": "q4-009",
+      "objective": "4.1.4",
+      "type": "single",
+      "stem": "A read-heavy app connects through a dedicated gateway in gateway mode but still incurs RU charges on repeated identical point reads. The account uses bounded staleness consistency. What explains this?",
+      "options": [
+        { "id": "a", "text": "The integrated cache serves only session or eventual reads, so bounded staleness bypasses it." },
+        { "id": "b", "text": "Gateway connection mode disables the integrated cache." },
+        { "id": "c", "text": "The item cache never caches point reads." },
+        { "id": "d", "text": "The integrated cache requires strong consistency to return 0-RU hits." }
+      ],
+      "answer": "a",
+      "explanation": "The integrated cache only serves reads at session or eventual consistency; strong, bounded staleness, and consistent prefix bypass it. Switch the request or account to session or eventual to get 0-RU cache hits.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/integrated-cache", "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-integrated-cache"]
+    },
+    {
+      "id": "q4-010",
+      "objective": "4.1.4",
+      "type": "single",
+      "stem": "An app can tolerate data up to 10 minutes old and wants to maximize integrated-cache hits. What should it configure?",
+      "options": [
+        { "id": "a", "text": "Lower <code>MaxIntegratedCacheStaleness</code> to 0." },
+        { "id": "b", "text": "Set <code>MaxIntegratedCacheStaleness</code> to 10 minutes." },
+        { "id": "c", "text": "Switch the account to strong consistency." },
+        { "id": "d", "text": "Use direct connection mode." }
+      ],
+      "answer": "b",
+      "explanation": "Raising <code>MaxIntegratedCacheStaleness</code> lets more repeated reads be served from cache before entries are treated as stale, increasing the hit rate. A value of 0 would force fresh reads and reduce hits.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-integrated-cache", "https://learn.microsoft.com/en-us/azure/cosmos-db/integrated-cache"]
+    },
+    {
+      "id": "q4-011",
+      "objective": "4.1.4",
+      "type": "multi",
+      "stem": "Which conditions are required to use the Azure Cosmos DB integrated cache? (Select all that apply.)",
+      "options": [
+        { "id": "a", "text": "A provisioned dedicated gateway." },
+        { "id": "b", "text": "Gateway connection mode." },
+        { "id": "c", "text": "Session or eventual consistency." },
+        { "id": "d", "text": "Strong consistency." },
+        { "id": "e", "text": "Direct connection mode." }
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "The integrated cache lives in the dedicated gateway and needs the dedicated-gateway connection, gateway connection mode, and session or eventual consistency. Strong consistency and direct mode bypass the cache.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/integrated-cache", "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-integrated-cache"]
+    },
+    {
+      "id": "q4-012",
+      "objective": "4.2.1",
+      "type": "single",
+      "stem": "A team wants to run code on every insert and update to a container with zero worker infrastructure and automatic scaling. What should they use?",
+      "options": [
+        { "id": "a", "text": "A change feed pull-model loop." },
+        { "id": "b", "text": "A stored procedure." },
+        { "id": "c", "text": "A materialized view." },
+        { "id": "d", "text": "An Azure Functions Cosmos DB trigger." }
+      ],
+      "answer": "d",
+      "explanation": "The Azure Functions Cosmos DB trigger wraps the change feed processor to deliver serverless, auto-scaling change-feed processing without managing any hosts.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-functions", "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed"]
+    },
+    {
+      "id": "q4-013",
+      "objective": "4.2.1",
+      "type": "single",
+      "stem": "An Azure Functions Cosmos DB trigger fails to start because no lease container exists. What is the simplest fix in the trigger binding?",
+      "options": [
+        { "id": "a", "text": "Manually pre-create a lease container with a <code>/category</code> partition key." },
+        { "id": "b", "text": "Set <code>CreateLeaseContainerIfNotExists = true</code> in the binding." },
+        { "id": "c", "text": "Switch the trigger to all-versions-and-deletes mode." },
+        { "id": "d", "text": "Enable continuous backup on the account." }
+      ],
+      "answer": "b",
+      "explanation": "Setting <code>CreateLeaseContainerIfNotExists = true</code> auto-creates the lease container (with a <code>/id</code> partition key) so processing can begin.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-functions"]
+    },
+    {
+      "id": "q4-014",
+      "objective": "4.2.2",
+      "type": "multi",
+      "stem": "Which statements about the change feed processor are correct? (Select all that apply.)",
+      "options": [
+        { "id": "a", "text": "It requires both a monitored container and a lease container." },
+        { "id": "b", "text": "Delivery is at-least-once, so the delegate should be idempotent." },
+        { "id": "c", "text": "You scale out by starting instances that share the processor name and lease container but use different instance names." },
+        { "id": "d", "text": "It is provided as the change feed processor in the Python and Node.js SDKs." }
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "The processor reads from the monitored container and checkpoints in the lease container, delivers changes at least once, and rebalances leases when you add instances with the same processor name. Python and Node.js use the pull model instead.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-processor"]
+    },
+    {
+      "id": "q4-015",
+      "objective": "4.2.2",
+      "type": "single",
+      "stem": "A Python developer wants to consume the change feed from within their application using the SDK. Which model must they use?",
+      "options": [
+        { "id": "a", "text": "The change feed pull model." },
+        { "id": "b", "text": "The change feed processor." },
+        { "id": "c", "text": "An Azure Functions trigger is the only supported option." },
+        { "id": "d", "text": "The change feed is not available in Python." }
+      ],
+      "answer": "a",
+      "explanation": "The change feed processor is a .NET v3 and Java v4 feature; Python and Node.js consume the change feed via the pull model with manual continuation tokens.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-processor", "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed"]
+    },
+    {
+      "id": "q4-016",
+      "objective": "4.2.3",
+      "type": "single",
+      "stem": "The change feed estimator for a processor reports steadily increasing lag. What action does this suggest?",
+      "options": [
+        { "id": "a", "text": "Reduce the number of processor instances." },
+        { "id": "b", "text": "Increase <code>MaxIntegratedCacheStaleness</code>." },
+        { "id": "c", "text": "Scale out by adding more processor instances." },
+        { "id": "d", "text": "Switch to all-versions-and-deletes mode." }
+      ],
+      "answer": "c",
+      "explanation": "Growing lag means changes arrive faster than they are processed; adding instances distributes leases across hosts and increases throughput.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-use-change-feed-estimator"]
+    },
+    {
+      "id": "q4-017",
+      "objective": "4.2.4",
+      "type": "single",
+      "stem": "You use the change feed to copy data into a read-optimized container that has a different partition key. Which statement is true?",
+      "options": [
+        { "id": "a", "text": "Propagation through the change feed is strongly consistent." },
+        { "id": "b", "text": "Replication is eventually consistent, and the destination partition key should suit the target query." },
+        { "id": "c", "text": "Ordering is guaranteed across the entire destination container." },
+        { "id": "d", "text": "The destination container must reuse the source partition key." }
+      ],
+      "answer": "b",
+      "explanation": "Change-feed replication is eventually consistent, and you choose the destination partition key for the target query. Order is guaranteed only within a single partition key value.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns"]
+    },
+    {
+      "id": "q4-018",
+      "objective": "4.2.5",
+      "type": "single",
+      "stem": "When a customer is deleted, all their orders must be archived, but the change feed in latest version mode never delivers deletes. How do you trigger the cascade?",
+      "options": [
+        { "id": "a", "text": "Add a foreign-key constraint on the orders container." },
+        { "id": "b", "text": "Switch the account to strong consistency." },
+        { "id": "c", "text": "Poll the customers container on a timer to find deletions." },
+        { "id": "d", "text": "Soft-delete the customer with a <code>deleted:true</code> flag so the update flows through the change feed." }
+      ],
+      "answer": "d",
+      "explanation": "Latest version mode omits hard deletes, so modeling the delete as a soft-delete update lets the consumer detect the flag and cascade the archival. Cosmos DB has no server-side foreign keys.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns", "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-modes"]
+    },
+    {
+      "id": "q4-019",
+      "objective": "4.2.6",
+      "type": "single",
+      "stem": "A leaderboard is maintained by incrementing per-player totals in a summary container from the change feed. Why must the increment logic be idempotent?",
+      "options": [
+        { "id": "a", "text": "Because the change feed guarantees exactly-once delivery." },
+        { "id": "b", "text": "Because delivery is at-least-once, so a reprocessed event could double-count." },
+        { "id": "c", "text": "Because point reads of the summary document cost RUs." },
+        { "id": "d", "text": "Because a composite index is required to increment values." }
+      ],
+      "answer": "b",
+      "explanation": "The change feed delivers at least once, so an event may be processed more than once; without idempotency a naive increment would double-count and corrupt the persisted aggregate.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns"]
+    },
+    {
+      "id": "q4-020",
+      "objective": "4.2.7",
+      "type": "single",
+      "stem": "A container grows without bound, but only the last 90 days are queried. How do you keep it lean while retaining history cheaply?",
+      "options": [
+        { "id": "a", "text": "Increase the provisioned RU/s on the container." },
+        { "id": "b", "text": "Set the indexing mode to <code>none</code>." },
+        { "id": "c", "text": "Use the change feed to copy aged items to Azure Blob Storage and set TTL to expire them from Cosmos DB." },
+        { "id": "d", "text": "Add composite indexes for the history queries." }
+      ],
+      "answer": "c",
+      "explanation": "Tiering with the change feed copies aged records to cheap Blob Storage, and TTL then expires the live copies automatically, shrinking RU and storage cost on the operational container.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns", "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-modes"]
+    },
+    {
+      "id": "q4-021",
+      "objective": "4.3.1",
+      "type": "single",
+      "stem": "A telemetry container ingests millions of writes per hour and is queried only occasionally on two fields. Which indexing strategy minimizes write cost?",
+      "options": [
+        { "id": "a", "text": "Keep the default policy that indexes <code>/*</code>." },
+        { "id": "b", "text": "Exclude <code>/*</code> and include only the two queried paths." },
+        { "id": "c", "text": "Set the indexing mode to <code>none</code>." },
+        { "id": "d", "text": "Add composite indexes on every property." }
+      ],
+      "answer": "b",
+      "explanation": "Indexing only the two paths you actually query minimizes per-write index maintenance on a high-ingest workload. Mode <code>none</code> would break the occasional queries and block TTL.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/index-overview", "https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy"]
+    },
+    {
+      "id": "q4-022",
+      "objective": "4.3.2",
+      "type": "single",
+      "stem": "An app runs proximity searches over GPS coordinates, but the queries are slow and unindexed. Which index kind is needed?",
+      "options": [
+        { "id": "a", "text": "A range index." },
+        { "id": "b", "text": "A composite index." },
+        { "id": "c", "text": "A spatial index, which is not created by default." },
+        { "id": "d", "text": "A tuple index." }
+      ],
+      "answer": "c",
+      "explanation": "Geospatial queries over Point, Polygon, MultiPolygon, and LineString require a spatial index, which is not part of the default policy and must be added explicitly.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/index-overview", "https://learn.microsoft.com/en-us/azure/cosmos-db/sql-query-geospatial-index"]
+    },
+    {
+      "id": "q4-023",
+      "objective": "4.3.5",
+      "type": "multi",
+      "stem": "Which techniques help optimize indexing for the least write overhead while keeping queries fast? (Select all that apply.)",
+      "options": [
+        { "id": "a", "text": "Keep <code>/*</code> included and exclude large unqueried subtrees." },
+        { "id": "b", "text": "Add composite indexes for multi-property <code>ORDER BY</code> and multi-filter queries." },
+        { "id": "c", "text": "Add the new index before removing the old one when swapping indexes." },
+        { "id": "d", "text": "Leave <code>PopulateIndexMetrics</code> enabled permanently in production." }
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Excluding unqueried subtrees lowers write RUs, composite indexes serve real query shapes, and add-before-remove avoids a coverage gap because removals are instant while additions require a transformation. <code>PopulateIndexMetrics</code> adds overhead and is for debugging only.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/index-metrics", "https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics"]
+    },
+    {
+      "id": "q4-024",
+      "objective": "4.3.4",
+      "type": "single",
+      "scenario_id": "s-social",
+      "stem": "The hottest operation loads a single user's most recent posts by filtering on <code>userId</code> and sorting by <code>createdAt</code> descending, and the team wants cheap, predictable reads. Which single change best serves this query?",
+      "options": [
+        { "id": "a", "text": "Add a composite index on <code>(userId ASC, createdAt DESC)</code> to serve the filter-and-sort." },
+        { "id": "b", "text": "Set the indexing mode to <code>none</code> on the posts container." },
+        { "id": "c", "text": "Remove all indexes to lower write cost." },
+        { "id": "d", "text": "Wrap <code>createdAt</code> in <code>LOWER()</code> in the query." }
+      ],
+      "answer": "a",
+      "explanation": "A query that filters on one property and orders by another needs a composite index whose path sequence and sort orders match; <code>(userId ASC, createdAt DESC)</code> serves loading a user's recent posts efficiently and predictably.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy", "https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-indexing-policy"]
+    }
+  ]
+}

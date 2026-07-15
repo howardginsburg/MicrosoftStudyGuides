@@ -1,0 +1,20 @@
+{
+  "scenarios": [
+    {
+      "id": "s-rag",
+      "text": "Northwind Health is building an internal chat assistant that answers employee questions from a large library of HR and benefits PDFs held in Azure Blob Storage. Leadership wants grounded answers with source citations, a low rate of fabricated content, and a guarantee that all conversation history remains inside the company's own Azure subscription for compliance."
+    },
+    {
+      "id": "s-agents",
+      "text": "Contoso Travel is building a multi-agent concierge. A primary coordinating agent delegates to specialized sub-agents that look up flight prices, check hotel availability, and send booking confirmation emails to customers. Some of these actions are irreversible and must never execute without an explicit human check."
+    },
+    {
+      "id": "s-docpipe",
+      "text": "Fabrikam Insurance receives scanned claim packets that mix typed forms, handwritten notes, embedded photographs, and short video clips. The team needs an automated pipeline that reads the documents, extracts structured fields with source citations, describes the visual content, and indexes everything so a downstream retrieval agent can answer adjuster questions."
+    },
+    {
+      "id": "s-govern",
+      "text": "Adatum is rolling out a customer-facing generative assistant across several regions and must pass a responsible-AI review board. The board requires content filtering, defense against prompt injection, complete trace-based auditing, ongoing quality monitoring in production, and least-privilege access with no API keys stored in application code."
+    }
+  ]
+}

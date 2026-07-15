@@ -1,0 +1,501 @@
+{
+  "domain": 2,
+  "domain_title": "Implement generative AI and agentic solutions",
+  "questions": [
+    {
+      "id": "q2-001",
+      "objective": "2.1.1",
+      "type": "single",
+      "stem": "A team fine-tuned a model on proprietary data and needs a dedicated endpoint with predictable throughput. Which deployment type is required?",
+      "options": [
+        {"id": "a", "text": "Serverless API"},
+        {"id": "b", "text": "Managed Compute"},
+        {"id": "c", "text": "Global Batch"},
+        {"id": "d", "text": "Model Router"}
+      ],
+      "answer": "b",
+      "explanation": "Serverless API deployments cannot host custom fine-tuned weights. Managed Compute runs the model on a dedicated container endpoint that hosts custom weights and delivers consistent throughput through Azure Machine Learning scaling rules.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/foundry-classic/how-to/deploy-models-managed", "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview"]
+    },
+    {
+      "id": "q2-002",
+      "objective": "2.1.1",
+      "type": "multi",
+      "stem": "Which statements about inference SDK selection in Azure AI Foundry are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "The azure-ai-inference package is the recommended cross-model abstraction over the Model Inference REST API"},
+        {"id": "b", "text": "Switching models with azure-ai-inference can require only changing the model parameter"},
+        {"id": "c", "text": "azure-ai-projects is needed for Foundry-native features such as agents and evaluations"},
+        {"id": "d", "text": "Managed compute autoscaling is configured directly in the Foundry portal deployment blade"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "The azure-ai-inference package provides a model-agnostic interface, so only the model parameter changes when switching, while azure-ai-projects unlocks Foundry-native features. Managed compute autoscaling is configured through Azure Machine Learning online endpoint rules, not the Foundry portal.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview", "https://learn.microsoft.com/en-us/azure/ai-foundry/model-inference/reference/reference-model-inference-chat-completions"]
+    },
+    {
+      "id": "q2-003",
+      "objective": "2.1.2",
+      "type": "single",
+      "stem": "A RAG application sometimes returns facts that appear in no retrieved document. Which evaluator best measures this problem?",
+      "options": [
+        {"id": "a", "text": "Fluency"},
+        {"id": "b", "text": "Relevance"},
+        {"id": "c", "text": "Groundedness"},
+        {"id": "d", "text": "Coherence"}
+      ],
+      "answer": "c",
+      "explanation": "Groundedness measures whether each claim in a response is supported by the provided context, so a low score flags fabrication. Relevance measures topical fit, while Fluency and Coherence measure language quality and logical flow.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/foundry/concepts/retrieval-augmented-generation", "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview"]
+    },
+    {
+      "id": "q2-004",
+      "objective": "2.1.2",
+      "type": "single",
+      "scenario_id": "s-rag",
+      "stem": "For the Northwind Health assistant, an Azure AI Search index must hold embeddings for semantic similarity. What field type must the vector field use?",
+      "options": [
+        {"id": "a", "text": "Edm.String"},
+        {"id": "b", "text": "Collection(Edm.Single)"},
+        {"id": "c", "text": "Edm.Double"},
+        {"id": "d", "text": "Collection(Edm.String)"}
+      ],
+      "answer": "b",
+      "explanation": "Vector fields in Azure AI Search must be declared as Collection(Edm.Single) to hold the array of single-precision floats that make up an embedding. String or scalar types cannot store a vector.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview", "https://learn.microsoft.com/en-us/azure/foundry/concepts/retrieval-augmented-generation"]
+    },
+    {
+      "id": "q2-005",
+      "objective": "2.1.3",
+      "type": "single",
+      "stem": "A team built an orchestration pipeline using Prompt flow. What is the recommended migration target for new development?",
+      "options": [
+        {"id": "a", "text": "The legacy Completions API"},
+        {"id": "b", "text": "The Microsoft Agent Framework and Responses API"},
+        {"id": "c", "text": "A hand-rolled polling loop over raw REST"},
+        {"id": "d", "text": "The Assistants API only"}
+      ],
+      "answer": "b",
+      "explanation": "Prompt flow is deprecated, and the Microsoft Agent Framework together with the Responses API is its designated replacement for Foundry workflow orchestration. The Completions API is not an orchestration surface.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/quickstarts/responses-api"]
+    },
+    {
+      "id": "q2-006",
+      "objective": "2.1.3",
+      "type": "tf",
+      "stem": "Prompt flow is deprecated, and new Foundry workflow development should favor the Agent Framework and Responses API rather than Prompt flow.",
+      "answer": "true",
+      "explanation": "Prompt flow is officially deprecated with a scheduled retirement, so production best practice for new workflows is to build on the Agent Framework and the Responses API.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/quickstarts/responses-api"]
+    },
+    {
+      "id": "q2-007",
+      "objective": "2.1.4",
+      "type": "single",
+      "stem": "A compliance team must verify that no generated content contains self-harm language. Which evaluator category applies, and at what granularity does it operate?",
+      "options": [
+        {"id": "a", "text": "A quality evaluator operating on full conversations"},
+        {"id": "b", "text": "A safety evaluator operating on individual turns"},
+        {"id": "c", "text": "An agent evaluator operating on tool calls"},
+        {"id": "d", "text": "A textual similarity evaluator operating on references"}
+      ],
+      "answer": "b",
+      "explanation": "Safety evaluators detect harm categories such as self-harm and operate on individual turns rather than entire conversation threads. Quality and agent evaluators measure different dimensions and are not the correct category for content-safety validation.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/evaluate-generative-ai-app", "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/evaluation-metrics-built-in"]
+    },
+    {
+      "id": "q2-008",
+      "objective": "2.1.4",
+      "type": "multi",
+      "stem": "Which statements about the Foundry Evaluation service are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "AI-assisted quality evaluators require a deployed judge model"},
+        {"id": "b", "text": "Safety evaluators can score a full multi-turn conversation as a single unit"},
+        {"id": "c", "text": "Evaluations can target datasets, model turns, agent runs, or historical traces"},
+        {"id": "d", "text": "Agent evaluators such as Tool Call Success need agent trace data, not just model outputs"}
+      ],
+      "answer": ["a", "c", "d"],
+      "explanation": "Quality evaluators use a judge model, evaluations can target datasets, models, agents, or traces, and agent evaluators need trace data. Safety evaluators operate on individual turns rather than scoring an entire conversation as one unit.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/evaluation-metrics-built-in", "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/cloud-evaluation"]
+    },
+    {
+      "id": "q2-009",
+      "objective": "2.1.5",
+      "type": "single",
+      "stem": "A developer needs one authenticated session that can both list a Foundry project's connections and obtain an OpenAI-compatible inference client. Which class provides both?",
+      "options": [
+        {"id": "a", "text": "AzureKeyCredential"},
+        {"id": "b", "text": "AIProjectClient from azure-ai-projects"},
+        {"id": "c", "text": "SearchClient from azure-search-documents"},
+        {"id": "d", "text": "SpeechConfig from the Speech SDK"}
+      ],
+      "answer": "b",
+      "explanation": "AIProjectClient wraps the Foundry project endpoint and exposes sub-clients for connections and inference in a single authenticated session. The other classes are scoped to credentials, search, or speech only.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview", "https://learn.microsoft.com/en-us/python/api/overview/azure/ai-projects-readme"]
+    },
+    {
+      "id": "q2-010",
+      "objective": "2.1.5",
+      "type": "single",
+      "stem": "An agent tool references an external Azure AI Search service, but the deployment fails to reach it. What is a common root cause specific to Foundry?",
+      "options": [
+        {"id": "a", "text": "The model context window is too small"},
+        {"id": "b", "text": "No project connection is configured for the external service"},
+        {"id": "c", "text": "Streaming was disabled on the client"},
+        {"id": "d", "text": "The judge model was not deployed"}
+      ],
+      "answer": "b",
+      "explanation": "Foundry agents reach external services through configured project connections. A missing connection is a frequent deployment failure because the tool cannot authenticate or query the service without one.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/connections-add", "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview"]
+    },
+    {
+      "id": "q2-011",
+      "objective": "2.1.6",
+      "type": "multi",
+      "stem": "Which statements about connecting an application to a Foundry project are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "DefaultAzureCredential selects the right credential across local, CI, and Azure-hosted environments without code changes"},
+        {"id": "b", "text": "Foundry User is the least-privilege role for inference and agent invocation"},
+        {"id": "c", "text": "Full prompt and response content is captured in traces by default"},
+        {"id": "d", "text": "The project endpoint follows the pattern .../api/projects/<project-name>"}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "DefaultAzureCredential chains through providers automatically, Foundry User is the least-privilege inference role, and the project endpoint uses the .../api/projects/ path. Content recording is disabled by default because prompt and response text may contain PII.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-foundry", "https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential"]
+    },
+    {
+      "id": "q2-012",
+      "objective": "2.1.6",
+      "type": "single",
+      "stem": "What is the minimum RBAC role a developer needs to invoke an agent in a Foundry project?",
+      "options": [
+        {"id": "a", "text": "Foundry Owner"},
+        {"id": "b", "text": "Foundry Account Owner"},
+        {"id": "c", "text": "Foundry User"},
+        {"id": "d", "text": "Contributor at subscription scope"}
+      ],
+      "answer": "c",
+      "explanation": "Foundry User is the least-privilege role that grants inference and agent invocation rights. The Owner and Account Owner roles are for administration and should not be assigned to application developers by default.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-foundry", "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview"]
+    },
+    {
+      "id": "q2-013",
+      "objective": "2.2.1",
+      "type": "multi",
+      "stem": "Which elements make up the definition of a Foundry agent? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "A model selected from the catalog"},
+        {"id": "b", "text": "Instructions defining role, scope, and constraints"},
+        {"id": "c", "text": "A set of tool definitions"},
+        {"id": "d", "text": "A dedicated Azure subscription per agent"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "An agent is defined by a model, its instructions, and its tools. Agents do not require a dedicated subscription; they run within a Foundry project.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/development-lifecycle"]
+    },
+    {
+      "id": "q2-014",
+      "objective": "2.2.1",
+      "type": "single",
+      "stem": "A developer building a multi-turn chatbot does not want to manually resend the full conversation history on each user message. Which Foundry construct handles this automatically?",
+      "options": [
+        {"id": "a", "text": "A thread"},
+        {"id": "b", "text": "A run step"},
+        {"id": "c", "text": "A guardrail"},
+        {"id": "d", "text": "A scoring profile"}
+      ],
+      "answer": "a",
+      "explanation": "A thread stores the ordered message history across turns, so appending a new message and starting a run is enough. The Foundry service supplies the full thread context to the model on each run.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/agent-applications"]
+    },
+    {
+      "id": "q2-015",
+      "objective": "2.2.2",
+      "type": "single",
+      "stem": "An agent run enters requires_action, and the application submits tool outputs 15 minutes after the run started. What happens?",
+      "options": [
+        {"id": "a", "text": "The outputs are accepted and the run completes"},
+        {"id": "b", "text": "The run fails because tool outputs expire 10 minutes after run creation"},
+        {"id": "c", "text": "The run restarts automatically from the beginning"},
+        {"id": "d", "text": "The outputs queue until the next run"}
+      ],
+      "answer": "b",
+      "explanation": "Tool outputs must be submitted within 10 minutes of run creation. A submission after that window is rejected and the run transitions to a failed state.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/function-calling", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/file-search"]
+    },
+    {
+      "id": "q2-016",
+      "objective": "2.2.2",
+      "type": "single",
+      "stem": "An agent must answer questions from a fixed set of PDF documents without the developer writing any retrieval code. Which built-in tool fits?",
+      "options": [
+        {"id": "a", "text": "Function calling"},
+        {"id": "b", "text": "File search"},
+        {"id": "c", "text": "Code Interpreter"},
+        {"id": "d", "text": "Grounding with Bing Search"}
+      ],
+      "answer": "b",
+      "explanation": "File search automatically indexes uploaded documents and lets the agent retrieve and cite content, requiring no custom retrieval code. Function calling suits dynamic data, and Bing grounding targets live web content.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/file-search", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/function-calling"]
+    },
+    {
+      "id": "q2-017",
+      "objective": "2.2.3",
+      "type": "single",
+      "stem": "An agent is configured with an Azure AI Search tool and a valid connection but returns no results despite data being present in the index. What should be verified?",
+      "options": [
+        {"id": "a", "text": "That the model temperature is above 0.5"},
+        {"id": "b", "text": "That the Foundry project connection name matches the index name exactly"},
+        {"id": "c", "text": "That Code Interpreter is also attached"},
+        {"id": "d", "text": "That streaming is enabled on the client"}
+      ],
+      "answer": "b",
+      "explanation": "The Azure AI Search tool requires the project connection name to match the index name. A mismatch causes silent retrieval failures where the tool appears attached but returns nothing.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/azure-ai-search", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/openapi-spec"]
+    },
+    {
+      "id": "q2-018",
+      "objective": "2.2.3",
+      "type": "single",
+      "stem": "A team wants an agent to call an internal REST API described by an OpenAPI 3.0 spec, authenticating with the agent's managed identity. Which tool supports this?",
+      "options": [
+        {"id": "a", "text": "The Code Interpreter tool"},
+        {"id": "b", "text": "The OpenAPI tool with managed identity authentication"},
+        {"id": "c", "text": "The File Search tool"},
+        {"id": "d", "text": "The Fabric Data Agent"}
+      ],
+      "answer": "b",
+      "explanation": "The OpenAPI tool accepts a 3.0 or 3.1 spec and supports anonymous, API key, and managed identity authentication, letting the agent call external HTTP services securely without stored credentials.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/openapi-spec", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/code-interpreter"]
+    },
+    {
+      "id": "q2-019",
+      "objective": "2.2.3",
+      "type": "multi",
+      "stem": "Which statements about the Azure AI Search tool for Foundry agents are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Each tool instance supports only one index"},
+        {"id": "b", "text": "It requires a configured Foundry project connection"},
+        {"id": "c", "text": "It supports simple, semantic, vector, and hybrid search types"},
+        {"id": "d", "text": "It can query multiple indexes in a single tool instance"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "The Azure AI Search tool binds to one index per instance, requires a project connection, and supports several search types. Querying multiple indexes requires the connected agents pattern with a separate tool per index.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/azure-ai-search", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/connected-agents"]
+    },
+    {
+      "id": "q2-020",
+      "objective": "2.2.4",
+      "type": "single",
+      "stem": "A connected-agents design nests an orchestrator, a subagent, and that subagent's own subagent. When the middle subagent tries to call its child, what happens?",
+      "options": [
+        {"id": "a", "text": "The run completes normally with three tiers"},
+        {"id": "b", "text": "The run fails with an Assistant Tool Call Depth Error"},
+        {"id": "c", "text": "The child subagent is silently ignored"},
+        {"id": "d", "text": "The orchestrator restarts the run"}
+      ],
+      "answer": "b",
+      "explanation": "The connected agents pattern enforces a maximum depth of 2. A subagent cannot invoke its own subagent, and attempting a third tier produces an Assistant Tool Call Depth Error.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/connected-agents", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/workflow"]
+    },
+    {
+      "id": "q2-021",
+      "objective": "2.2.4",
+      "type": "single",
+      "scenario_id": "s-agents",
+      "stem": "For the Contoso Travel concierge, a ConnectedAgentTool is created with name set to \"flight price bot\". What is the result?",
+      "options": [
+        {"id": "a", "text": "It works because names are free-form"},
+        {"id": "b", "text": "A validation error, because the name may contain only letters and underscores"},
+        {"id": "c", "text": "The spaces are automatically converted to hyphens"},
+        {"id": "d", "text": "The subagent runs but cannot return results"}
+      ],
+      "answer": "b",
+      "explanation": "The name field for a ConnectedAgentTool must contain only letters and underscores. A value with spaces causes a validation error; flight_price_bot would be valid.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/connected-agents", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/agent-applications"]
+    },
+    {
+      "id": "q2-022",
+      "objective": "2.2.4",
+      "type": "tf",
+      "stem": "In a connected-agents solution, subagent responses are returned only to the main agent, which synthesizes the final answer for the user.",
+      "answer": "true",
+      "explanation": "Subagents report back to the main orchestrating agent, which combines their outputs into a single cohesive response. End users never interact directly with a subagent.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/connected-agents", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/workflow"]
+    },
+    {
+      "id": "q2-023",
+      "objective": "2.2.5",
+      "type": "single",
+      "scenario_id": "s-agents",
+      "stem": "The Contoso Travel agent has a tool that emails booking confirmations to customers, and the team wants a human to approve every send. Which tool approval mode should be set?",
+      "options": [
+        {"id": "a", "text": "never_require"},
+        {"id": "b", "text": "always_require"},
+        {"id": "c", "text": "annotate_only"},
+        {"id": "d", "text": "spotlight"}
+      ],
+      "answer": "b",
+      "explanation": "always_require sends an approval request for every invocation through the human-in-the-loop flow, which is appropriate for outbound, potentially irreversible actions such as customer emails. never_require runs fully autonomously.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/human-in-the-loop-agui", "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"]
+    },
+    {
+      "id": "q2-024",
+      "objective": "2.2.5",
+      "type": "single",
+      "stem": "An agent keeps invoking the wrong tool for certain requests even though the correct tool exists. Which preview guardrail signal is designed to surface this deviation?",
+      "options": [
+        {"id": "a", "text": "Spotlighting"},
+        {"id": "b", "text": "Task Adherence"},
+        {"id": "c", "text": "Groundedness Pro"},
+        {"id": "d", "text": "Protected Material detection"}
+      ],
+      "answer": "b",
+      "explanation": "Task Adherence detects misaligned tool invocations, including wrong tool selection, incorrect inputs, and responses inconsistent with user intent, producing a signal to block or escalate. Spotlighting mitigates prompt injection instead.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/agentic-workflows-task-adherence", "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"]
+    },
+    {
+      "id": "q2-025",
+      "objective": "2.2.5",
+      "type": "multi",
+      "stem": "Which statements about safeguards for autonomous Foundry agents are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "The AG-UI protocol implements human-in-the-loop approval flows"},
+        {"id": "b", "text": "Spotlighting is a technique to mitigate cross-prompt injection attacks"},
+        {"id": "c", "text": "If no guardrail is explicitly assigned to an agent, the model's default guardrail applies"},
+        {"id": "d", "text": "never_require is the correct mode for irreversible high-risk actions"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "AG-UI implements HITL approval, Spotlighting mitigates cross-prompt injection, and the model's default guardrail applies when none is assigned. Irreversible high-risk actions should use always_require, not never_require.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/human-in-the-loop-agui", "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"]
+    },
+    {
+      "id": "q2-026",
+      "objective": "2.2.6",
+      "type": "tf",
+      "stem": "The Foundry Agent Monitoring Dashboard requires an Application Insights resource to be connected to the project before it can display run telemetry.",
+      "answer": "true",
+      "explanation": "Agent run traces stream to Application Insights, and the monitoring dashboard depends on that connection. Without it, no telemetry is captured and the dashboard has nothing to display.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard", "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/trace-agent-concept"]
+    },
+    {
+      "id": "q2-027",
+      "objective": "2.2.6",
+      "type": "single",
+      "stem": "An agent run has a status of failed. What is the first programmatic step to diagnose the root cause?",
+      "options": [
+        {"id": "a", "text": "Raise the model temperature and re-run"},
+        {"id": "b", "text": "Inspect run.last_error.message"},
+        {"id": "c", "text": "Delete the thread and start over"},
+        {"id": "d", "text": "Increase the PTU allocation"}
+      ],
+      "answer": "b",
+      "explanation": "The last_error property on a failed run holds the error code and message describing why the run failed. After reading it, trace spans in Application Insights pinpoint the specific tool or model step that failed.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/evaluate-agents", "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard"]
+    },
+    {
+      "id": "q2-028",
+      "objective": "2.3.1",
+      "type": "single",
+      "stem": "A developer sets temperature to 0.9 and top_p to 0.5 at the same time. Why is this discouraged?",
+      "options": [
+        {"id": "a", "text": "top_p must always be higher than temperature"},
+        {"id": "b", "text": "Temperature and top_p are alternative randomness controls that should not be tuned simultaneously"},
+        {"id": "c", "text": "The model ignores both parameters when set together"},
+        {"id": "d", "text": "Setting both forces deterministic output"}
+      ],
+      "answer": "b",
+      "explanation": "Temperature and top_p both restrict the token distribution independently, so adjusting both at once produces compounding, unpredictable effects. Best practice is to tune one and leave the other at its default.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/openai/reference", "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering"]
+    },
+    {
+      "id": "q2-029",
+      "objective": "2.3.1",
+      "type": "single",
+      "stem": "An application requires the model to always return output conforming to a specific JSON structure. Which response_format setting enforces schema compliance?",
+      "options": [
+        {"id": "a", "text": "response_format of type text"},
+        {"id": "b", "text": "response_format of type json_object"},
+        {"id": "c", "text": "response_format of type json_schema"},
+        {"id": "d", "text": "No response_format, relying on prompt wording alone"}
+      ],
+      "answer": "c",
+      "explanation": "A json_schema response format validates the output against a defined schema, guaranteeing the exact shape. The json_object type only guarantees syntactically valid JSON, not a specific structure.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/json-mode", "https://learn.microsoft.com/en-us/azure/ai-services/openai/reference"]
+    },
+    {
+      "id": "q2-030",
+      "objective": "2.3.1",
+      "type": "multi",
+      "stem": "Which statements about tuning generation behavior are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "The system message is the most impactful lever and should be tuned before numeric parameters"},
+        {"id": "b", "text": "Lower temperature produces more deterministic responses"},
+        {"id": "c", "text": "max_tokens sets a hard upper limit on response length"},
+        {"id": "d", "text": "temperature and top_p should always be adjusted together for best results"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "The system message shapes output most strongly, lower temperature increases determinism, and max_tokens caps response length. Temperature and top_p are alternative controls and should not be adjusted simultaneously.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering", "https://learn.microsoft.com/en-us/azure/ai-services/openai/reference"]
+    },
+    {
+      "id": "q2-031",
+      "objective": "2.3.2",
+      "type": "single",
+      "stem": "A team wants a model to catch its own arithmetic errors before returning an answer. Which pattern implements this?",
+      "options": [
+        {"id": "a", "text": "A single call with a higher temperature"},
+        {"id": "b", "text": "A self-critique loop that generates, critiques, then revises"},
+        {"id": "c", "text": "Disabling the system message"},
+        {"id": "d", "text": "Reducing max_tokens to force brevity"}
+      ],
+      "answer": "b",
+      "explanation": "A self-critique loop makes an initial call, a second call to identify errors, and optionally a third to produce the revised answer, catching mistakes before the user sees the response. The other options do not add a review step.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering", "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/agent-optimizer-overview"]
+    },
+    {
+      "id": "q2-032",
+      "objective": "2.3.2",
+      "type": "single",
+      "stem": "An application must solve advanced mathematical proofs that require deep multi-step reasoning. Which choice is most reliable?",
+      "options": [
+        {"id": "a", "text": "A standard chat model with a short prompt"},
+        {"id": "b", "text": "An o-series reasoning model such as o3"},
+        {"id": "c", "text": "An embedding model"},
+        {"id": "d", "text": "A small language model for edge devices"}
+      ],
+      "answer": "b",
+      "explanation": "o-series reasoning models perform internal multi-step reasoning without explicit chain-of-thought prompting and are optimized for math, logic, and complex inference. Standard, embedding, and small models are less reliable for advanced proofs.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/o1-o3-chain-of-thought", "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering"]
+    },
+    {
+      "id": "q2-033",
+      "objective": "2.3.3",
+      "type": "single",
+      "stem": "An operations team needs full prompt and response text captured in distributed traces for debugging. What must they change?",
+      "options": [
+        {"id": "a", "text": "Increase the model context window"},
+        {"id": "b", "text": "Set AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED to true"},
+        {"id": "c", "text": "Switch to a Serverless API deployment"},
+        {"id": "d", "text": "Assign the Foundry Account Owner role"}
+      ],
+      "answer": "b",
+      "explanation": "By default traces capture span metadata but not content text, to avoid PII exposure. Setting AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED to true opts in to recording full prompt and response text.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/trace-agents", "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/observability-overview"]
+    },
+    {
+      "id": "q2-034",
+      "objective": "2.3.4",
+      "type": "single",
+      "stem": "An application calls a Model Router deployment and needs to log which underlying model handled each request for cost attribution. Where is that information available?",
+      "options": [
+        {"id": "a", "text": "In a separate billing export only"},
+        {"id": "b", "text": "In the response.model field of the API response"},
+        {"id": "c", "text": "In the request headers sent by the client"},
+        {"id": "d", "text": "It is never exposed to the caller"}
+      ],
+      "answer": "b",
+      "explanation": "The Model Router returns the name of the actual model it selected in the response.model field, which can be logged per turn for cost attribution and debugging.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/model-router", "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/model-router"]
+    }
+  ]
+}

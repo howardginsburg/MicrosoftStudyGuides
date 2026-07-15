@@ -1,0 +1,211 @@
+{
+  "domain": 4,
+  "domain_title": "Implement text analysis solutions",
+  "questions": [
+    {
+      "id": "q4-001",
+      "objective": "4.1.1",
+      "type": "single",
+      "stem": "A team must extract organization-specific entity types that are not part of any built-in taxonomy, such as internal part numbers. Which capability should they use?",
+      "options": [
+        {"id": "a", "text": "Prebuilt Named Entity Recognition"},
+        {"id": "b", "text": "Custom Named Entity Recognition trained on labeled data"},
+        {"id": "c", "text": "Key phrase extraction"},
+        {"id": "d", "text": "Language detection"}
+      ],
+      "answer": "b",
+      "explanation": "Prebuilt NER recognizes only a fixed taxonomy of general categories. Custom NER lets you label examples of your own entity types and train a model to extract them.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/language-service/named-entity-recognition/overview", "https://learn.microsoft.com/azure/ai-services/language-service/summarization/overview"]
+    },
+    {
+      "id": "q4-002",
+      "objective": "4.1.1",
+      "type": "single",
+      "stem": "A summarization feature must produce a novel, rephrased summary rather than reusing verbatim sentences from the source. Which mode is required?",
+      "options": [
+        {"id": "a", "text": "Extractive summarization"},
+        {"id": "b", "text": "Abstractive summarization"},
+        {"id": "c", "text": "Key phrase extraction"},
+        {"id": "d", "text": "Sentiment analysis"}
+      ],
+      "answer": "b",
+      "explanation": "Extractive summarization selects and ranks existing sentences, while abstractive summarization generates new wording that paraphrases the content. Only abstractive mode produces novel text.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/language-service/summarization/overview", "https://learn.microsoft.com/azure/ai-services/language-service/named-entity-recognition/overview"]
+    },
+    {
+      "id": "q4-003",
+      "objective": "4.1.2",
+      "type": "single",
+      "stem": "A product team wants sentiment broken down by the specific aspect being discussed, such as \"battery\" versus \"screen\" in a review. What must be enabled?",
+      "options": [
+        {"id": "a", "text": "Language detection"},
+        {"id": "b", "text": "Opinion mining, by setting the show_opinion_mining flag"},
+        {"id": "c", "text": "PII redaction"},
+        {"id": "d", "text": "Extractive summarization"}
+      ],
+      "answer": "b",
+      "explanation": "Opinion mining, enabled with the show_opinion_mining flag, returns aspect (target) terms and the sentiment expressed toward each one, giving aspect-level rather than document-level sentiment.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/language-service/sentiment-opinion-mining/overview", "https://learn.microsoft.com/azure/ai-services/language-service/personally-identifiable-information/overview"]
+    },
+    {
+      "id": "q4-004",
+      "objective": "4.1.2",
+      "type": "multi",
+      "stem": "Which statements about the PII detection and redaction feature are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "It returns a redacted_text field with detected entities masked"},
+        {"id": "b", "text": "It can run in a Docker container for on-premises processing"},
+        {"id": "c", "text": "It supports text, conversation, and document input shapes"},
+        {"id": "d", "text": "It always uploads documents to a public endpoint with no container option"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "PII detection returns redacted_text with entities masked, offers a container image for on-premises use, and supports text, conversation, and document inputs. The container option specifically avoids sending data to a cloud endpoint.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/language-service/personally-identifiable-information/overview", "https://learn.microsoft.com/azure/ai-services/language-service/sentiment-opinion-mining/overview"]
+    },
+    {
+      "id": "q4-005",
+      "objective": "4.1.3",
+      "type": "single",
+      "stem": "A translation workload processes millions of short strings and wants the most cost-effective option billed on character count. Which choice fits?",
+      "options": [
+        {"id": "a", "text": "LLM-based translation billed per token"},
+        {"id": "b", "text": "Neural Machine Translation through the Translator service, billed per character"},
+        {"id": "c", "text": "The Speech translation SDK"},
+        {"id": "d", "text": "Transliteration"}
+      ],
+      "answer": "b",
+      "explanation": "Translator's Neural Machine Translation is billed by characters and supports large per-request batches, making it economical for high-volume short strings. LLM-based translation is billed per token and has smaller request limits.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/translator/overview", "https://learn.microsoft.com/azure/ai-services/translator/text-translation/overview"]
+    },
+    {
+      "id": "q4-006",
+      "objective": "4.1.3",
+      "type": "tf",
+      "stem": "Transliteration converts text from one writing script to another while keeping the same language, rather than translating it into a different language.",
+      "answer": "true",
+      "explanation": "Transliteration maps characters between scripts, for example rendering Japanese text in Latin characters, without changing the underlying language. Translation, by contrast, changes the language itself.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/translator/text-translation/overview", "https://learn.microsoft.com/azure/ai-services/translator/overview"]
+    },
+    {
+      "id": "q4-007",
+      "objective": "4.1.4",
+      "type": "multi",
+      "stem": "Which capability-to-task mappings for the Azure AI Language and Translator services are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Named Entity Recognition to identify people, places, and organizations"},
+        {"id": "b", "text": "Summarization to condense long documents"},
+        {"id": "c", "text": "Translator to convert text into another language"},
+        {"id": "d", "text": "Sentiment analysis to generate images from text"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "NER identifies entities, summarization condenses text, and Translator converts between languages. Sentiment analysis scores emotional tone and does not generate images.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/language-service/named-entity-recognition/overview", "https://learn.microsoft.com/azure/ai-services/translator/overview"]
+    },
+    {
+      "id": "q4-008",
+      "objective": "4.2.1",
+      "type": "single",
+      "stem": "A desktop utility must transcribe a single short spoken command from the microphone using the Speech SDK. Which combination is correct?",
+      "options": [
+        {"id": "a", "text": "A SpeechSynthesizer calling speak_text_async"},
+        {"id": "b", "text": "A SpeechRecognizer configured with SpeechConfig and AudioConfig, calling recognize_once_async"},
+        {"id": "c", "text": "The batch transcription REST API"},
+        {"id": "d", "text": "A TranslationRecognizer with two target languages"}
+      ],
+      "answer": "b",
+      "explanation": "Real-time single-utterance transcription uses a SpeechRecognizer built from a SpeechConfig and an AudioConfig, invoking recognize_once_async. SpeechSynthesizer performs text-to-speech, and batch transcription is for large offline files.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk", "https://learn.microsoft.com/azure/ai-services/speech-service/overview"]
+    },
+    {
+      "id": "q4-009",
+      "objective": "4.2.1",
+      "type": "single",
+      "scenario_id": "s-docpipe",
+      "stem": "Fabrikam Insurance must transcribe thousands of pre-recorded audio tracks pulled from claim video clips, running asynchronously overnight. Which approach is appropriate?",
+      "options": [
+        {"id": "a", "text": "Real-time recognize_once_async in a loop"},
+        {"id": "b", "text": "The batch transcription REST API"},
+        {"id": "c", "text": "A SpeechSynthesizer"},
+        {"id": "d", "text": "The text Translator service"}
+      ],
+      "answer": "b",
+      "explanation": "Batch transcription is a REST-based asynchronous service designed for large volumes of stored audio files, which fits an overnight bulk job. Real-time recognition is meant for live, interactive input.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/speech-service/overview", "https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk"]
+    },
+    {
+      "id": "q4-010",
+      "objective": "4.2.2",
+      "type": "single",
+      "stem": "A hospital wants higher recognition accuracy on specialized medical terms. After training a Custom Speech model, what is required to use it for real-time recognition?",
+      "options": [
+        {"id": "a", "text": "Nothing; custom models apply automatically to the base endpoint"},
+        {"id": "b", "text": "Deploy the model to a custom endpoint and reference its endpoint_id"},
+        {"id": "c", "text": "Switch to the Translator service"},
+        {"id": "d", "text": "Enable opinion mining"}
+      ],
+      "answer": "b",
+      "explanation": "A trained Custom Speech model must be deployed to a dedicated endpoint, and the application references that endpoint_id for real-time recognition. Word Error Rate is used to evaluate improvement before deployment.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/speech-service/custom-speech-overview", "https://learn.microsoft.com/azure/ai-services/speech-service/how-to-custom-speech-train-model"]
+    },
+    {
+      "id": "q4-011",
+      "objective": "4.2.3",
+      "type": "single",
+      "stem": "A developer sends audio to a gpt-4o-audio-preview model using an input_audio content block and also wants the response validated against a JSON schema. What is the limitation?",
+      "options": [
+        {"id": "a", "text": "input_audio blocks are not supported by audio models"},
+        {"id": "b", "text": "Structured Outputs with json_schema is not supported for audio-preview models"},
+        {"id": "c", "text": "Audio models cannot return any text"},
+        {"id": "d", "text": "The audio must first be transcribed by Translator"}
+      ],
+      "answer": "b",
+      "explanation": "Audio-preview models accept input_audio content but do not support the Structured Outputs json_schema response format, so schema-validated output cannot be combined with audio input on those models.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/openai/realtime-audio-quickstart", "https://learn.microsoft.com/azure/ai-services/speech-service/llm-speech"]
+    },
+    {
+      "id": "q4-012",
+      "objective": "4.2.3",
+      "type": "multi",
+      "stem": "Which statements about real-time and LLM-based speech options are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "The GPT Realtime API uses a WebSocket connection for low-latency streaming"},
+        {"id": "b", "text": "LLM Speech offers a multi-lingual default that recognizes across many languages"},
+        {"id": "c", "text": "Some real-time translation models are billed hourly"},
+        {"id": "d", "text": "Structured Outputs is guaranteed for every audio-preview model"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "The GPT Realtime API streams over WebSocket, LLM Speech provides a multi-lingual default, and certain real-time translation models bill hourly. Structured Outputs is not supported on audio-preview models.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/speech-service/llm-speech", "https://learn.microsoft.com/azure/ai-services/openai/realtime-audio-quickstart"]
+    },
+    {
+      "id": "q4-013",
+      "objective": "4.2.4",
+      "type": "single",
+      "stem": "Using the Speech SDK for speech translation, a caller sets three target languages in a single request. What happens?",
+      "options": [
+        {"id": "a", "text": "All three translations are returned normally"},
+        {"id": "b", "text": "A single call is limited to two target languages; more requires a multi-service Foundry resource"},
+        {"id": "c", "text": "Only transliteration is returned"},
+        {"id": "d", "text": "The source language is auto-detected and the targets are ignored"}
+      ],
+      "answer": "b",
+      "explanation": "A standard speech translation call supports up to two target languages at once. Translating into more targets simultaneously requires a multi-service Foundry resource configuration.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/speech-service/speech-translation", "https://learn.microsoft.com/azure/ai-services/speech-service/how-to-translate-speech"]
+    },
+    {
+      "id": "q4-014",
+      "objective": "4.2.4",
+      "type": "single",
+      "stem": "A conference app must translate speech when the spoken source language is unknown and may change between speakers. Which capability fits?",
+      "options": [
+        {"id": "a", "text": "A fixed source language on SpeechTranslationConfig"},
+        {"id": "b", "text": "Live Interpreter, which auto-detects the source language"},
+        {"id": "c", "text": "Transliteration"},
+        {"id": "d", "text": "Extractive summarization"}
+      ],
+      "answer": "b",
+      "explanation": "Live Interpreter automatically detects the spoken source language, which suits multi-speaker sessions where the language is not known in advance. A fixed source language would fail when speakers switch languages.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/speech-service/speech-translation", "https://learn.microsoft.com/azure/ai-services/speech-service/how-to-translate-speech"]
+    }
+  ]
+}

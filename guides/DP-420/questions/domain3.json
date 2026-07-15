@@ -1,0 +1,157 @@
+{
+  "domain": 3,
+  "domain_title": "Integrate an Azure Cosmos DB solution",
+  "questions": [
+    {
+      "id": "q3-001",
+      "objective": "3.1.1",
+      "type": "single",
+      "stem": "A team needs near real-time Power BI reporting over an Azure Cosmos DB for NoSQL container, but the production workload cannot tolerate any additional Request Unit pressure or ETL to maintain. Which integration should they configure?",
+      "options": [
+        { "id": "a", "text": "Read the transactional store from Synapse Spark with the cosmos.oltp format" },
+        { "id": "b", "text": "Azure Cosmos DB mirroring for Microsoft Fabric" },
+        { "id": "c", "text": "An Azure Data Factory copy pipeline on a nightly schedule" },
+        { "id": "d", "text": "An Azure Functions change-feed trigger writing to Blob Storage" }
+      ],
+      "answer": "b",
+      "explanation": "Mirroring continuously replicates the database into OneLake as Delta/Parquet in near real-time with <strong>no RU consumption</strong> and no transactional impact, and Power BI reads it in Direct Lake mode — no ETL pipeline to build. See <a href=\"https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db\">Mirroring Azure Cosmos DB in Microsoft Fabric</a>.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db"]
+    },
+    {
+      "id": "q3-002",
+      "objective": "3.1.1",
+      "type": "single",
+      "stem": "An engineer tries to enable Fabric mirroring for an Azure Cosmos DB for NoSQL account that has a single write region, but the option is unavailable. Which prerequisite is most likely missing?",
+      "options": [
+        { "id": "a", "text": "The analytical store must be enabled on every container first" },
+        { "id": "b", "text": "Azure Synapse Link must be turned on at the account level" },
+        { "id": "c", "text": "Continuous backup (7-day or 30-day) must be enabled on the account" },
+        { "id": "d", "text": "A second write region must be added to the account" }
+      ],
+      "answer": "c",
+      "explanation": "Mirroring requires <strong>continuous backup</strong> on the account; enabling 7-day continuous backup (which is free) satisfies the prerequisite. Mirroring does not depend on the analytical store or Synapse Link, and multiple write regions are actually unsupported.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-tutorial"]
+    },
+    {
+      "id": "q3-003",
+      "objective": "3.1.2",
+      "type": "multi",
+      "stem": "Which statements about the Azure Cosmos DB Spark connector (versus Fabric mirroring) are true? (Select all that apply.)",
+      "options": [
+        { "id": "a", "text": "Reading the transactional store with the cosmos.oltp format consumes Request Units." },
+        { "id": "b", "text": "Mirroring, unlike the Spark connector, can write results back into Cosmos DB." },
+        { "id": "c", "text": "The Spark connector can write data back to a Cosmos DB container." },
+        { "id": "d", "text": "The cosmos.olap format reads the analytical store read-only and RU-free." }
+      ],
+      "answer": ["a", "c", "d"],
+      "explanation": "The <code>cosmos.oltp</code> format reads/writes the transactional store and <strong>consumes RUs</strong>, and only the Spark connector (not mirroring) can write back; <code>cosmos.olap</code> reads the analytical store RU-free and read-only. Mirroring is one-way and read-only, so option b is false.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db", "https://learn.microsoft.com/en-us/azure/synapse-analytics/synapse-link/how-to-query-analytical-store-spark-3"]
+    },
+    {
+      "id": "q3-004",
+      "objective": "3.1.3",
+      "type": "single",
+      "stem": "When enabling the analytical store on a container, which Analytical TTL value keeps all history indefinitely?",
+      "options": [
+        { "id": "a", "text": "0" },
+        { "id": "b", "text": "1" },
+        { "id": "c", "text": "A positive number of seconds, such as 86400" },
+        { "id": "d", "text": "-1" }
+      ],
+      "answer": "d",
+      "explanation": "Analytical TTL of <code>-1</code> means infinite retention (keep all history), a positive <code>n</code> expires analytical data after <code>n</code> seconds, and <code>0</code> disables the analytical store. See <a href=\"https://learn.microsoft.com/en-us/azure/cosmos-db/analytical-store-introduction\">What is Azure Cosmos DB analytical store?</a>.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/analytical-store-introduction"]
+    },
+    {
+      "id": "q3-005",
+      "objective": "3.1.4",
+      "type": "single",
+      "stem": "Which Azure Synapse serverless SQL pool construct queries the Azure Cosmos DB analytical store over Synapse Link without impacting the transactional workload?",
+      "options": [
+        { "id": "a", "text": "spark.read.format(\"cosmos.oltp\")" },
+        { "id": "b", "text": "OPENROWSET with PROVIDER = 'CosmosDB'" },
+        { "id": "c", "text": "A linked-server query with OPENQUERY" },
+        { "id": "d", "text": "BULK INSERT from the container endpoint" }
+      ],
+      "answer": "b",
+      "explanation": "Serverless SQL reads the isolated analytical store with <code>OPENROWSET(PROVIDER = 'CosmosDB', ...)</code>, so there is no RU cost and no transactional impact. The <code>cosmos.oltp</code> format is a Spark option that reads the transactional store and consumes RUs.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/configure-synapse-link"]
+    },
+    {
+      "id": "q3-006",
+      "objective": "3.1.5",
+      "type": "single",
+      "stem": "A Spark job must read the most up-to-the-second state of a container using spark.read.format(\"cosmos.oltp\"). What is the key trade-off of this approach?",
+      "options": [
+        { "id": "a", "text": "It can only read data that is older than two minutes" },
+        { "id": "b", "text": "It cannot be used for streaming or write-back" },
+        { "id": "c", "text": "It reads the transactional store and consumes provisioned RUs, affecting OLTP performance" },
+        { "id": "d", "text": "It requires the analytical store to be disabled first" }
+      ],
+      "answer": "c",
+      "explanation": "The <code>cosmos.oltp</code> format reads the transactional store directly, returning live data but <strong>consuming RUs</strong> and potentially affecting transactional performance. When a scenario stresses no transactional impact, the analytical store (<code>cosmos.olap</code>) is the intended answer.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/synapse-analytics/synapse-link/how-to-query-analytical-store-spark-3"]
+    },
+    {
+      "id": "q3-007",
+      "objective": "3.1.7",
+      "type": "single",
+      "stem": "You need an incremental feed that includes deletes and TTL removals, writes to a data lake through no-code mapping data flows, and does not consume Request Units. Which capability fits?",
+      "options": [
+        { "id": "a", "text": "Change data capture in the Azure Cosmos DB analytical store" },
+        { "id": "b", "text": "The transactional change feed in latest-version mode" },
+        { "id": "c", "text": "A custom _ts-based incremental query against the container" },
+        { "id": "d", "text": "Fabric mirroring to OneLake" }
+      ],
+      "answer": "a",
+      "explanation": "Analytical-store CDC natively captures deletes and TTL operations, runs <strong>RU-free</strong> off the analytical store through ADF/Synapse mapping data flows, and manages GLSN-based checkpoints internally for exactly-once delivery. Latest-version change feed does not emit deletes.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/analytical-store-change-data-capture", "https://learn.microsoft.com/en-us/azure/cosmos-db/get-started-change-data-capture"]
+    },
+    {
+      "id": "q3-008",
+      "objective": "3.1.8",
+      "type": "single",
+      "stem": "In a Microsoft Fabric Warehouse using time travel with OPTION (FOR TIMESTAMP AS OF '...'), what is the default data retention window within which you can query the past?",
+      "options": [
+        { "id": "a", "text": "7 days" },
+        { "id": "b", "text": "30 days" },
+        { "id": "c", "text": "90 days" },
+        { "id": "d", "text": "120 days" }
+      ],
+      "answer": "b",
+      "explanation": "Fabric Warehouse time-travel retention defaults to <strong>30 days</strong> and is configurable from 1 to 120 days; a query to a point in time outside the window fails. See <a href=\"https://learn.microsoft.com/en-us/fabric/data-warehouse/data-retention\">Configurable data retention in Fabric Data Warehouse</a>.",
+      "refs": ["https://learn.microsoft.com/en-us/fabric/data-warehouse/time-travel", "https://learn.microsoft.com/en-us/fabric/data-warehouse/data-retention"]
+    },
+    {
+      "id": "q3-009",
+      "objective": "3.2.1",
+      "type": "single",
+      "scenario_id": "s-iot",
+      "stem": "Which serverless design lets the downstream service react to every new or changed item in near real time and fan those events out to multiple decoupled consumers?",
+      "options": [
+        { "id": "a", "text": "Enable the analytical store and query it from Synapse serverless SQL" },
+        { "id": "b", "text": "Mirror the database to OneLake and read it with Power BI Direct Lake" },
+        { "id": "c", "text": "Schedule an Azure Data Factory copy pipeline every five minutes" },
+        { "id": "d", "text": "An Azure Functions Cosmos DB trigger that publishes each change to Azure Event Hubs" }
+      ],
+      "answer": "d",
+      "explanation": "The Azure Functions Cosmos DB trigger reads the change feed with automatic checkpointing and scaling (via a lease container), and an Event Hubs output binding fans each event out to multiple decoupled consumers in near real time. Mirroring and the analytical store serve the historical-analytics need, not low-latency reaction.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-functions", "https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-design-patterns"]
+    },
+    {
+      "id": "q3-010",
+      "objective": "3.2.6",
+      "type": "multi",
+      "stem": "When configuring an Azure AI Search indexer over Azure Cosmos DB for NoSQL, which configurations are required to incrementally pick up new/changed documents and to remove deleted ones from the index? (Select all that apply.)",
+      "options": [
+        { "id": "a", "text": "A HighWaterMarkChangeDetectionPolicy on the _ts column" },
+        { "id": "b", "text": "A SoftDeleteColumnDeletionDetectionPolicy using a Boolean flag such as isDeleted" },
+        { "id": "c", "text": "A GROUP BY clause in the data-source query to deduplicate results" },
+        { "id": "d", "text": "Hard-delete detection that automatically removes purged items" }
+      ],
+      "answer": ["a", "b"],
+      "explanation": "Incremental indexing relies on the <code>HighWaterMarkChangeDetectionPolicy</code> on <code>_ts</code>, and only <strong>soft-delete</strong> detection is supported (hard deletes are not detected). <code>GROUP BY</code>/<code>DISTINCT</code> in the data-source query are unsupported because they break continuation-token pagination.",
+      "refs": ["https://learn.microsoft.com/en-us/azure/search/search-how-to-index-cosmosdb-sql", "https://learn.microsoft.com/en-us/azure/search/search-indexer-overview"]
+    }
+  ]
+}

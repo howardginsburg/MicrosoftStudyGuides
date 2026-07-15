@@ -1,0 +1,212 @@
+{
+  "domain": 5,
+  "domain_title": "Implement information extraction solutions",
+  "questions": [
+    {
+      "id": "q5-001",
+      "objective": "5.1.1",
+      "type": "single",
+      "stem": "A team configures an Azure AI Search indexer to pull content from Blob Storage. Which statement about the indexer pipeline is correct?",
+      "options": [
+        {"id": "a", "text": "One indexer can write to multiple indexes from multiple data sources at once"},
+        {"id": "b", "text": "An indexer connects one data source to one index and runs stages such as document cracking, field mappings, skillset, and output field mappings"},
+        {"id": "c", "text": "Indexers can only run on demand and never on a schedule"},
+        {"id": "d", "text": "Indexers require the push API to load documents"}
+      ],
+      "answer": "b",
+      "explanation": "An indexer binds a single data source to a single index and runs a defined sequence of stages including document cracking, field mappings, optional skillset enrichment, and output field mappings. It is the pull model, distinct from the push API.",
+      "refs": ["https://learn.microsoft.com/azure/search/search-indexer-overview", "https://learn.microsoft.com/azure/search/search-how-to-create-indexers"]
+    },
+    {
+      "id": "q5-002",
+      "objective": "5.1.1",
+      "type": "single",
+      "stem": "A skillset must run OCR over images embedded in PDFs, but no normalized images are being produced for the OCR skill to consume. What is the likely cause?",
+      "options": [
+        {"id": "a", "text": "The index has too few replicas"},
+        {"id": "b", "text": "imageAction is left at its default of none, so normalized images are not generated"},
+        {"id": "c", "text": "Semantic ranking is disabled"},
+        {"id": "d", "text": "The schedule interval is below five minutes"}
+      ],
+      "answer": "b",
+      "explanation": "Image extraction is off by default. To feed OCR, the indexer configuration must set imageAction to generateNormalizedImages so that embedded images are extracted and normalized before the skillset runs.",
+      "refs": ["https://learn.microsoft.com/azure/search/search-indexer-overview", "https://learn.microsoft.com/azure/search/cognitive-search-concept-image-scenarios"]
+    },
+    {
+      "id": "q5-003",
+      "objective": "5.1.2",
+      "type": "single",
+      "stem": "A large index must serve low-latency approximate nearest-neighbor vector search. Which algorithm should be configured?",
+      "options": [
+        {"id": "a", "text": "Exhaustive KNN over the entire index"},
+        {"id": "b", "text": "HNSW"},
+        {"id": "c", "text": "BM25 keyword ranking"},
+        {"id": "d", "text": "Semantic ranking only"}
+      ],
+      "answer": "b",
+      "explanation": "HNSW provides fast approximate nearest-neighbor search that scales to large indexes with low latency. Exhaustive KNN gives exact results but is slower and does not scale as well for large collections.",
+      "refs": ["https://learn.microsoft.com/azure/search/vector-search-overview", "https://learn.microsoft.com/azure/search/hybrid-search-overview"]
+    },
+    {
+      "id": "q5-004",
+      "objective": "5.1.2",
+      "type": "multi",
+      "stem": "Which statements about hybrid search and semantic ranking in Azure AI Search are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Hybrid search fuses keyword and vector results using Reciprocal Rank Fusion"},
+        {"id": "b", "text": "The semantic ranker re-scores a top subset of candidates"},
+        {"id": "c", "text": "Semantic ranking requires a semantic configuration on the index"},
+        {"id": "d", "text": "Semantic ranking replaces the need for any vector field"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Hybrid search combines BM25 and vector results with RRF, the semantic ranker re-scores the top candidates, and a semantic configuration must be defined on the index. Semantic ranking complements rather than replaces vector fields.",
+      "refs": ["https://learn.microsoft.com/azure/search/hybrid-search-overview", "https://learn.microsoft.com/azure/search/semantic-search-overview"]
+    },
+    {
+      "id": "q5-005",
+      "objective": "5.1.3",
+      "type": "multi",
+      "stem": "Which statements about skillsets in Azure AI Search are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Built-in skills include OCR and text splitting"},
+        {"id": "b", "text": "A WebApiSkill can call custom logic hosted as a web service"},
+        {"id": "c", "text": "A skillset can write enriched output to a knowledge store in addition to the index"},
+        {"id": "d", "text": "Skillsets can only run without an indexer"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Skillsets provide built-in skills such as OCR and text splitting, support custom WebApiSkill calls, and can project enrichments to a knowledge store as well as the index. Skillsets run as part of an indexer pipeline.",
+      "refs": ["https://learn.microsoft.com/azure/search/cognitive-search-concept-intro", "https://learn.microsoft.com/azure/search/cognitive-search-predefined-skills"]
+    },
+    {
+      "id": "q5-006",
+      "objective": "5.1.4",
+      "type": "single",
+      "scenario_id": "s-rag",
+      "stem": "For the Northwind Health index, long policy PDFs must be split into overlapping chunks before embedding. Which built-in skill and setting control the chunk size?",
+      "options": [
+        {"id": "a", "text": "The OCR skill with the detail parameter"},
+        {"id": "b", "text": "The Text Split skill using maximumPageLength and pageOverlapLength"},
+        {"id": "c", "text": "The Sentiment skill"},
+        {"id": "d", "text": "The Entity Recognition skill"}
+      ],
+      "answer": "b",
+      "explanation": "The Text Split skill divides content into pages or sentences, with maximumPageLength setting chunk size and pageOverlapLength adding overlap between chunks so context is not lost at boundaries. Overlap is typically 10 to 25 percent.",
+      "refs": ["https://learn.microsoft.com/azure/search/vector-search-how-to-chunk-documents", "https://learn.microsoft.com/azure/search/vector-search-integrated-vectorization"]
+    },
+    {
+      "id": "q5-007",
+      "objective": "5.1.4",
+      "type": "single",
+      "stem": "A team maps each parent document to many child chunk records so that retrieval returns fine-grained passages traceable to their source document. Which integrated-vectorization feature enables this?",
+      "options": [
+        {"id": "a", "text": "Scoring profiles"},
+        {"id": "b", "text": "Index projections that create a parent-child relationship"},
+        {"id": "c", "text": "Synonym maps"},
+        {"id": "d", "text": "Analyzer overrides"}
+      ],
+      "answer": "b",
+      "explanation": "Index projections split an enriched parent document into multiple child records, one per chunk, while preserving the link to the parent. This is how chunked RAG indexes retain document lineage.",
+      "refs": ["https://learn.microsoft.com/azure/search/vector-search-integrated-vectorization", "https://learn.microsoft.com/azure/ai-services/document-intelligence/concept/retrieval-augmented-generation"]
+    },
+    {
+      "id": "q5-008",
+      "objective": "5.1.5",
+      "type": "single",
+      "stem": "A solution needs a retrieval step that decomposes a complex multi-part question into subqueries, runs them, and merges the results. Which Azure AI Search capability provides this?",
+      "options": [
+        {"id": "a", "text": "Simple keyword search"},
+        {"id": "b", "text": "Agentic retrieval using a knowledge base with an LLM query planner"},
+        {"id": "c", "text": "A scoring profile"},
+        {"id": "d", "text": "A synonym map"}
+      ],
+      "answer": "b",
+      "explanation": "Agentic retrieval uses an LLM to plan and decompose a complex query into subqueries against a knowledge base, then merges the results. It requires a semantic configuration and is the foundation for query planning in search.",
+      "refs": ["https://learn.microsoft.com/azure/search/agentic-retrieval-overview", "https://learn.microsoft.com/azure/search/agentic-retrieval-how-to-create-knowledge-base"]
+    },
+    {
+      "id": "q5-009",
+      "objective": "5.1.5",
+      "type": "tf",
+      "stem": "Agentic retrieval provides the retrieval foundation for Foundry IQ and is billed based on token usage in addition to search operations.",
+      "answer": "true",
+      "explanation": "Agentic retrieval underlies Foundry IQ and, because it invokes an LLM for query planning, incurs token-based billing in addition to standard search costs.",
+      "refs": ["https://learn.microsoft.com/azure/search/agentic-retrieval-overview", "https://learn.microsoft.com/azure/search/agentic-retrieval-how-to-create-pipeline"]
+    },
+    {
+      "id": "q5-010",
+      "objective": "5.2.1",
+      "type": "single",
+      "scenario_id": "s-docpipe",
+      "stem": "Fabrikam Insurance must extract a handful of custom fields from claim forms without collecting labeled training data. Which Document Intelligence capability fits?",
+      "options": [
+        {"id": "a", "text": "Training a fully custom neural model"},
+        {"id": "b", "text": "The layout model with query field extraction"},
+        {"id": "c", "text": "The prebuilt receipt model only"},
+        {"id": "d", "text": "The Read model with sentiment"}
+      ],
+      "answer": "b",
+      "explanation": "The layout model supports query field extraction, which pulls specified fields on demand without any labeling or training. Building a fully custom model would require assembling and labeling training documents.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/document-intelligence/concept/query-fields?view=doc-intel-4.0.0", "https://learn.microsoft.com/azure/ai-services/document-intelligence/prebuilt/layout?view=doc-intel-4.0.0"]
+    },
+    {
+      "id": "q5-011",
+      "objective": "5.2.1",
+      "type": "single",
+      "stem": "A RAG pipeline needs clean structural output from scanned documents, including tables and headings rendered as Markdown. Which Document Intelligence model produces this?",
+      "options": [
+        {"id": "a", "text": "The prebuilt business card model"},
+        {"id": "b", "text": "The layout model, which can emit Markdown output"},
+        {"id": "c", "text": "The Read model with translation"},
+        {"id": "d", "text": "A custom classification model"}
+      ],
+      "answer": "b",
+      "explanation": "The layout model extracts text, tables, and structure and can output Markdown, which preserves headings and tables for downstream RAG chunking. It also handles printed and handwritten text across many languages.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/document-intelligence/prebuilt/layout?view=doc-intel-4.0.0", "https://learn.microsoft.com/azure/ai-services/document-intelligence/model-overview?view=doc-intel-4.0.0"]
+    },
+    {
+      "id": "q5-012",
+      "objective": "5.2.2",
+      "type": "single",
+      "stem": "A team wants a single service that returns clean Markdown, describes embedded charts and figures, and includes grounding such as bounding boxes and confidence for a RAG index. Which service should they choose?",
+      "options": [
+        {"id": "a", "text": "Azure AI Content Understanding"},
+        {"id": "b", "text": "The Translator service"},
+        {"id": "c", "text": "The Speech SDK"},
+        {"id": "d", "text": "The prebuilt sentiment model"}
+      ],
+      "answer": "a",
+      "explanation": "Content Understanding produces clean Markdown, generates descriptions for figures and charts, and attaches grounding such as bounding boxes, timestamps, and confidence scores, making it well suited to preparing multimodal content for RAG.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/content-understanding/overview", "https://learn.microsoft.com/azure/search/retrieval-augmented-generation-overview"]
+    },
+    {
+      "id": "q5-013",
+      "objective": "5.2.3",
+      "type": "multi",
+      "stem": "Which statements about Azure AI Content Understanding analyzers are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Content extraction analyzers such as prebuilt-read and prebuilt-layout do not use a generative model"},
+        {"id": "b", "text": "Of the Extract, Classify, and Generate methods, only Generate uses an LLM"},
+        {"id": "c", "text": "A copy operation can freeze a prebuilt analyzer so its behavior does not change"},
+        {"id": "d", "text": "Every analyzer category always invokes a generative model"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Content extraction analyzers do not call a generative model, only the Generate method uses an LLM, and copying an analyzer pins its behavior. Not every category uses generative AI, which is why content extraction is available without it.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/analyzer-reference", "https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/prebuilt-analyzers"]
+    },
+    {
+      "id": "q5-014",
+      "objective": "5.2.3",
+      "type": "single",
+      "stem": "A team analyzes long recordings with Content Understanding and wants segments that align to topic or scene boundaries rather than fixed time intervals. What is true about segmentation?",
+      "options": [
+        {"id": "a", "text": "Audio and video are always split into fixed-length intervals only"},
+        {"id": "b", "text": "Audio and video can be segmented by topic or scene rather than by a fixed interval"},
+        {"id": "c", "text": "Segmentation is not supported for audio or video"},
+        {"id": "d", "text": "Only the Translator service can segment media"}
+      ],
+      "answer": "b",
+      "explanation": "Content Understanding can segment audio and video by semantic boundaries such as topic or scene changes, which produces more meaningful units than fixed-interval slicing.",
+      "refs": ["https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/analyzer-reference", "https://learn.microsoft.com/azure/ai-services/content-understanding/overview"]
+    }
+  ]
+}

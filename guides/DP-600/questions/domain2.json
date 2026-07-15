@@ -1,0 +1,837 @@
+{
+  "domain": 2,
+  "domain_title": "Prepare data",
+  "questions": [
+    {
+      "id": "q2-001",
+      "objective": "2.1.1",
+      "type": "single",
+      "stem": "Several analysts must refresh reports via DirectQuery against an on-premises SQL Server at the same time. Which gateway type is required?",
+      "options": [
+        {"id": "a", "text": "On-premises data gateway (personal mode)"},
+        {"id": "b", "text": "On-premises data gateway (standard mode)"},
+        {"id": "c", "text": "A cloud connection with no gateway"},
+        {"id": "d", "text": "A shareable cloud connection only"}
+      ],
+      "answer": "b",
+      "explanation": "Standard-mode gateway is multi-user and supports DirectQuery and live connections. Personal mode is single-user and supports only scheduled refresh, and a cloud connection cannot reach a private on-premises source.",
+      "refs": ["https://learn.microsoft.com/fabric/data-factory/how-to-access-on-premises-data", "https://learn.microsoft.com/fabric/data-factory/data-source-management"]
+    },
+    {
+      "id": "q2-002",
+      "objective": "2.1.1",
+      "type": "single",
+      "stem": "A new analyst needs to use an existing Azure SQL connection inside a Dataflow Gen2 without ever seeing the stored password. What makes this possible?",
+      "options": [
+        {"id": "a", "text": "Marking the connection as shareable"},
+        {"id": "b", "text": "Switching authentication to Basic"},
+        {"id": "c", "text": "Installing a personal-mode gateway"},
+        {"id": "d", "text": "Granting the analyst the Admin workspace role"}
+      ],
+      "answer": "a",
+      "explanation": "A shareable connection lets workspace members reference it in their items while the underlying credentials stay hidden. The authentication method and workspace role do not, by themselves, hide stored secrets.",
+      "refs": ["https://learn.microsoft.com/fabric/data-factory/data-source-management", "https://learn.microsoft.com/fabric/data-factory/how-to-access-on-premises-data"]
+    },
+    {
+      "id": "q2-003",
+      "objective": "2.1.1",
+      "type": "multi",
+      "stem": "Which statements about Fabric gateways and connections are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Personal-mode gateway supports scheduled refresh but not DirectQuery"},
+        {"id": "b", "text": "A VNet data gateway requires Premium or Fabric capacity"},
+        {"id": "c", "text": "A cloud connection is used for publicly reachable sources such as Azure SQL"},
+        {"id": "d", "text": "Standard-mode gateway is limited to a single user"},
+        {"id": "e", "text": "A shareable connection exposes the stored password to members"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Personal mode is scheduled-refresh only, the VNet gateway requires Premium/Fabric capacity, and cloud connections serve publicly reachable sources. Standard mode is multi-user, and shareable connections deliberately hide credentials from members.",
+      "refs": ["https://learn.microsoft.com/fabric/data-factory/data-source-management", "https://learn.microsoft.com/fabric/data-factory/how-to-access-on-premises-data"]
+    },
+    {
+      "id": "q2-004",
+      "objective": "2.1.2",
+      "type": "single",
+      "stem": "A business analyst searches the OneLake catalog for a lakehouse another team owns but cannot find it. What is the most likely reason?",
+      "options": [
+        {"id": "a", "text": "The catalog only indexes semantic models"},
+        {"id": "b", "text": "The analyst lacks read access to that workspace, so the item is hidden"},
+        {"id": "c", "text": "The lakehouse has not been endorsed"},
+        {"id": "d", "text": "The catalog cannot search by item type"}
+      ],
+      "answer": "b",
+      "explanation": "The OneLake catalog shows only items the signed-in user can access at least at Viewer level. Items in workspaces the user cannot see are hidden regardless of endorsement or item type.",
+      "refs": ["https://learn.microsoft.com/fabric/governance/use-microsoft-purview-hub", "https://learn.microsoft.com/fabric/real-time-intelligence/real-time-hub/real-time-hub-overview"]
+    },
+    {
+      "id": "q2-005",
+      "objective": "2.1.2",
+      "type": "single",
+      "stem": "Which Fabric experience provides a one-click connection from an Azure Event Hubs namespace into an Eventhouse KQL database?",
+      "options": [
+        {"id": "a", "text": "The OneLake catalog"},
+        {"id": "b", "text": "The Real-Time hub"},
+        {"id": "c", "text": "The Admin portal"},
+        {"id": "d", "text": "A deployment pipeline"}
+      ],
+      "answer": "b",
+      "explanation": "The Real-Time hub lists event producers such as Azure Event Hubs under Microsoft sources and offers guided one-click routing into Eventhouse, Eventstream, or Activator alerts. The OneLake catalog is a read-only discovery layer for stored items.",
+      "refs": ["https://learn.microsoft.com/fabric/real-time-intelligence/real-time-hub/real-time-hub-overview", "https://learn.microsoft.com/fabric/governance/use-microsoft-purview-hub"]
+    },
+    {
+      "id": "q2-006",
+      "objective": "2.1.2",
+      "type": "single",
+      "stem": "In the OneLake catalog, which endorsement can only be applied by a tenant-admin-designated certifier?",
+      "options": [
+        {"id": "a", "text": "Promoted"},
+        {"id": "b", "text": "Certified"},
+        {"id": "c", "text": "Featured"},
+        {"id": "d", "text": "Recommended"}
+      ],
+      "answer": "b",
+      "explanation": "Any workspace member can Promote an item, but only tenant-admin-designated certifiers can apply the Certified badge, which conveys organization-wide authority and ranks higher in search.",
+      "refs": ["https://learn.microsoft.com/fabric/governance/use-microsoft-purview-hub", "https://learn.microsoft.com/fabric/real-time-intelligence/real-time-hub/real-time-hub-overview"]
+    },
+    {
+      "id": "q2-007",
+      "objective": "2.1.3",
+      "type": "single",
+      "scenario_id": "s-medallion",
+      "stem": "The team already has petabytes of Parquet in an ADLS Gen2 account and wants Fabric engines to query it from the Lakehouse without copying the data. Which mechanism should they use?",
+      "options": [
+        {"id": "a", "text": "A pipeline Copy activity into the Lakehouse"},
+        {"id": "b", "text": "A OneLake shortcut to the ADLS Gen2 location"},
+        {"id": "c", "text": "COPY INTO a Warehouse table"},
+        {"id": "d", "text": "A Dataflow Gen2 with a Lakehouse destination"}
+      ],
+      "answer": "b",
+      "explanation": "A shortcut is a zero-copy virtual reference; Spark, the SQL analytics endpoint, and OneLake all read the external files without duplicating them. Copy activity, COPY INTO, and Dataflows all physically move data into Fabric storage.",
+      "refs": ["https://learn.microsoft.com/fabric/data-engineering/lakehouse-shortcuts", "https://learn.microsoft.com/fabric/data-factory/pipeline-copy-activity"]
+    },
+    {
+      "id": "q2-008",
+      "objective": "2.1.3",
+      "type": "single",
+      "stem": "A pipeline must bulk-load 50 GB of Parquet from ADLS Gen2 directly into a Fabric Warehouse table with no transformation, as efficiently as possible. Which method is best?",
+      "options": [
+        {"id": "a", "text": "A Dataflow Gen2 with per-row transforms"},
+        {"id": "b", "text": "COPY INTO in T-SQL"},
+        {"id": "c", "text": "A PySpark notebook writing row by row"},
+        {"id": "d", "text": "Manual drag-and-drop upload"}
+      ],
+      "answer": "b",
+      "explanation": "COPY INTO is a bulk-optimized T-SQL command that reads Parquet directly from ADLS Gen2 or OneLake into a Warehouse table in parallel with no per-row overhead. The other options add unnecessary transformation or per-row cost.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/ingest-data-copy", "https://learn.microsoft.com/fabric/data-factory/pipeline-copy-activity"]
+    },
+    {
+      "id": "q2-009",
+      "objective": "2.1.3",
+      "type": "multi",
+      "stem": "Which statements about Fabric ingestion mechanisms are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "COPY INTO is a Warehouse-only command, not available at the Lakehouse SQL analytics endpoint"},
+        {"id": "b", "text": "Shortcuts are read-only references and cannot write back to the external source"},
+        {"id": "c", "text": "Eventstream can update existing rows in place"},
+        {"id": "d", "text": "Pipelines support incremental copy using a high-watermark pattern"},
+        {"id": "e", "text": "Dataflows Gen2 cannot write to a Warehouse destination"}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "COPY INTO targets only the Warehouse, shortcuts are read-only, and pipelines can do incremental high-watermark loads. Eventstream is append-only and cannot update rows, and Dataflows Gen2 can in fact write to a Warehouse destination.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/ingest-data-copy", "https://learn.microsoft.com/fabric/data-engineering/lakehouse-shortcuts"]
+    },
+    {
+      "id": "q2-010",
+      "objective": "2.1.3",
+      "type": "single",
+      "stem": "A recurring job must extract from an on-premises SQL Server, join the result with a Lakehouse Delta table, apply complex business logic, and write to another Lakehouse table. Which combination fits best?",
+      "options": [
+        {"id": "a", "text": "COPY INTO alone"},
+        {"id": "b", "text": "A single Dataflow Gen2 with no scheduling"},
+        {"id": "c", "text": "A pipeline (for the gateway extract and scheduling) that calls a PySpark notebook for the join and logic"},
+        {"id": "d", "text": "A manual file upload each day"}
+      ],
+      "answer": "c",
+      "explanation": "The pipeline provides gateway-connected extraction, scheduling, and retries, while a PySpark notebook handles the complex join and write logic that exceeds what COPY INTO or a simple Dataflow can express.",
+      "refs": ["https://learn.microsoft.com/fabric/data-factory/pipeline-copy-activity", "https://learn.microsoft.com/fabric/data-engineering/lakehouse-shortcuts"]
+    },
+    {
+      "id": "q2-011",
+      "objective": "2.1.4",
+      "type": "single",
+      "scenario_id": "s-dataprep",
+      "stem": "One dataset requires T-SQL MERGE to maintain a slowly changing dimension at analytical scale. Which Fabric store supports this?",
+      "options": [
+        {"id": "a", "text": "The Lakehouse SQL analytics endpoint"},
+        {"id": "b", "text": "An Eventhouse KQL database"},
+        {"id": "c", "text": "A Fabric Data Warehouse"},
+        {"id": "d", "text": "A OneLake shortcut"}
+      ],
+      "answer": "c",
+      "explanation": "MERGE is a DML operation that requires write access. The Fabric Data Warehouse supports full T-SQL DML including MERGE; the Lakehouse SQL analytics endpoint is read-only, and Eventhouse is append-optimized without SQL-style updates.",
+      "refs": ["https://learn.microsoft.com/fabric/get-started/decision-guide-data-store", "https://learn.microsoft.com/fabric/data-warehouse/sql-analytics-endpoint"]
+    },
+    {
+      "id": "q2-012",
+      "objective": "2.1.4",
+      "type": "single",
+      "stem": "A team ingests millions of IoT events per minute and needs KQL time-series analysis with sub-second freshness. Which store is the best fit?",
+      "options": [
+        {"id": "a", "text": "Fabric Data Warehouse"},
+        {"id": "b", "text": "SQL database in Fabric"},
+        {"id": "c", "text": "Eventhouse (KQL database)"},
+        {"id": "d", "text": "Lakehouse SQL analytics endpoint"}
+      ],
+      "answer": "c",
+      "explanation": "Eventhouse is purpose-built for high-throughput append-only streaming ingest and KQL time-series analysis with sub-second freshness. The Warehouse and SQL database are not optimized for sub-second streaming workloads.",
+      "refs": ["https://learn.microsoft.com/fabric/get-started/decision-guide-data-store", "https://learn.microsoft.com/fabric/data-warehouse/sql-analytics-endpoint"]
+    },
+    {
+      "id": "q2-013",
+      "objective": "2.1.4",
+      "type": "tf",
+      "stem": "Running an INSERT statement against the Lakehouse SQL analytics endpoint will succeed and write rows to the Delta table.",
+      "answer": "false",
+      "explanation": "The Lakehouse SQL analytics endpoint is read-only. INSERT, UPDATE, DELETE, and CREATE TABLE are rejected. To perform T-SQL DML you must use a Fabric Data Warehouse.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/sql-analytics-endpoint", "https://learn.microsoft.com/fabric/get-started/decision-guide-data-store"]
+    },
+    {
+      "id": "q2-014",
+      "objective": "2.1.4",
+      "type": "multi",
+      "stem": "Which capabilities are supported by the Fabric Data Warehouse but NOT by the Lakehouse SQL analytics endpoint? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "INSERT and UPDATE statements"},
+        {"id": "b", "text": "CREATE TABLE via T-SQL"},
+        {"id": "c", "text": "SELECT queries"},
+        {"id": "d", "text": "MERGE statements"},
+        {"id": "e", "text": "Creating views over Delta tables"}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Full DML — INSERT, UPDATE, MERGE — and CREATE TABLE are Warehouse-only. Both stores support SELECT and creating views, functions, and procedures; only the Warehouse permits data-modifying statements.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/sql-analytics-endpoint", "https://learn.microsoft.com/fabric/get-started/decision-guide-data-store"]
+    },
+    {
+      "id": "q2-015",
+      "objective": "2.1.5",
+      "type": "single",
+      "stem": "An engineer enables OneLake availability for an Eventhouse KQL table. What is the effect?",
+      "options": [
+        {"id": "a", "text": "The table becomes writable from Spark"},
+        {"id": "b", "text": "The table is mirrored to OneLake as Delta-Parquet and becomes readable by Spark and the SQL analytics endpoint"},
+        {"id": "c", "text": "The table is deleted from the KQL database"},
+        {"id": "d", "text": "The table is converted to an Import semantic model"}
+      ],
+      "answer": "b",
+      "explanation": "OneLake availability mirrors the KQL table to OneLake as Delta-Parquet, so other Fabric engines can read it without data movement. It is a one-direction mirror; it does not make the Eventhouse writable from Spark.",
+      "refs": ["https://learn.microsoft.com/fabric/real-time-intelligence/one-lake-availability", "https://learn.microsoft.com/power-bi/enterprise/directlake-overview"]
+    },
+    {
+      "id": "q2-016",
+      "objective": "2.1.5",
+      "type": "single",
+      "stem": "A Direct Lake semantic model suddenly returns slower query responses even though no model changes were made. What is the most likely cause?",
+      "options": [
+        {"id": "a", "text": "The model was converted to Import mode"},
+        {"id": "b", "text": "Queries fell back to DirectQuery because capacity Parquet limits were exceeded"},
+        {"id": "c", "text": "The Delta tables were deleted"},
+        {"id": "d", "text": "A sensitivity label was applied"}
+      ],
+      "answer": "b",
+      "explanation": "Direct Lake automatically falls back to DirectQuery when row-count or column-cardinality thresholds for the capacity are breached, producing slower per-query round-trips without any error. No mode change or data loss is involved.",
+      "refs": ["https://learn.microsoft.com/power-bi/enterprise/directlake-overview", "https://learn.microsoft.com/fabric/real-time-intelligence/one-lake-availability"]
+    },
+    {
+      "id": "q2-017",
+      "objective": "2.1.5",
+      "type": "multi",
+      "stem": "Which statements about Direct Lake and OneLake are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Direct Lake reads Delta-Parquet files from OneLake rather than importing data into memory"},
+        {"id": "b", "text": "A Direct Lake model needs a frame refresh to make newly written Delta data visible"},
+        {"id": "c", "text": "Direct Lake is an ingestion tool that moves and transforms data"},
+        {"id": "d", "text": "OneLake exposes an ADLS Gen2 DFS endpoint"},
+        {"id": "e", "text": "Enabling OneLake availability makes an Eventhouse writable from external engines"}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "Direct Lake reads OneLake Parquet directly, requires a frame refresh to advance its Delta checkpoint, and OneLake presents an ADLS Gen2 DFS endpoint. Direct Lake is a storage mode, not an ingestion tool, and OneLake availability is a one-way mirror, not write-back.",
+      "refs": ["https://learn.microsoft.com/power-bi/enterprise/directlake-overview", "https://learn.microsoft.com/fabric/real-time-intelligence/one-lake-availability"]
+    },
+    {
+      "id": "q2-018",
+      "objective": "2.2.1",
+      "type": "single",
+      "stem": "An engineer creates a view at the Lakehouse SQL analytics endpoint that joins two Delta tables, then tries to query that view from a PySpark notebook. What happens?",
+      "options": [
+        {"id": "a", "text": "Spark reads the view normally"},
+        {"id": "b", "text": "The Spark query fails because the view is not visible to Spark"},
+        {"id": "c", "text": "The view is silently converted to a Delta table"},
+        {"id": "d", "text": "Spark reads the view but ignores the join"}
+      ],
+      "answer": "b",
+      "explanation": "Views created at the SQL analytics endpoint exist only in the endpoint's SQL catalog; they are not registered in the Lakehouse metastore and are not visible to Spark, so the notebook query cannot find them.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/create-views", "https://learn.microsoft.com/fabric/data-warehouse/functions"]
+    },
+    {
+      "id": "q2-019",
+      "objective": "2.2.1",
+      "type": "single",
+      "stem": "Why should a Fabric Warehouse developer prefer <code>CREATE OR ALTER VIEW</code> over dropping and recreating the view?",
+      "options": [
+        {"id": "a", "text": "It runs faster on first execution"},
+        {"id": "b", "text": "It preserves existing permissions on the object instead of breaking the grant chain"},
+        {"id": "c", "text": "It allows DML inside the view"},
+        {"id": "d", "text": "It automatically indexes the view"}
+      ],
+      "answer": "b",
+      "explanation": "CREATE OR ALTER is atomic and keeps existing permissions on the object intact. DROP followed by CREATE removes the object, so any GRANT must be reapplied afterward.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/create-views", "https://learn.microsoft.com/fabric/data-warehouse/stored-procedures"]
+    },
+    {
+      "id": "q2-020",
+      "objective": "2.2.1",
+      "type": "multi",
+      "stem": "Which statements about T-SQL objects in Fabric are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Inline table-valued functions support predicate push-down and can fold from a Dataflow"},
+        {"id": "b", "text": "Stored procedures support parameters, TRY/CATCH, and transactions"},
+        {"id": "c", "text": "Views can be created at the Lakehouse SQL analytics endpoint, but DML inside them is blocked"},
+        {"id": "d", "text": "Scalar functions always improve query performance"},
+        {"id": "e", "text": "Objects created at the SQL analytics endpoint are visible to Spark"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Inline TVFs fold, stored procedures support parameters and error handling, and endpoint views cannot contain DML. Scalar functions can hurt performance when applied row by row, and endpoint objects are not visible to Spark.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/functions", "https://learn.microsoft.com/fabric/data-warehouse/stored-procedures"]
+    },
+    {
+      "id": "q2-021",
+      "objective": "2.2.2",
+      "type": "single",
+      "stem": "A PySpark job adds a column with <code>withColumn</code> but nothing is written to storage. What must happen to persist the result?",
+      "options": [
+        {"id": "a", "text": "Nothing — withColumn writes immediately"},
+        {"id": "b", "text": "Call a write action such as saveAsTable, which triggers execution"},
+        {"id": "c", "text": "Run the notebook a second time"},
+        {"id": "d", "text": "Convert the DataFrame to a view"}
+      ],
+      "answer": "b",
+      "explanation": "PySpark transformations like withColumn are lazy and only define a plan. Data is written only when an action such as write.saveAsTable triggers execution.",
+      "refs": ["https://learn.microsoft.com/fabric/data-engineering/author-execute-notebook", "https://learn.microsoft.com/powerquery-m/table-addcolumn"]
+    },
+    {
+      "id": "q2-022",
+      "objective": "2.2.2",
+      "type": "single",
+      "stem": "In which medallion layer should derived enrichment columns generally be added?",
+      "options": [
+        {"id": "a", "text": "In the Bronze layer, before any cleaning"},
+        {"id": "b", "text": "In the Silver or Gold layer, after conforming the raw data"},
+        {"id": "c", "text": "Only inside the semantic model"},
+        {"id": "d", "text": "Only in the source system"}
+      ],
+      "answer": "b",
+      "explanation": "Bronze is the raw landing zone and should mirror the source. Enrichment columns belong in Silver or Gold, where data has been cleaned and conformed for analytical use.",
+      "refs": ["https://learn.microsoft.com/fabric/data-engineering/author-execute-notebook", "https://learn.microsoft.com/powerquery-m/table-addcolumn"]
+    },
+    {
+      "id": "q2-023",
+      "objective": "2.2.3",
+      "type": "single",
+      "scenario_id": "s-medallion",
+      "stem": "In the Gold layer, a fact table records one row per product per store per day capturing closing inventory, including days with no sales. What fact type is this?",
+      "options": [
+        {"id": "a", "text": "Transaction fact"},
+        {"id": "b", "text": "Periodic snapshot fact"},
+        {"id": "c", "text": "Accumulating snapshot fact"},
+        {"id": "d", "text": "Factless fact"}
+      ],
+      "answer": "b",
+      "explanation": "A periodic snapshot captures state at the end of each regular period for every entity, so rows exist for every period regardless of activity. A transaction fact would only have rows when events occur.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview", "https://learn.microsoft.com/power-bi/guidance/star-schema"]
+    },
+    {
+      "id": "q2-024",
+      "objective": "2.2.3",
+      "type": "single",
+      "stem": "A product changes its name but keeps the same ProductID, and the team must analyze old sales under the old name and new sales under the new name. Which SCD type is required?",
+      "options": [
+        {"id": "a", "text": "SCD Type 1"},
+        {"id": "b", "text": "SCD Type 2"},
+        {"id": "c", "text": "No SCD handling is needed"},
+        {"id": "d", "text": "A degenerate dimension"}
+      ],
+      "answer": "b",
+      "explanation": "SCD Type 2 preserves history by inserting a new row with a new surrogate key and marking the old row inactive. Historical facts keep pointing at the old surrogate key, so they resolve to the old name while new facts use the new one.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview", "https://learn.microsoft.com/power-bi/guidance/star-schema"]
+    },
+    {
+      "id": "q2-025",
+      "objective": "2.2.3",
+      "type": "single",
+      "stem": "Why should a dimension's surrogate key be generated by the warehouse (for example with IDENTITY) rather than reused from the source system's natural key?",
+      "options": [
+        {"id": "a", "text": "Natural keys are always text and cannot be joined"},
+        {"id": "b", "text": "Source natural keys can change or be reused, while a warehouse-generated key stays stable and supports SCD history rows"},
+        {"id": "c", "text": "Surrogate keys are required by KQL"},
+        {"id": "d", "text": "It prevents the need for any relationships"}
+      ],
+      "answer": "b",
+      "explanation": "A warehouse-generated surrogate key insulates the model from source key changes or reuse and enables multiple history rows per natural key for SCD Type 2. Natural keys can be unstable and cannot represent multiple versions.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview", "https://learn.microsoft.com/power-bi/guidance/star-schema"]
+    },
+    {
+      "id": "q2-026",
+      "objective": "2.2.3",
+      "type": "multi",
+      "stem": "An order-tracking fact stores OrderDateKey, ShipDateKey, and DeliveryDateKey, all pointing to a single DimDate. Which statements are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "This is an accumulating snapshot fact"},
+        {"id": "b", "text": "A semantic model allows only one active relationship between the fact and DimDate"},
+        {"id": "c", "text": "The inactive date relationships can be activated in DAX with USERELATIONSHIP"},
+        {"id": "d", "text": "All three relationships can be active at the same time"},
+        {"id": "e", "text": "DimDate must be duplicated three times to support this"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Multiple milestone dates to one dimension is an accumulating snapshot handled as a role-playing dimension. Only one relationship can be active; the others are inactive and activated per measure with USERELATIONSHIP, so no duplication of DimDate is required.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview", "https://learn.microsoft.com/power-bi/guidance/star-schema"]
+    },
+    {
+      "id": "q2-027",
+      "objective": "2.2.4",
+      "type": "single",
+      "stem": "An engineer builds a denormalized wide table that pre-joins five dimensions to speed up a slow report. What is the primary trade-off?",
+      "options": [
+        {"id": "a", "text": "Queries become slower"},
+        {"id": "b", "text": "Increased storage and the risk of stale data when source attributes change"},
+        {"id": "c", "text": "The report can no longer use DAX"},
+        {"id": "d", "text": "Relationships are automatically deleted"}
+      ],
+      "answer": "b",
+      "explanation": "A wide table stores attribute values redundantly for every row, increasing storage, and it does not stay in sync automatically — it must be rebuilt or merged when source attributes change. The benefit is faster queries with fewer joins.",
+      "refs": ["https://learn.microsoft.com/power-bi/guidance/star-schema", "https://learn.microsoft.com/fabric/data-warehouse/create-table"]
+    },
+    {
+      "id": "q2-028",
+      "objective": "2.2.4",
+      "type": "tf",
+      "stem": "A denormalized wide table automatically reflects changes to source dimension attributes without being rebuilt.",
+      "answer": "false",
+      "explanation": "A denormalized table stores duplicated attribute values and does not stay in sync automatically. When a source attribute such as a product name changes, the wide table must be rebuilt or merge-updated to reflect it.",
+      "refs": ["https://learn.microsoft.com/power-bi/guidance/star-schema", "https://learn.microsoft.com/fabric/data-warehouse/create-table"]
+    },
+    {
+      "id": "q2-029",
+      "objective": "2.2.5",
+      "type": "single",
+      "stem": "A T-SQL query uses <code>GROUP BY CategoryName</code> but also lists <code>ProductName</code> in the SELECT without aggregating it or adding it to GROUP BY. What is the result?",
+      "options": [
+        {"id": "a", "text": "ProductName is silently dropped"},
+        {"id": "b", "text": "A syntax error, because every non-aggregated SELECT column must be in GROUP BY"},
+        {"id": "c", "text": "ProductName is returned as NULL"},
+        {"id": "d", "text": "The query returns one row per ProductName"}
+      ],
+      "answer": "b",
+      "explanation": "Every non-aggregated column in the SELECT list must appear in the GROUP BY clause. Referencing ProductName without aggregating or grouping it produces a syntax error.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/query", "https://learn.microsoft.com/powerquery-m/table-group"]
+    },
+    {
+      "id": "q2-030",
+      "objective": "2.2.5",
+      "type": "single",
+      "stem": "A report must show each detail sale row alongside a running total of sales within its product category, without removing any rows. Which T-SQL feature fits?",
+      "options": [
+        {"id": "a", "text": "GROUP BY with SUM"},
+        {"id": "b", "text": "A window function with SUM() OVER (PARTITION BY ... ORDER BY ...)"},
+        {"id": "c", "text": "HAVING"},
+        {"id": "d", "text": "A CROSS JOIN"}
+      ],
+      "answer": "b",
+      "explanation": "A window function computes a per-row aggregate without collapsing rows, so each detail row can carry a running total scoped to its category. GROUP BY would collapse the detail rows into one per category.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/query", "https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql"]
+    },
+    {
+      "id": "q2-031",
+      "objective": "2.2.5",
+      "type": "multi",
+      "stem": "Which statements about aggregation in Fabric are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "HAVING filters on aggregated values after GROUP BY"},
+        {"id": "b", "text": "WHERE filters row values before aggregation"},
+        {"id": "c", "text": "Window functions collapse rows the same way GROUP BY does"},
+        {"id": "d", "text": "PySpark groupBy.agg is lazy until an action is triggered"},
+        {"id": "e", "text": "Table.Group in Power Query never folds to the source"}
+      ],
+      "answer": ["a", "b", "d"],
+      "explanation": "HAVING filters aggregates, WHERE filters rows before aggregation, and groupBy.agg is lazy. Window functions preserve rows rather than collapsing them, and Table.Group can fold to source GROUP BY when the connector supports it.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/query", "https://learn.microsoft.com/powerquery-m/table-group"]
+    },
+    {
+      "id": "q2-032",
+      "objective": "2.2.6",
+      "type": "single",
+      "stem": "A data-quality job must return all SalesFact rows whose CustomerKey is not present in DimCustomer. Which PySpark join type returns exactly these rows?",
+      "options": [
+        {"id": "a", "text": "inner"},
+        {"id": "b", "text": "left_anti"},
+        {"id": "c", "text": "left_semi"},
+        {"id": "d", "text": "full"}
+      ],
+      "answer": "b",
+      "explanation": "A left_anti join returns only the left rows that have no match on the right — exactly the orphaned fact rows. left_semi returns matched left rows, and inner/full do not isolate unmatched rows this way.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/merge", "https://learn.microsoft.com/fabric/data-warehouse/query"]
+    },
+    {
+      "id": "q2-033",
+      "objective": "2.2.6",
+      "type": "single",
+      "stem": "A MERGE statement fails with an error that it tried to update the same target row more than once. What is the cause and fix?",
+      "options": [
+        {"id": "a", "text": "The target table is empty; load it first"},
+        {"id": "b", "text": "The source has duplicate rows on the join key; deduplicate the source before MERGE"},
+        {"id": "c", "text": "The MERGE must run inside a transaction"},
+        {"id": "d", "text": "The join key is indexed; remove the index"}
+      ],
+      "answer": "b",
+      "explanation": "MERGE requires each target row to match at most one source row. Duplicate source rows on the join key cause the error; deduplicating the staging source (for example with ROW_NUMBER filtering) resolves it.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/merge", "https://learn.microsoft.com/fabric/data-warehouse/query"]
+    },
+    {
+      "id": "q2-034",
+      "objective": "2.2.6",
+      "type": "single",
+      "stem": "A query must return all customers and all orders, including customers with no orders and orders with no matching customer. Which join type is required?",
+      "options": [
+        {"id": "a", "text": "INNER JOIN"},
+        {"id": "b", "text": "LEFT OUTER JOIN"},
+        {"id": "c", "text": "FULL OUTER JOIN"},
+        {"id": "d", "text": "CROSS JOIN"}
+      ],
+      "answer": "c",
+      "explanation": "FULL OUTER JOIN returns all rows from both tables, placing NULLs where either side has no match. LEFT would drop unmatched orders and RIGHT would drop unmatched customers.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/merge", "https://learn.microsoft.com/fabric/data-warehouse/query"]
+    },
+    {
+      "id": "q2-035",
+      "objective": "2.2.6",
+      "type": "multi",
+      "stem": "Which statements about joins and MERGE in Fabric are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "INNER JOIN returns only rows with a matching key in both tables"},
+        {"id": "b", "text": "PySpark left_semi returns matched left rows with only left-table columns"},
+        {"id": "c", "text": "A CROSS JOIN produces a Cartesian product"},
+        {"id": "d", "text": "MERGE requires the source to have duplicate keys"},
+        {"id": "e", "text": "LEFT OUTER JOIN excludes right-table rows that have no left match, which is expected"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "INNER returns only matched rows, left_semi returns matched left rows with left columns only, and CROSS JOIN is a Cartesian product. MERGE requires at most one matching source row (not duplicates), and while LEFT does drop unmatched right rows, that is not a distinguishing correctness point being tested here.",
+      "refs": ["https://learn.microsoft.com/fabric/data-warehouse/merge", "https://learn.microsoft.com/fabric/data-warehouse/query"]
+    },
+    {
+      "id": "q2-036",
+      "objective": "2.2.7",
+      "type": "single",
+      "stem": "A T-SQL filter uses <code>WHERE Discount &lt;&gt; 0</code>. A row where Discount is NULL is present. Is that row included?",
+      "options": [
+        {"id": "a", "text": "Yes, NULL is treated as not equal to 0"},
+        {"id": "b", "text": "No, because NULL compared with &lt;&gt; evaluates to UNKNOWN and is excluded"},
+        {"id": "c", "text": "Yes, NULL is coerced to 0"},
+        {"id": "d", "text": "The query errors on the NULL"}
+      ],
+      "answer": "b",
+      "explanation": "Comparisons with NULL using = or <> yield UNKNOWN, which is treated as false, so the row is excluded. To include NULLs you would add <code>OR Discount IS NULL</code>.",
+      "refs": ["https://learn.microsoft.com/sql/t-sql/functions/coalesce-transact-sql", "https://learn.microsoft.com/azure/databricks/pyspark/missing-data"]
+    },
+    {
+      "id": "q2-037",
+      "objective": "2.2.7",
+      "type": "tf",
+      "stem": "Calling <code>dropDuplicates()</code> with no column arguments on a PySpark DataFrame removes rows that share the same business key even if other columns differ.",
+      "answer": "false",
+      "explanation": "dropDuplicates() with no arguments deduplicates on all columns, so two rows with the same business key but different values elsewhere are kept. To deduplicate by business key you must pass the key column list.",
+      "refs": ["https://learn.microsoft.com/azure/databricks/pyspark/missing-data", "https://learn.microsoft.com/sql/t-sql/functions/coalesce-transact-sql"]
+    },
+    {
+      "id": "q2-038",
+      "objective": "2.2.7",
+      "type": "multi",
+      "stem": "Which statements about NULL and duplicate handling are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "COALESCE returns the first non-NULL value from its argument list"},
+        {"id": "b", "text": "ISNULL accepts only two arguments"},
+        {"id": "c", "text": "COUNT(column) skips NULLs while COUNT(*) counts all rows"},
+        {"id": "d", "text": "NULL equals an empty string in SQL comparisons"},
+        {"id": "e", "text": "A comparison with NULL using = returns TRUE"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "COALESCE returns the first non-NULL, ISNULL takes two arguments, and COUNT(column) ignores NULLs while COUNT(*) counts every row. NULL is not equal to an empty string, and any equality comparison with NULL yields UNKNOWN, not TRUE.",
+      "refs": ["https://learn.microsoft.com/sql/t-sql/functions/coalesce-transact-sql", "https://learn.microsoft.com/azure/databricks/pyspark/missing-data"]
+    },
+    {
+      "id": "q2-039",
+      "objective": "2.2.8",
+      "type": "single",
+      "stem": "A staging column mostly holds numeric strings but occasionally the literal 'N/A'. An ETL step must convert it to DECIMAL without failing on the bad rows. Which function should be used?",
+      "options": [
+        {"id": "a", "text": "CAST"},
+        {"id": "b", "text": "TRY_CAST"},
+        {"id": "c", "text": "CONVERT without a style"},
+        {"id": "d", "text": "PARSE"}
+      ],
+      "answer": "b",
+      "explanation": "TRY_CAST returns NULL for invalid conversions instead of raising an error, so 'N/A' rows become NULL and the query keeps running. CAST would fail the entire statement on the first bad value.",
+      "refs": ["https://learn.microsoft.com/sql/t-sql/functions/try-cast-transact-sql", "https://learn.microsoft.com/fabric/data-engineering/spark-data-types"]
+    },
+    {
+      "id": "q2-040",
+      "objective": "2.2.8",
+      "type": "single",
+      "stem": "After casting a column from string to double in PySpark, a data-quality check finds unexpected NULLs. What most likely caused them?",
+      "options": [
+        {"id": "a", "text": "The cast rounded the values"},
+        {"id": "b", "text": "The source column contained non-numeric strings that Spark could not convert, which become NULL"},
+        {"id": "c", "text": "Spark cannot cast strings at all"},
+        {"id": "d", "text": "The DataFrame was empty"}
+      ],
+      "answer": "b",
+      "explanation": "PySpark cast returns NULL for values that fail conversion instead of throwing, so invalid non-numeric strings silently become NULL. Always inspect for unexpected NULLs after a cast.",
+      "refs": ["https://learn.microsoft.com/fabric/data-engineering/spark-data-types", "https://learn.microsoft.com/sql/t-sql/functions/try-cast-transact-sql"]
+    },
+    {
+      "id": "q2-041",
+      "objective": "2.2.8",
+      "type": "single",
+      "stem": "Which data type should be used for exact financial amounts to avoid precision errors?",
+      "options": [
+        {"id": "a", "text": "FLOAT"},
+        {"id": "b", "text": "REAL"},
+        {"id": "c", "text": "DECIMAL with defined precision and scale"},
+        {"id": "d", "text": "VARCHAR"}
+      ],
+      "answer": "c",
+      "explanation": "FLOAT and REAL are approximate types and can introduce rounding errors. DECIMAL(p,s) stores exact values with defined precision and scale, which is required for financial amounts.",
+      "refs": ["https://learn.microsoft.com/sql/t-sql/functions/try-cast-transact-sql", "https://learn.microsoft.com/fabric/data-engineering/spark-data-types"]
+    },
+    {
+      "id": "q2-042",
+      "objective": "2.2.9",
+      "type": "single",
+      "stem": "A PySpark job filters a Delta table on <code>ProductCategory</code>, but the table is partitioned by <code>OrderYear</code>. Will partition pruning skip partitions for the ProductCategory filter?",
+      "options": [
+        {"id": "a", "text": "Yes, any filter enables partition pruning"},
+        {"id": "b", "text": "No, pruning applies only to the partition column; Spark falls back to file-level data skipping"},
+        {"id": "c", "text": "Yes, because ProductCategory is a string"},
+        {"id": "d", "text": "No, Delta tables never prune partitions"}
+      ],
+      "answer": "b",
+      "explanation": "Partition pruning skips partition directories only based on the partition columns (here OrderYear). A filter on ProductCategory cannot prune partitions; Spark instead relies on column statistics and row-group data skipping, which is less aggressive.",
+      "refs": ["https://learn.microsoft.com/fabric/data-engineering/delta-optimization-and-v-order", "https://learn.microsoft.com/power-query/query-folding-basics"]
+    },
+    {
+      "id": "q2-043",
+      "objective": "2.2.9",
+      "type": "single",
+      "stem": "In a Dataflow Gen2 on a SQL Server source, an engineer applies a filter, then adds a custom M column using a non-foldable regex function, then renames columns. What is the effect on folding?",
+      "options": [
+        {"id": "a", "text": "All steps continue to fold"},
+        {"id": "b", "text": "Only the rename step folds"},
+        {"id": "c", "text": "The regex step breaks folding, so it and every later step run in the Mashup engine"},
+        {"id": "d", "text": "Folding is unaffected by custom columns"}
+      ],
+      "answer": "c",
+      "explanation": "Once a non-foldable step is introduced, folding stops there and every subsequent step — even a normally foldable rename — executes locally in the Mashup engine. Foldable steps should be placed before any folding-breaking step.",
+      "refs": ["https://learn.microsoft.com/power-query/query-folding-basics", "https://learn.microsoft.com/fabric/data-engineering/delta-optimization-and-v-order"]
+    },
+    {
+      "id": "q2-044",
+      "objective": "2.2.9",
+      "type": "multi",
+      "stem": "Which practices improve filter performance in Fabric data preparation? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "Filter on Delta partition columns to enable partition pruning"},
+        {"id": "b", "text": "Apply foldable filter steps before any folding-breaking step"},
+        {"id": "c", "text": "Use EXISTS to short-circuit an existence check on a large fact table"},
+        {"id": "d", "text": "Insert Table.Buffer early to speed up folding"},
+        {"id": "e", "text": "Filter as late as possible so all rows are loaded first"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "Partition-column filters enable pruning, ordering foldable steps first maximizes pushdown, and EXISTS short-circuits on the first match. Table.Buffer forces data into memory and breaks folding, and filtering as early as possible (not as late) is the correct principle.",
+      "refs": ["https://learn.microsoft.com/power-query/query-folding-basics", "https://learn.microsoft.com/fabric/data-engineering/delta-optimization-and-v-order"]
+    },
+    {
+      "id": "q2-045",
+      "objective": "2.3.1",
+      "type": "single",
+      "stem": "Which statement best describes query folding in Power Query?",
+      "options": [
+        {"id": "a", "text": "It is a storage-engine feature that applies to all T-SQL and KQL queries"},
+        {"id": "b", "text": "It translates M transform steps into a native source query so work runs at the source"},
+        {"id": "c", "text": "It caches all source data in memory before transforming"},
+        {"id": "d", "text": "It converts reports into Delta tables"}
+      ],
+      "answer": "b",
+      "explanation": "Query folding is a Mashup-engine feature that translates M steps into a single native query (for example SQL) executed at the source, reducing data movement. It does not apply to T-SQL or KQL, which already run at the engine.",
+      "refs": ["https://learn.microsoft.com/power-query/query-folding-basics", "https://learn.microsoft.com/fabric/data-warehouse/visual-query-editor"]
+    },
+    {
+      "id": "q2-046",
+      "objective": "2.3.1",
+      "type": "tf",
+      "stem": "Once a step breaks query folding in Power Query, every step after it also stops folding, even simple ones such as renames.",
+      "answer": "true",
+      "explanation": "When a step breaks folding, all subsequent steps execute in the Mashup engine, even ordinarily foldable ones. This is why foldable operations should be placed before any folding-breaking step.",
+      "refs": ["https://learn.microsoft.com/power-query/query-folding-basics", "https://learn.microsoft.com/fabric/data-warehouse/visual-query-editor"]
+    },
+    {
+      "id": "q2-047",
+      "objective": "2.3.1",
+      "type": "single",
+      "stem": "In Power Query Editor, an engineer right-clicks a filter step and finds that View native query is grayed out. What does this indicate?",
+      "options": [
+        {"id": "a", "text": "The step folds correctly"},
+        {"id": "b", "text": "The step does not fold and is executing in the Mashup engine"},
+        {"id": "c", "text": "The source is offline"},
+        {"id": "d", "text": "The step contains a syntax error"}
+      ],
+      "answer": "b",
+      "explanation": "A grayed-out View native query option confirms folding stopped at or before that step, so it runs client-side in the Mashup engine. This is a standard way to diagnose Dataflow performance problems.",
+      "refs": ["https://learn.microsoft.com/power-query/query-folding-basics", "https://learn.microsoft.com/fabric/data-warehouse/visual-query-editor"]
+    },
+    {
+      "id": "q2-048",
+      "objective": "2.3.2",
+      "type": "single",
+      "stem": "A T-SQL window function assigns the same RANK value to two tied customers. What rank does the next customer receive?",
+      "options": [
+        {"id": "a", "text": "2 — RANK never skips"},
+        {"id": "b", "text": "3 — RANK skips the number after a tie"},
+        {"id": "c", "text": "1 — all rows share the same rank"},
+        {"id": "d", "text": "It errors on ties"}
+      ],
+      "answer": "b",
+      "explanation": "RANK assigns the same value to tied rows and then skips the next rank number, so after two rows tied at 1 the next is 3. DENSE_RANK would assign 2 without skipping.",
+      "refs": ["https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql", "https://learn.microsoft.com/fabric/data-warehouse/query"]
+    },
+    {
+      "id": "q2-049",
+      "objective": "2.3.2",
+      "type": "single",
+      "stem": "An engineer writes <code>SELECT ..., RANK() OVER (...) AS Rnk FROM t WHERE Rnk &lt;= 10</code> and it errors. Why?",
+      "options": [
+        {"id": "a", "text": "RANK is not supported in Fabric"},
+        {"id": "b", "text": "Window functions are evaluated after WHERE, so they cannot be referenced in the WHERE of the same SELECT"},
+        {"id": "c", "text": "The alias Rnk is reserved"},
+        {"id": "d", "text": "ORDER BY is missing"}
+      ],
+      "answer": "b",
+      "explanation": "Window functions are evaluated after the WHERE clause, so their result cannot be referenced there in the same query. Wrap the window function in a CTE or subquery and filter in the outer query.",
+      "refs": ["https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql", "https://learn.microsoft.com/fabric/data-warehouse/query"]
+    },
+    {
+      "id": "q2-050",
+      "objective": "2.3.2",
+      "type": "multi",
+      "stem": "Which statements about T-SQL window functions in Fabric are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "ROW_NUMBER returns a unique integer per row with no ties"},
+        {"id": "b", "text": "DENSE_RANK does not skip numbers after a tie"},
+        {"id": "c", "text": "LAG and LEAD access previous and next row values within a partition"},
+        {"id": "d", "text": "Window functions can be referenced directly in the WHERE clause"},
+        {"id": "e", "text": "Window functions collapse the result to one row per partition"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "ROW_NUMBER is unique per row, DENSE_RANK does not skip after ties, and LAG/LEAD reach neighboring rows. Window functions cannot be used in WHERE and they preserve rows rather than collapsing them.",
+      "refs": ["https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql", "https://learn.microsoft.com/fabric/data-warehouse/query"]
+    },
+    {
+      "id": "q2-051",
+      "objective": "2.3.3",
+      "type": "single",
+      "stem": "A KQL query must count events per hour for the past seven days, grouped by server. Which core function creates the regular hourly buckets?",
+      "options": [
+        {"id": "a", "text": "project"},
+        {"id": "b", "text": "bin(TimeGenerated, 1h) inside summarize"},
+        {"id": "c", "text": "render"},
+        {"id": "d", "text": "take"}
+      ],
+      "answer": "b",
+      "explanation": "bin() floors each timestamp to the nearest interval, so bin(TimeGenerated, 1h) inside a summarize creates uniform one-hour buckets. Without it, each distinct timestamp would form its own group.",
+      "refs": ["https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric", "https://learn.microsoft.com/kusto/query/bin-function?view=microsoft-fabric"]
+    },
+    {
+      "id": "q2-052",
+      "objective": "2.3.3",
+      "type": "single",
+      "stem": "A KQL query does <code>summarize Total = sum(Amount) by Category</code> and then <code>project OrderID, Category, Total</code>, which fails. Why?",
+      "options": [
+        {"id": "a", "text": "project must come before summarize"},
+        {"id": "b", "text": "OrderID no longer exists after summarize, which keeps only by-columns and aggregates"},
+        {"id": "c", "text": "sum cannot be used with project"},
+        {"id": "d", "text": "Category is a reserved word"}
+      ],
+      "answer": "b",
+      "explanation": "After summarize, only the by-clause columns and aggregate expressions remain in scope. OrderID was not in the by clause, so it no longer exists and cannot be projected.",
+      "refs": ["https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric", "https://learn.microsoft.com/kusto/query/tutorials/use-aggregation-functions?view=microsoft-fabric"]
+    },
+    {
+      "id": "q2-053",
+      "objective": "2.3.3",
+      "type": "single",
+      "stem": "In KQL, what is the difference between <code>project</code> and <code>extend</code>?",
+      "options": [
+        {"id": "a", "text": "project adds a column; extend removes columns"},
+        {"id": "b", "text": "project selects specific columns and drops the rest; extend adds computed columns while keeping existing ones"},
+        {"id": "c", "text": "They are identical"},
+        {"id": "d", "text": "extend can only be used after summarize"}
+      ],
+      "answer": "b",
+      "explanation": "project narrows the schema to the named columns and drops the others, while extend adds new computed columns without removing existing ones. Choosing the wrong one can accidentally drop columns.",
+      "refs": ["https://learn.microsoft.com/kusto/query/tutorials/use-aggregation-functions?view=microsoft-fabric", "https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric"]
+    },
+    {
+      "id": "q2-054",
+      "objective": "2.3.3",
+      "type": "multi",
+      "stem": "Which statements about KQL are correct? (Select all that apply.)",
+      "options": [
+        {"id": "a", "text": "KQL uses == for equality comparison"},
+        {"id": "b", "text": "render is a display directive that does not change tabular output"},
+        {"id": "c", "text": "take without a preceding sort returns a non-deterministic set of rows"},
+        {"id": "d", "text": "extend drops all columns not named"},
+        {"id": "e", "text": "summarize preserves every original column"}
+      ],
+      "answer": ["a", "b", "c"],
+      "explanation": "KQL uses == for equality, render only hints at a chart, and take is non-deterministic without a sort. extend keeps existing columns (project is the one that drops), and summarize retains only by-columns and aggregates.",
+      "refs": ["https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric", "https://learn.microsoft.com/kusto/query/bin-function?view=microsoft-fabric"]
+    },
+    {
+      "id": "q2-055",
+      "objective": "2.3.4",
+      "type": "single",
+      "stem": "Why should a DAX measure use <code>DIVIDE(x, y)</code> rather than the <code>/</code> operator?",
+      "options": [
+        {"id": "a", "text": "DIVIDE is faster for constant denominators"},
+        {"id": "b", "text": "DIVIDE returns BLANK (or an alternate) on divide-by-zero instead of raising an error"},
+        {"id": "c", "text": "The / operator is not valid DAX"},
+        {"id": "d", "text": "DIVIDE rounds the result automatically"}
+      ],
+      "answer": "b",
+      "explanation": "DIVIDE handles division by zero gracefully by returning BLANK or a specified alternate result, whereas the / operator raises a division-by-zero error that can break visuals.",
+      "refs": ["https://learn.microsoft.com/dax/divide-function-dax", "https://learn.microsoft.com/dax/dax-overview"]
+    },
+    {
+      "id": "q2-056",
+      "objective": "2.3.4",
+      "type": "single",
+      "stem": "A measure is defined as the sum of SalesAmount divided by <code>CALCULATE(SUM(SalesFact[SalesAmount]), ALL(SalesFact))</code>. A user selects only 2024 in a Year slicer. Does the denominator change?",
+      "options": [
+        {"id": "a", "text": "Yes, it drops to the 2024 total"},
+        {"id": "b", "text": "No, ALL(SalesFact) removes all filters so the denominator stays the grand total"},
+        {"id": "c", "text": "Yes, because slicers always override ALL"},
+        {"id": "d", "text": "No, but only if the Year table is separate"}
+      ],
+      "answer": "b",
+      "explanation": "ALL(SalesFact) removes all filters on that table, including the Year filter, so the denominator always returns the grand total across all years. That makes the measure a true share-of-total regardless of the slicer.",
+      "refs": ["https://learn.microsoft.com/dax/calculate-function-dax", "https://learn.microsoft.com/dax/dax-overview"]
+    }
+  ]
+}
