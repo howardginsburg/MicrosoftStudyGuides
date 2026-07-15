@@ -154,6 +154,7 @@ INTERACTIVE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <style>%s</style></head><body>
 <header class="topbar">
   <button id="menu-btn" title="Menu">&#9776;</button>
+  <a class="home-link" href="index.html" title="Back to all study guides">&#8592; All guides</a>
   <div class="brand">%s<small>%s</small></div>
   <div class="spacer"></div>
   <input id="search" type="search" placeholder="Search the guide&hellip;" autocomplete="off">

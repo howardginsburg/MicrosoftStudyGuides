@@ -27,6 +27,9 @@ a:hover{text-decoration:underline}
   background:var(--navy);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .topbar .brand{font-weight:700;letter-spacing:.2px;white-space:nowrap}
 .topbar .brand small{font-weight:400;opacity:.8;margin-left:8px}
+.topbar .home-link{color:#fff;text-decoration:none;font-size:13px;white-space:nowrap;
+  background:rgba(255,255,255,.14);border-radius:6px;padding:7px 12px}
+.topbar .home-link:hover{background:rgba(255,255,255,.28)}
 .topbar .spacer{flex:1}
 #search{width:min(360px,40vw);padding:8px 12px;border-radius:20px;border:none;
   background:rgba(255,255,255,.15);color:#fff;font-size:14px}
@@ -176,6 +179,7 @@ figure.diagram svg{max-width:100%;height:auto;display:block;margin:0 auto}
 </style></head><body>
 <header class="topbar">
   <button id="menu-btn" title="Menu">&#9776;</button>
+  <a class="home-link" href="index.html" title="Back to all study guides">&#8592; All guides</a>
   <div class="brand">DP-420<small>Azure Cosmos DB — Study Guide</small></div>
   <div class="spacer"></div>
   <input id="search" type="search" placeholder="Search the guide&hellip;" autocomplete="off">
