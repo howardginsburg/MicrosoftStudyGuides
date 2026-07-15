@@ -1,0 +1,745 @@
+<section class="domain" id="domain3" data-domain="3">
+  <h1 id="d3">Domain 3 — Integrate an Azure Cosmos DB Solution <span class="weight">5–10%</span></h1>
+  <p class="domain-intro">Azure Cosmos DB rarely lives in isolation. This domain covers how you connect it to the wider Azure analytics and application ecosystem: replicating operational data into Microsoft Fabric OneLake with no-ETL <strong>mirroring</strong>, running large-scale analytics through the column-oriented <strong>analytical store</strong> and Azure Synapse Link, and reading or writing data with the <strong>Spark connector</strong>. It also covers the event-driven patterns built on the <strong>change feed</strong> and <strong>Azure Functions</strong> — denormalization, referential integrity, materialized aggregates, and archival — plus integrating <strong>Azure Event Hubs</strong> and <strong>Azure AI Search</strong>. Although only 5–10% of the exam, these topics reward you for knowing which integration path fits a scenario and which ones cost RUs versus which run RU-free.</p>
+
+  <!-- ===== 3.1 Enable Azure Cosmos DB Analytical Workloads ===== -->
+  <section class="skillgroup" id="sg-3-1">
+    <h2 id="g-3-1">3.1 Enable Azure Cosmos DB Analytical Workloads</h2>
+
+    <!-- 3.1.1 -->
+    <section class="objective" id="obj-3-1-1" data-skill="fabric-mirroring">
+      <h3 id="o-3-1-1">3.1.1 Configure Azure Cosmos DB Mirroring for Microsoft Fabric</h3>
+
+      <div class="concept">
+        <p><strong>Mirroring in Microsoft Fabric</strong> continuously replicates an Azure Cosmos DB database into Fabric <strong>OneLake</strong> in near real-time, giving you a no-ETL path to analytics. The replica is stored in the open-source <strong>Delta Lake / Parquet</strong> format, so every Fabric engine — Power BI (Direct Lake), the SQL analytics endpoint, and Spark — can read it without you building or maintaining a pipeline.</p>
+        <p>The critical selling points for the exam: replication is <strong>free</strong> (Fabric compute for replication and OneLake storage cost nothing), it has <strong>no performance impact</strong> on your transactional workload, and it <strong>doesn't consume Request Units</strong>. Mirroring is GA and is now the recommended replacement for Azure Synapse Link.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Data replicates into OneLake in near real-time as Delta/Parquet; no ETL and no RU consumption on the source account.</li>
+          <li><strong>Continuous backup is a prerequisite</strong> — enable 7-day (free, recommended) or 30-day continuous backup before mirroring.</li>
+          <li>Each mirrored item auto-creates a read-only <strong>SQL analytics endpoint</strong> and a default <strong>Power BI semantic model</strong>; the source is viewable read-only in Data Explorer.</li>
+          <li>Replication compute and OneLake storage are <strong>free</strong>; you pay only for query compute (SQL, Power BI, Spark) against Fabric capacity.</li>
+          <li>Currently supports <strong>API for NoSQL</strong> only; not in sovereign clouds; <strong>multiple write regions are not supported</strong>.</li>
+          <li>Mirroring does <strong>not</strong> use the analytical store or change feed as its source — those remain independently available.</li>
+          <li>Nested data surfaces as JSON strings in the SQL endpoint; expand with <code>OPENJSON</code>, <code>CROSS APPLY</code>, or <code>OUTER APPLY</code>.</li>
+        </ul>
+      </div>
+
+      <div class="callout key">
+        <b>Key:</b> Mirroring gives HTAP analytics with <em>zero</em> RU cost and <em>zero</em> transactional impact. If a scenario asks for near real-time BI on Cosmos DB data without ETL and without touching provisioned throughput, mirroring is the answer.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Continuous backup is mandatory — mirroring won't start without it. 7-day is free.</li>
+          <li>NoSQL only, single write region only. Multi-write-region accounts can't be mirrored.</li>
+          <li>The SQL analytics endpoint is <strong>read-only</strong> — you cannot write to Cosmos DB from Fabric.</li>
+          <li>Mirroring replaces Synapse Link for new projects but is a separate mechanism from analytical store/change feed.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A team needs near real-time Power BI reporting over a Cosmos DB for NoSQL container but cannot afford any extra RU pressure on the production workload. What should they configure?</summary>
+          <div class="answer"><b>Answer:</b> Azure Cosmos DB mirroring for Microsoft Fabric. <em>Why:</em> Mirroring replicates the data into OneLake in near real-time with no RU consumption and no transactional impact, and Power BI can read it in Direct Lake mode — no ETL pipeline required.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> An engineer tries to enable mirroring but the option is unavailable. The account is API for NoSQL with a single write region. What prerequisite is most likely missing?</summary>
+          <div class="answer"><b>Answer:</b> Continuous backup is not enabled. <em>Why:</em> Mirroring requires continuous backup (7-day or 30-day) on the Cosmos DB account; enabling 7-day continuous backup, which is free, satisfies the prerequisite.</div>
+        </details>
+        <details class="q"><summary><b>Q3.</b> Can an application write results back to Cosmos DB through the mirrored database's SQL analytics endpoint?</summary>
+          <div class="answer"><b>Answer:</b> No. <em>Why:</em> The mirrored copy in OneLake and its SQL analytics endpoint are read-only; writes to the source must go through the Cosmos DB APIs/SDKs directly.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db">Mirroring Azure Cosmos DB in Microsoft Fabric</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db-tutorial">Tutorial: Configure Fabric mirrored databases from Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 3.1.2 -->
+    <section class="objective" id="obj-3-1-2" data-skill="mirroring-vs-spark">
+      <h3 id="o-3-1-2">3.1.2 Choose Between Azure Cosmos DB Mirroring and the Azure Cosmos DB Spark Connector</h3>
+
+      <div class="concept">
+        <p>Both bring Cosmos DB data into an analytics environment, but they solve different problems. <strong>Mirroring</strong> is fully managed and no-code: it replicates the whole database into OneLake for read-only analytics, free of RU cost. The <strong>Spark connector</strong> is code-first and can both read and <strong>write</strong> — but reading the transactional store (<code>cosmos.oltp</code>) consumes RUs.</p>
+        <p>Choose mirroring for BI and analytics with no pipeline to maintain. Choose the Spark connector when you need programmatic transformations, data-engineering/ML workflows, or the ability to write results back to Cosmos DB.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Mirroring:</strong> managed, no-code, near real-time, read-only, <strong>free</strong> compute, <strong>no RU</strong> cost; best for BI/reporting.</li>
+          <li><strong>Spark connector:</strong> code-first; the <code>cosmos.oltp</code> format reads/writes the transactional store and <strong>consumes RUs</strong>; best for data engineering, ML, and write-back.</li>
+          <li>The Spark <code>cosmos.olap</code> format reads the <strong>analytical store</strong> (via Synapse Link) — read-only and RU-free — an alternative to <code>cosmos.oltp</code> when you don't need the freshest transactional data.</li>
+          <li>Only the Spark connector can <strong>write</strong> data back to Cosmos DB; mirroring is one-way and read-only.</li>
+        </ul>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Need write-back or custom transformations? Spark connector. Need managed, RU-free BI? Mirroring.</li>
+          <li><code>cosmos.oltp</code> = transactional store, costs RUs. <code>cosmos.olap</code> = analytical store, RU-free, read-only.</li>
+          <li>Mirroring is one-directional into OneLake; don't pick it when the scenario needs to update Cosmos DB.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A data-engineering job must read Cosmos DB data, transform it in code, and write aggregated results back into a Cosmos DB container. Mirroring or Spark connector?</summary>
+          <div class="answer"><b>Answer:</b> Spark connector. <em>Why:</em> Only the Spark connector supports write-back to the transactional store (<code>cosmos.oltp</code>); mirroring is read-only into OneLake.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A BI team wants Power BI dashboards over Cosmos DB with the least operational overhead and no RU impact. Which do you recommend?</summary>
+          <div class="answer"><b>Answer:</b> Mirroring. <em>Why:</em> It is fully managed, no-code, RU-free, and feeds Power BI Direct Lake directly from OneLake with no pipeline to maintain.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/fabric/mirroring/azure-cosmos-db">Mirroring Azure Cosmos DB in Microsoft Fabric</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/synapse-analytics/synapse-link/how-to-query-analytical-store-spark-3">Interact with Azure Cosmos DB using Apache Spark 3</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 3.1.3 -->
+    <section class="objective" id="obj-3-1-3" data-skill="enable-analytical-store">
+      <h3 id="o-3-1-3">3.1.3 Enable the Analytical Store on a Container</h3>
+
+      <div class="concept">
+        <p>The <strong>analytical store</strong> is a fully isolated, auto-managed <strong>column store</strong> that mirrors your container's operational data in a format optimized for large analytical scans and aggregations. Because it is physically separate from the row-based transactional store, analytical queries have <strong>no impact</strong> on transactional performance and require <strong>no RU allocation</strong>.</p>
+        <p>You enable it per container by setting <strong>Analytical TTL (ATTL)</strong> to <code>-1</code> (infinite retention) or a positive number of seconds; <code>0</code> disables it. Enabling analytical store depends on Azure Synapse Link being enabled at the account level first.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Enable via <strong>Analytical TTL</strong>: <code>-1</code> = keep all history; positive <code>n</code> = expire after <code>n</code> seconds; <code>0</code> = disabled.</li>
+          <li><strong>Auto-sync</strong> propagates inserts/updates/deletes to the column store, usually within ~2 minutes (up to ~5 min for shared-throughput databases with many containers).</li>
+          <li>No RU cost and no transactional impact — the column store is billed separately (storage + analytical read/write operations).</li>
+          <li>Turning on Synapse Link at the account does <strong>not</strong> auto-enable analytical store; you set ATTL on each container.</li>
+          <li>Configure via portal, Azure CLI (<code>--analytical-storage-ttl</code>), PowerShell (<code>-AnalyticalStorageTtl</code>), ARM, or SDK (<code>AnalyticalStoreTimeToLiveInSeconds</code> / <code>analytical_storage_ttl</code>).</li>
+          <li>Data tiering: set <strong>ATTL ≥ transactional TTL</strong> to keep longer history cheaply in analytical store while hot data expires from the transactional store.</li>
+          <li>Schema limits: 1000 properties, 127 nesting levels; columns can't be removed; no schema reset.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="analytical-store-htap"><figcaption>The transactional row store auto-syncs into a separate column-oriented analytical store, enabling HTAP analytics with no RU impact.</figcaption></figure>
+
+      <div class="code"><pre><code class="lang-python"># Create a Synapse Link-enabled container with analytical store (infinite retention)
+container = db.create_container(
+    id="orders",
+    partition_key=PartitionKey(path="/customerId"),
+    analytical_storage_ttl=-1   # -1 = keep all history; positive n = expire after n seconds
+)</code></pre></div>
+
+      <div class="callout tip">
+        <b>Tip:</b> ATTL is set at the <em>container</em> level only. Transactional TTL can be per-item or per-container, but analytical TTL is container-wide.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>ATTL <code>-1</code> = infinite, <code>0</code> = disabled, positive <code>n</code> = seconds of retention. Memorize these three values.</li>
+          <li>Analytical store adds <strong>no RU cost</strong> — distractors claiming it consumes provisioned throughput are wrong.</li>
+          <li>Enabling Synapse Link on the account is a prerequisite but is not enough on its own; set ATTL per container.</li>
+          <li>For NoSQL, full-fidelity vs well-defined schema is chosen when Synapse Link is first enabled and can't be changed later.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You want operational data to expire from the transactional store after 30 days but retain two years of history for analytics. How do you configure TTL?</summary>
+          <div class="answer"><b>Answer:</b> Set transactional TTL to 30 days and analytical TTL to two years (ATTL ≥ TTTL). <em>Why:</em> Analytical TTL controls the column store's retention independently, so history persists cheaply in analytical store after it expires from the transactional store.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> After enabling Synapse Link on the account, a developer expects analytical queries to work but the analytical store is empty. What's missing?</summary>
+          <div class="answer"><b>Answer:</b> Analytical store wasn't enabled on the container — analytical TTL is still unset. <em>Why:</em> Enabling Synapse Link at the account level doesn't turn on analytical store; you must set analytical TTL (-1 or a positive value) on each container.</div>
+        </details>
+        <details class="q"><summary><b>Q3.</b> Does enabling analytical store increase the RU/s you must provision for transactional queries?</summary>
+          <div class="answer"><b>Answer:</b> No. <em>Why:</em> The analytical store is isolated and billed separately (storage plus analytical operations); auto-sync doesn't consume the container's provisioned RUs.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/analytical-store-introduction">What is Azure Cosmos DB analytical store?</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/configure-synapse-link">Configure and use Azure Synapse Link for Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 3.1.4 -->
+    <section class="objective" id="obj-3-1-4" data-skill="query-analytical-store">
+      <h3 id="o-3-1-4">3.1.4 Enable a Connection to an Analytical Store and Query from Azure Synapse Spark or Azure Synapse SQL</h3>
+
+      <div class="concept">
+        <p><strong>Azure Synapse Link</strong> is the connection that lets Azure Synapse Analytics query the analytical store in near real-time. After enabling Synapse Link on the account and analytical store on the containers, you connect the Cosmos DB database to a Synapse workspace (creating a linked service) and query from either <strong>Synapse Spark</strong> or the <strong>serverless SQL pool</strong>.</p>
+        <p>Both runtimes are <strong>read-only</strong> against the analytical store — only auto-sync writes to it — and neither consumes RUs.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Workflow: enable Synapse Link (account) → enable analytical store (container) → connect the DB to a Synapse workspace → query from Spark or serverless SQL.</li>
+          <li><strong>Spark:</strong> read the analytical store with <code>spark.read.format("cosmos.olap")</code> into a DataFrame, or create a Spark table using <code>cosmos.olap</code>.</li>
+          <li><strong>Serverless SQL:</strong> query with <code>OPENROWSET(PROVIDER = 'CosmosDB', ...)</code>; auto-updating views can also be created.</li>
+          <li>DataFrames cache a snapshot at creation; Spark tables re-read the latest state on every query.</li>
+          <li><strong>Contributor</strong> role to enable Synapse Link at account level; <strong>Operator</strong> to enable it on containers.</li>
+          <li>Both runtimes read only; RU-free. No writes to analytical store except auto-sync.</li>
+        </ul>
+      </div>
+
+      <div class="code"><pre><code class="lang-sql">-- Synapse serverless SQL pool querying the analytical store (no RU cost)
+SELECT TOP 100 *
+FROM OPENROWSET(
+    PROVIDER = 'CosmosDB',
+    CONNECTION = 'Account=myaccount;Database=retail',
+    OBJECT = 'orders'
+) AS orders;</code></pre></div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Spark reads analytical store with <code>cosmos.olap</code>; serverless SQL uses <code>OPENROWSET</code> with <code>PROVIDER = 'CosmosDB'</code>.</li>
+          <li>Analytical store is read-only from Synapse — you can't UPDATE/DELETE it directly.</li>
+          <li>Contributor (account) vs Operator (container) — know which role each step needs.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Which Synapse serverless SQL construct reads the Cosmos DB analytical store without impacting the transactional workload?</summary>
+          <div class="answer"><b>Answer:</b> <code>OPENROWSET</code> with <code>PROVIDER = 'CosmosDB'</code>. <em>Why:</em> It reads the isolated analytical store over Synapse Link, so there's no RU cost and no transactional impact.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A Spark DataFrame created from the analytical store doesn't reflect data changed after it was created. Why, and how do you always get the latest?</summary>
+          <div class="answer"><b>Answer:</b> A DataFrame caches a snapshot of the metadata at creation. <em>Why:</em> Create a Spark table with <code>cosmos.olap</code> instead — Spark tables re-read the latest analytical store state on each query.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/synapse-analytics/synapse-link/how-to-query-analytical-store-spark-3">Query the analytical store with Apache Spark 3</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/configure-synapse-link">Configure and use Azure Synapse Link</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 3.1.5 -->
+    <section class="objective" id="obj-3-1-5" data-skill="spark-read-oltp">
+      <h3 id="o-3-1-5">3.1.5 Perform a Query Against the Transactional Store from Spark</h3>
+
+      <div class="concept">
+        <p>When you need the freshest data or capabilities the analytical store can't provide, Spark can read the <strong>transactional store</strong> directly using the <code>cosmos.oltp</code> format. Unlike <code>cosmos.olap</code>, reading the transactional store <strong>consumes provisioned RUs</strong> and can affect OLTP performance, so use it deliberately.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>spark.read.format("cosmos.oltp")</code> reads the transactional store directly — it <strong>consumes RUs</strong>.</li>
+          <li><code>cosmos.olap</code> (analytical store) is RU-free and read-only; <code>cosmos.oltp</code> (transactional) costs RUs but returns live data and supports writes.</li>
+          <li>Structured streaming from the change feed uses <code>cosmos.oltp.changeFeed</code> with options like <code>spark.cosmos.changeFeed.startFrom</code> and <code>spark.cosmos.changeFeed.mode</code>.</li>
+          <li>Choose <code>cosmos.oltp</code> for freshest data / write-back; <code>cosmos.olap</code> for RU-free analytics on synced data.</li>
+        </ul>
+      </div>
+
+      <div class="code"><pre><code class="lang-python"># Read the transactional store directly (consumes RUs)
+df = (spark.read.format("cosmos.oltp")
+      .option("spark.synapse.linkedService", "myCosmosLinkedService")
+      .option("spark.cosmos.container", "orders")
+      .load())
+df.show(10)</code></pre></div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> <code>cosmos.oltp</code> reads hit the transactional store and burn RUs. If a scenario stresses "no impact on the transactional workload," the intended answer is the analytical store (<code>cosmos.olap</code>), not <code>cosmos.oltp</code>.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><code>cosmos.oltp</code> = transactional store, costs RUs, live data. <code>cosmos.olap</code> = analytical store, RU-free, near real-time.</li>
+          <li>Change-feed streaming source is <code>cosmos.oltp.changeFeed</code>.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A Spark job must read the most up-to-the-second state of a container. Which format, and what's the trade-off?</summary>
+          <div class="answer"><b>Answer:</b> <code>cosmos.oltp</code>. <em>Why:</em> It reads the transactional store for live data, but it consumes provisioned RUs and can affect transactional performance (the analytical store lags by up to ~2 minutes and is RU-free).</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Which Spark format lets you consume the change feed as a structured-streaming source?</summary>
+          <div class="answer"><b>Answer:</b> <code>cosmos.oltp.changeFeed</code>. <em>Why:</em> It streams incremental changes from the transactional store's change feed, configurable with start position and mode options.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/synapse-analytics/synapse-link/how-to-query-analytical-store-spark-3">Interact with Azure Cosmos DB using Apache Spark 3</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-spark">Read the change feed with Apache Spark</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 3.1.6 -->
+    <section class="objective" id="obj-3-1-6" data-skill="spark-write-oltp">
+      <h3 id="o-3-1-6">3.1.6 Write Data Back to the Transactional Store from Spark</h3>
+
+      <div class="concept">
+        <p>Spark can also ingest data into Cosmos DB. Writes always go through the <strong>transactional store</strong> using the <code>cosmos.oltp</code> format with an append mode; if Synapse Link is enabled, the new inserts/updates/deletes then auto-sync to the analytical store. Writing consumes RUs on the target container.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Write with <code>df.write.format("cosmos.oltp").mode("append")</code> (Scala <code>SaveMode.Append</code>).</li>
+          <li>All ingestion goes through the <strong>transactional store</strong>; analytical store is updated only by auto-sync afterward.</li>
+          <li>Writing <strong>consumes RUs</strong> provisioned on the target container/shared database and impacts transactional performance.</li>
+          <li>Streaming writes use <code>.writeStream.format("cosmos.oltp")</code> with a <code>checkpointLocation</code>.</li>
+        </ul>
+      </div>
+
+      <div class="code"><pre><code class="lang-python"># Write a DataFrame into a Cosmos DB container (through the transactional store; consumes RUs)
+(dataframe.write.format("cosmos.oltp")
+    .option("spark.synapse.linkedService", "myCosmosLinkedService")
+    .option("spark.cosmos.container", "orders")
+    .mode("append")
+    .save())</code></pre></div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>You can only write to Cosmos DB via <code>cosmos.oltp</code> — you cannot write to the analytical store (<code>cosmos.olap</code>) directly.</li>
+          <li>Writes cost RUs; the analytical copy updates automatically via auto-sync, not by a separate write.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A Spark job writes transformed data back into a Cosmos DB container. Which store receives the write, and what updates the analytical store?</summary>
+          <div class="answer"><b>Answer:</b> The transactional store receives the write (via <code>cosmos.oltp</code>); the analytical store is updated automatically by auto-sync. <em>Why:</em> All ingestion flows through the transactional store — you can't write directly to the analytical column store.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Does writing from Spark to a container consume Request Units?</summary>
+          <div class="answer"><b>Answer:</b> Yes. <em>Why:</em> Writes hit the transactional store and consume RUs provisioned on the target container or shared database, unlike RU-free analytical reads.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/synapse-analytics/synapse-link/how-to-query-analytical-store-spark-3">Write a Spark DataFrame to an Azure Cosmos DB container</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/analytical-store-introduction">Analytical store overview (auto-sync behavior)</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 3.1.7 -->
+    <section class="objective" id="obj-3-1-7" data-skill="analytical-cdc">
+      <h3 id="o-3-1-7">3.1.7 Implement Change Data Capture in the Azure Cosmos DB Analytical Store</h3>
+
+      <div class="concept">
+        <p><strong>Change data capture (CDC)</strong> in the analytical store gives you a continuous, incremental feed of inserted, updated, and deleted data — consumed through Azure Synapse or Azure Data Factory <strong>mapping data flows</strong> with a no-code experience. Because it reads the analytical store, CDC <strong>doesn't consume RUs</strong>, doesn't affect transactional workloads, and offers lower latency and TCO.</p>
+        <p>Unlike the transactional change feed, analytical CDC natively captures <strong>deletes and TTL removals</strong> and manages checkpoints internally (GLSN-based), so each change appears exactly once with no records missed.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Consumed via ADF / Synapse mapping data flows to any supported sink; <strong>no RU cost</strong> and no transactional impact.</li>
+          <li>Captures <strong>deletes, intermediate updates, and TTL</strong> operations (TTL treated as a delete); use <code>{_rid}</code> as the sink key to reflect updates/deletes.</li>
+          <li><strong>Internally managed checkpoints</strong> (GLSN, not <code>_ts</code>): exactly-once, none missed; no fixed retention limit for availability.</li>
+          <li>Start options: <strong>from beginning</strong>, <strong>from a timestamp</strong>, or <strong>from now</strong>.</li>
+          <li>Filter by operation type (Insert/Update/Delete/TTL); apply filters, projections, transformations via a source query pushed down to the column store.</li>
+          <li>Multiple independent CDC processes can run in parallel with different sinks and transformations.</li>
+        </ul>
+      </div>
+
+      <div class="code"><pre><code class="lang-sql">-- Source query for analytical-store CDC: filter, project, and transform (pushed to column store)
+SELECT ProductId, Product, Segment,
+       concat(Manufacturer, '-', Category) AS ManufacturerCategory
+FROM c
+WHERE Category = 'Urban'</code></pre></div>
+
+      <div class="callout key">
+        <b>Key:</b> Analytical-store CDC is the RU-free way to capture <em>deletes and intermediate updates</em>. If a scenario needs a delete-aware incremental feed without touching provisioned throughput, it's analytical CDC — not the transactional change feed (latest-version mode misses deletes).
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Analytical CDC captures deletes and TTL removals natively; transactional change feed latest-version mode does not.</li>
+          <li>No RU cost, internally managed checkpoints (exactly-once), no fixed retention limit.</li>
+          <li>Consumed through ADF/Synapse data flows; use <code>{_rid}</code> as the sink key column for update/delete propagation.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You need an incremental feed that includes deletes and TTL removals, writing to a data lake, without consuming RUs. Which capability fits?</summary>
+          <div class="answer"><b>Answer:</b> Change data capture in the analytical store (via ADF/Synapse data flows). <em>Why:</em> It natively captures deletes and TTL operations, runs RU-free off the analytical store, and manages checkpoints internally.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Why is analytical CDC more reliable than a custom <code>_ts</code>-based incremental read?</summary>
+          <div class="answer"><b>Answer:</b> It uses internally managed GLSN-based checkpoints, guaranteeing each change is captured exactly once. <em>Why:</em> Auto-sync doesn't guarantee <code>_ts</code> ordering, so <code>_ts</code> filters can miss records; the GLSN checkpoint approach doesn't rely on <code>_ts</code>.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/analytical-store-change-data-capture">Change data capture in Azure Cosmos DB analytical store</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/get-started-change-data-capture">Get started with change data capture in the analytical store</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 3.1.8 -->
+    <section class="objective" id="obj-3-1-8" data-skill="fabric-time-travel">
+      <h3 id="o-3-1-8">3.1.8 Implement Time Travel in Warehouse in Microsoft Fabric</h3>
+
+      <div class="concept">
+        <p><strong>Time travel</strong> in a Microsoft Fabric Warehouse (and SQL analytics endpoint) lets you query data as it existed at a past point in time using the T-SQL query hint <code>OPTION (FOR TIMESTAMP AS OF '...')</code>. For a mirrored Cosmos DB database whose data lands in a Fabric warehouse/endpoint, this enables stable reporting, auditing, and historical comparisons over prior versions of the data.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Syntax: <code>OPTION (FOR TIMESTAMP AS OF 'YYYY-MM-DDTHH:MM:SS[.fff]')</code>; applies to the whole SELECT (all joined tables), once per statement.</li>
+          <li>Results are <strong>read-only</strong> — INSERT/UPDATE/DELETE aren't allowed with the hint.</li>
+          <li>Retention is automatic and configurable from <strong>1 to 120 days</strong> (default <strong>30</strong>); you can only travel within the retention window.</li>
+          <li>Timestamps are <strong>UTC only</strong>, max 3 fractional-second digits, and must be deterministic.</li>
+          <li>Returns the <strong>latest table schema</strong>; a point-in-time query before a schema change works only if referenced columns already existed then.</li>
+          <li>Table-level history is also available via <code>CLONE TABLE</code>.</li>
+        </ul>
+      </div>
+
+      <div class="code"><pre><code class="lang-sql">-- Query a warehouse table as it existed at a past UTC timestamp
+SELECT *
+FROM dbo.orders
+OPTION (FOR TIMESTAMP AS OF '2026-03-13T19:39:35.280');</code></pre></div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Default retention is 30 days; configurable 1–120. Outside the window, time travel fails.</li>
+          <li>UTC only, up to 3 fractional-second digits; the hint is read-only and used once per SELECT.</li>
+          <li>Time travel returns the current schema — reference only columns that existed at that past time.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An analyst must reproduce last night's report from a Fabric Warehouse while ETL is running. Which feature and syntax do they use?</summary>
+          <div class="answer"><b>Answer:</b> Time travel with <code>OPTION (FOR TIMESTAMP AS OF '...')</code>. <em>Why:</em> It returns the data as it existed at the specified UTC timestamp, giving stable reporting even while background ETL modifies the same tables.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A time-travel query to a timestamp 200 days ago fails. The default retention hasn't been changed. Why?</summary>
+          <div class="answer"><b>Answer:</b> The point in time is outside the retention window. <em>Why:</em> Default retention is 30 days (configurable up to 120); you can only time-travel within the configured retention period.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/fabric/data-warehouse/time-travel">Query data as it existed in the past (time travel)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/fabric/data-warehouse/data-retention">Configurable data retention in Fabric Data Warehouse</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 3.2 Implement Solutions Across Services ===== -->
+  <section class="skillgroup" id="sg-3-2">
+    <h2 id="g-3-2">3.2 Implement Solutions Across Services</h2>
+
+    <!-- 3.2.1 -->
+    <section class="objective" id="obj-3-2-1" data-skill="functions-eventhubs">
+      <h3 id="o-3-2-1">3.2.1 Integrate Events with Other Applications by Using Azure Functions and Azure Event Hubs</h3>
+
+      <div class="concept">
+        <p>The <strong>Azure Functions trigger for Azure Cosmos DB</strong> fires on each change in a container's change feed, giving you the simplest way to build reactive, serverless event pipelines. It's built on the change feed processor, so you get automatic checkpointing, at-least-once delivery, and dynamic scaling without managing worker infrastructure.</p>
+        <p>A common cross-service pattern chains this to <strong>Azure Event Hubs</strong>: the Function reads each change and publishes an event to Event Hubs (via an output binding), decoupling Cosmos DB from downstream applications that consume the stream.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>The Functions trigger reacts to the change feed automatically; no worker infrastructure to manage (uses the change feed processor).</li>
+          <li>Requires a <strong>monitored container</strong> and a <strong>lease container</strong> (holds processing state for scaling; <code>/id</code> partition key; auto-create with <code>CreateLeaseContainerIfNotExists</code>).</li>
+          <li>Chain to <strong>Event Hubs</strong> with an output binding to fan events out to other applications; Event Hubs retains data up to ~90 days.</li>
+          <li>Supports latest-version mode (default) and all-versions-and-deletes mode (needs continuous backups; .NET isolated worker).</li>
+          <li>The Cosmos DB trigger currently supports <strong>API for NoSQL</strong> only; you can develop/test locally with the emulator.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="change-feed"><figcaption>The change feed emits changed items in order per partition; an Azure Function consumes them and forwards events to other services such as Event Hubs.</figcaption></figure>
+
+      <div class="code"><pre><code class="lang-csharp">// Azure Function triggered by the Cosmos DB change feed, forwarding events to Event Hubs
+[Function("OrdersToEventHub")]
+[EventHubOutput("orders-events", Connection = "EventHubConnection")]
+public string Run(
+    [CosmosDBTrigger(
+        databaseName: "retail",
+        containerName: "orders",
+        Connection = "CosmosConnection",
+        LeaseContainerName = "leases",
+        CreateLeaseContainerIfNotExists = true)] IReadOnlyList&lt;Order&gt; changes)
+{
+    return JsonSerializer.Serialize(changes);
+}</code></pre></div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>The trigger needs a <strong>lease container</strong> for state/scaling — a monitored container alone isn't enough.</li>
+          <li>Cosmos DB Functions trigger = API for NoSQL only.</li>
+          <li>Event Hubs decouples producers/consumers for high-throughput streaming; pair it with the change feed for lambda architectures.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A solution must push every Cosmos DB item change to several downstream systems via a high-throughput event stream. What's a clean serverless design?</summary>
+          <div class="answer"><b>Answer:</b> An Azure Functions Cosmos DB trigger that publishes each change to Azure Event Hubs. <em>Why:</em> The trigger reliably reads the change feed with automatic scaling/checkpointing, and Event Hubs fans the events out to multiple decoupled consumers.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Why does an Azure Functions Cosmos DB trigger require a lease container?</summary>
+          <div class="answer"><b>Answer:</b> The lease container stores change-feed processing state, enabling checkpointing and dynamic scaling across function instances. <em>Why:</em> Without it, the trigger can't track progress or coordinate parallel processing.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-functions">Serverless event-based architectures with Azure Cosmos DB and Azure Functions</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-design-patterns">Change feed design patterns</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 3.2.2 -->
+    <section class="objective" id="obj-3-2-2" data-skill="cf-denormalize">
+      <h3 id="o-3-2-2">3.2.2 Denormalize Data by Using Change Feed and Azure Functions</h3>
+
+      <div class="concept">
+        <p>Cosmos DB data models favor <strong>denormalization</strong> — duplicating data to optimize reads. The change feed plus Azure Functions is the recommended way to keep those duplicated copies in sync: when a source item changes, a Function propagates the update to the embedded/referenced copies in other items or containers.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>A change to a source item triggers a Function that updates denormalized copies across items, partitions, or containers.</li>
+          <li>Example: propagate a changed product name into every order document that embedded it.</li>
+          <li>Change-feed replication guarantees only <strong>eventual consistency</strong>; monitor lag with the change feed estimator.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="change-feed-patterns"><figcaption>Common change-feed patterns — denormalization, referential integrity, materialized aggregates, and archival — each driven by an Azure Function reacting to changes.</figcaption></figure>
+
+      <div class="callout tip">
+        <b>Tip:</b> Denormalization trades write amplification (fan-out updates) for cheaper, single-read queries. The change feed is what makes maintaining those duplicates practical.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Use the change feed to keep denormalized copies consistent — expect eventual consistency, not immediate.</li>
+          <li>Fan-out updates increase write cost; that's the accepted trade-off for fast reads.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Product names are embedded (denormalized) in thousands of order documents. When a product is renamed, how do you keep the orders current?</summary>
+          <div class="answer"><b>Answer:</b> Use the change feed with an Azure Function that, on a product change, updates the embedded product name in the affected order documents. <em>Why:</em> The change feed reliably surfaces the source change and the Function fans the update out to the denormalized copies (eventually consistent).</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> What consistency guarantee does change-feed-based denormalization provide?</summary>
+          <div class="answer"><b>Answer:</b> Eventual consistency. <em>Why:</em> There is a propagation delay between the source write and the update of the duplicated copies; monitor lag with the change feed estimator.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-design-patterns">Change feed design patterns (data movement &amp; denormalization)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/model-partition-example">Model and partition data — denormalization example</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 3.2.3 -->
+    <section class="objective" id="obj-3-2-3" data-skill="cf-referential-integrity">
+      <h3 id="o-3-2-3">3.2.3 Enforce Referential Integrity by Using Change Feed and Azure Functions</h3>
+
+      <div class="concept">
+        <p>Cosmos DB has <strong>no foreign keys</strong>, so referential integrity is enforced in the application layer. The standard approach is the change feed plus Azure Functions: when a referenced item changes or is deleted, a Function cascades the necessary updates or cleanup to related items to keep references valid.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>No foreign keys — integrity is enforced by application logic reacting to the change feed.</li>
+          <li><strong>Latest-version mode doesn't capture deletes.</strong> Use a <strong>soft-delete flag</strong> (e.g., <code>deleted: true</code>, optionally with TTL) so the deletion appears as an update — or use <strong>all versions and deletes mode</strong> (requires continuous backups) to capture real deletes.</li>
+          <li>Order is guaranteed <strong>within a partition key value</strong>, not across partition keys — choose a partition key that preserves meaningful ordering for cascaded events.</li>
+        </ul>
+      </div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> A hard delete vanishes from the change feed in latest-version mode, so cascade logic never fires. Model deletes as a soft-delete flag (or switch to all-versions-and-deletes mode) to enforce referential cleanup.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>No foreign keys in Cosmos DB — integrity is application-enforced via change feed + Functions.</li>
+          <li>Soft-delete flags make deletes visible in latest-version mode; all-versions-and-deletes mode needs continuous backups.</li>
+          <li>Ordering holds only within a partition key — pick the key so related events stay in order.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> When a customer is deleted, related order documents must be cleaned up. Using the latest-version change feed, why might the cleanup never run, and how do you fix it?</summary>
+          <div class="answer"><b>Answer:</b> Latest-version mode doesn't emit deletes, so a hard delete never appears in the feed. <em>Why:</em> Use a soft-delete flag (set <code>deleted: true</code>, optionally with TTL) so the deletion shows up as an update the Function can act on — or use all-versions-and-deletes mode with continuous backups.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Why does the partition key matter when cascading referential updates via the change feed?</summary>
+          <div class="answer"><b>Answer:</b> Ordering is guaranteed only within a partition key value. <em>Why:</em> If related events must be processed in sequence, they should share a partition key so the change feed delivers them in the correct order.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-design-patterns">Change feed design patterns (deletes, ordering)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-modes">Change feed modes</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 3.2.4 -->
+    <section class="objective" id="obj-3-2-4" data-skill="cf-aggregate">
+      <h3 id="o-3-2-4">3.2.4 Aggregate Data by Using Change Feed and Azure Functions, Including Reporting</h3>
+
+      <div class="concept">
+        <p>The change feed lets you maintain <strong>materialized views</strong> and pre-aggregated summaries for fast reporting. An Azure Function processes each change, updates a running aggregate (counts, totals, leaderboards), and persists it back to Cosmos DB (or another store), so reports avoid expensive full-container scans at read time.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Build materialized views / real-time aggregates (e.g., leaderboards, running totals) from the change feed and persist them back for cheap reads.</li>
+          <li>Processing is per-partition ordered and <strong>at-least-once</strong>, so design aggregate updates to be <strong>idempotent</strong>.</li>
+          <li>Results are eventually consistent with the source container.</li>
+        </ul>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> Because the change feed processor is at-least-once, an item can be delivered more than once. Make aggregate updates idempotent (e.g., recompute from source values) so retries don't double-count.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Pre-aggregating via the change feed turns expensive read-time scans into cheap point reads of a materialized view.</li>
+          <li>At-least-once delivery ⇒ make aggregation idempotent to avoid double counting.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A gaming app needs a real-time leaderboard without scanning all score documents on every read. What pattern fits?</summary>
+          <div class="answer"><b>Answer:</b> Use the change feed with an Azure Function to maintain a materialized leaderboard, writing aggregated scores back to Cosmos DB. <em>Why:</em> Reads then hit a small pre-aggregated view instead of scanning the full container.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Why must change-feed aggregation logic be idempotent?</summary>
+          <div class="answer"><b>Answer:</b> The change feed processor guarantees at-least-once delivery, so a change can be processed more than once. <em>Why:</em> Idempotent updates ensure retries don't double-count and corrupt the aggregate.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-design-patterns">Change feed design patterns (materialized views)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-functions">Change feed with Azure Functions</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 3.2.5 -->
+    <section class="objective" id="obj-3-2-5" data-skill="cf-archive">
+      <h3 id="o-3-2-5">3.2.5 Archive Data by Using Change Feed and Azure Functions</h3>
+
+      <div class="concept">
+        <p>The change feed enables application-level <strong>data tiering and archival</strong>: keep "hot" data in Cosmos DB and age "cold" data out to cheaper storage such as <strong>Azure Blob Storage</strong>. An Azure Function reads the change feed and copies items to the archive; combined with TTL, hot data can then expire from the transactional store after it's safely archived.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Read the change feed with a Function to copy data to cheaper cold storage (e.g., Azure Blob Storage).</li>
+          <li>Pair with <strong>TTL</strong> to expire hot data from the transactional store after archival, controlling cost.</li>
+          <li>The same data-movement pattern also powers zero-downtime migrations and syncing caches, search indexes, and data warehouses.</li>
+        </ul>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Archival = change feed Function → Blob Storage, then TTL to remove hot data. Order matters: archive before expiring.</li>
+          <li>The change feed is the general-purpose engine for data movement (migration, cache/search/warehouse sync, tiering).</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> To reduce Cosmos DB storage costs, older records must be moved to Blob Storage and removed from the container. Outline a change-feed-based approach.</summary>
+          <div class="answer"><b>Answer:</b> An Azure Function reads the change feed and writes items to Azure Blob Storage; set a TTL so the archived items later expire from the transactional store. <em>Why:</em> This tiers cold data to cheap storage while keeping hot data lean, and TTL automates cleanup after archival.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Besides archival, name two other data-movement uses of the change feed.</summary>
+          <div class="answer"><b>Answer:</b> Zero-downtime migration to another container/account, and keeping a cache, search index, or data warehouse in sync. <em>Why:</em> The change feed is a general mechanism for propagating changes to external systems.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-design-patterns">Change feed design patterns (data movement &amp; tiering)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/time-to-live">Time to Live (TTL) in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 3.2.6 -->
+    <section class="objective" id="obj-3-2-6" data-skill="ai-search">
+      <h3 id="o-3-2-6">3.2.6 Implement Azure AI Search for an Azure Cosmos DB Solution</h3>
+
+      <div class="concept">
+        <p><strong>Azure AI Search</strong> makes Cosmos DB content full-text and vector searchable by pulling it in with an <strong>indexer</strong>. The workflow has three parts: create a <strong>data source</strong> pointing at the Cosmos DB account/database/container, create a <strong>search index</strong>, and create an <strong>indexer</strong> that reads the source and populates the index. (Cosmos DB indexing and AI Search indexing are separate concepts.)</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Data source uses <code>"type": "cosmosdb"</code> with a connection string (<code>AccountEndpoint;AccountKey;Database</code>) and a container; the indexer runs on creation and can be scheduled or run on demand.</li>
+          <li><strong>Change detection</strong>: <code>HighWaterMarkChangeDetectionPolicy</code> on <code>_ts</code> enables incremental indexing of new/changed documents.</li>
+          <li><strong>Deletion detection</strong>: only <strong>soft-delete</strong> is supported (<code>SoftDeleteColumnDeletionDetectionPolicy</code> with a Boolean flag such as <code>isDeleted</code>).</li>
+          <li>An optional data-source <strong>query</strong> can flatten nested JSON, project fields, join arrays, or filter — but <code>DISTINCT</code> and <code>GROUP BY</code> aren't supported (they break continuation-token pagination).</li>
+          <li>Auth via full-access key or a managed identity assigned <strong>Cosmos DB Account Reader</strong> + <strong>Cosmos DB Built-in Data Reader</strong>; the container needs the default <strong>Consistent</strong> automatic indexing policy.</li>
+          <li>Default document key is <code>_rid</code> (renamed <code>rid</code>, Base64-encoded) for partitioned collections.</li>
+        </ul>
+      </div>
+
+      <div class="code"><pre><code class="lang-json">{
+  "name": "orders-cosmosdb-ds",
+  "type": "cosmosdb",
+  "credentials": {
+    "connectionString": "AccountEndpoint=https://myacct.documents.azure.com;AccountKey=&lt;key&gt;;Database=retail"
+  },
+  "container": { "name": "orders" },
+  "dataChangeDetectionPolicy": {
+    "@odata.type": "#Microsoft.Azure.Search.HighWaterMarkChangeDetectionPolicy",
+    "highWaterMarkColumnName": "_ts"
+  },
+  "dataDeletionDetectionPolicy": {
+    "@odata.type": "#Microsoft.Azure.Search.SoftDeleteColumnDeletionDetectionPolicy",
+    "softDeleteColumnName": "isDeleted",
+    "softDeleteMarkerValue": "true"
+  }
+}</code></pre></div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Incremental indexing relies on the <code>_ts</code> high-water-mark policy; deletions require a soft-delete flag (hard deletes aren't detected).</li>
+          <li><code>DISTINCT</code> and <code>GROUP BY</code> in the data-source query aren't supported.</li>
+          <li>Managed identity path needs Cosmos DB Account Reader + Built-in Data Reader roles.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An AI Search indexer over Cosmos DB should only reprocess new and changed documents on each run. What must the data source specify?</summary>
+          <div class="answer"><b>Answer:</b> A <code>HighWaterMarkChangeDetectionPolicy</code> using the <code>_ts</code> column. <em>Why:</em> It's the only supported change-detection policy for Cosmos DB indexers and lets the indexer incrementally pick up items whose <code>_ts</code> advanced.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Deleted Cosmos DB items still appear in search results. What's the likely cause and fix?</summary>
+          <div class="answer"><b>Answer:</b> No deletion detection is configured; hard deletes aren't detected. <em>Why:</em> Add a <code>SoftDeleteColumnDeletionDetectionPolicy</code> with a Boolean flag (e.g., <code>isDeleted = true</code>) so the indexer removes those documents from the index.</div>
+        </details>
+        <details class="q"><summary><b>Q3.</b> Why does a data-source query using <code>GROUP BY</code> fail with the Cosmos DB indexer?</summary>
+          <div class="answer"><b>Answer:</b> <code>DISTINCT</code> and <code>GROUP BY</code> aren't supported because they're incompatible with the continuation tokens AI Search uses for pagination. <em>Why:</em> The indexer must fully enumerate results via SQL pagination, which those clauses break.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/search/search-how-to-index-cosmosdb-sql">Index data from Azure Cosmos DB for NoSQL in Azure AI Search</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/search/search-indexer-overview">Indexers in Azure AI Search</a></li>
+      </ul></div>
+    </section>
+  </section>
+</section>

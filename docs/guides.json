@@ -1,6 +1,6 @@
 {
-  "generated": "2026-07-14",
-  "count": 2,
+  "generated": "2026-07-15",
+  "count": 3,
   "guides": [
     {
       "exam": "AI-103",
@@ -17,6 +17,22 @@
       "status": "complete",
       "last_refreshed": "2026-07-14",
       "file": "AI-103.html"
+    },
+    {
+      "exam": "DP-420",
+      "title": "Designing and Implementing Cloud-Native Applications Using Microsoft Azure Cosmos DB",
+      "description": "Design data models and partitioning, distribute and replicate data, integrate, optimize, and maintain Azure Cosmos DB for NoSQL solutions.",
+      "weights": {
+        "Design and implement data models": "35–40%",
+        "Design and implement data distribution": "5–10%",
+        "Integrate an Azure Cosmos DB solution": "5–10%",
+        "Optimize an Azure Cosmos DB solution": "15–20%",
+        "Maintain an Azure Cosmos DB solution": "25–30%"
+      },
+      "official_url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-420",
+      "status": "complete",
+      "last_refreshed": "2026-07-15",
+      "file": "DP-420.html"
     },
     {
       "exam": "DP-600",

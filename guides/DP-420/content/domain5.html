@@ -1,0 +1,1974 @@
+<section class="domain" id="domain5" data-domain="5">
+  <h1 id="d5">Domain 5 — Maintain an Azure Cosmos DB Solution <span class="weight">25–30%</span></h1>
+  <p class="domain-intro">Maintenance is the largest single domain on DP-420, and it spans the whole operational lifecycle of a running account. You will <strong>monitor and troubleshoot</strong> with Azure Monitor metrics and resource logs (Normalized RU Consumption, server-side latency, 429s, and per-partition storage and RU data); protect data with <strong>backup and restore</strong> (periodic versus continuous point-in-time restore); lock down the account with layered <strong>security</strong> (encryption at rest, network access, control-plane and data-plane Azure RBAC, CORS, Key Vault, customer-managed keys, and Always Encrypted); move data in and out with the right <strong>data-movement</strong> tool (SDK bulk, Data Factory/Synapse, Kafka, Stream Analytics, Spark, IoT Hub); and operate repeatably with a <strong>DevOps</strong> process (declarative ARM/Bicep versus imperative CLI/PowerShell). The recurring exam theme is choosing the correct built-in mechanism for a stated operational goal.</p>
+
+  <!-- ===== 5.1 Monitor and Troubleshoot ===== -->
+  <section class="skillgroup" id="sg-5-1">
+    <h2 id="g-5-1">5.1 Monitor and Troubleshoot an Azure Cosmos DB Solution</h2>
+
+    <!-- 5.1.1 -->
+    <section class="objective" id="obj-5-1-1" data-skill="status-failure-metrics">
+      <h3 id="o-5-1-1">5.1.1 Evaluate Response Status Code and Failure Metrics</h3>
+
+      <div class="concept">
+        <p>Azure Monitor collects platform <strong>metrics</strong> for every Cosmos DB account automatically — no configuration, one-minute granularity, and short-term retention out of the box. The most useful failure signal is the <strong>Total Requests</strong> metric split by the <strong>StatusCode</strong> dimension, which lets you see exactly which HTTP responses your account is returning and how often.</p>
+        <p>Server-side telemetry (throughput, storage, availability, latency, consistency) answers "is the service healthy?"; client-side diagnostics (request charge, activity ID, substatus, diagnostic string) answer "why did this request fail?".</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Metrics are collected with no setup at 1-minute granularity; dimension values such as container names are case-insensitive.</li>
+          <li>Split Total Requests by <strong>StatusCode</strong> to count failures over time.</li>
+          <li>Status codes to know: <strong>429</strong> (request rate too large / RU budget exceeded), <strong>401/403</strong> (auth or firewall), <strong>404</strong> (not found), <strong>449</strong> (retriable transient write conflict), <strong>410</strong> (partition split — retry), <strong>503</strong> (service unavailable).</li>
+          <li>A 429 is expected under bursts; the SDK auto-retries, but sustained 429s mean you need more RU/s or a better partition key.</li>
+          <li>Client diagnostics expose activity ID, substatus code, and a diagnostics string that pinpoints the failing region/partition.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="monitor-metrics">
+        <figcaption>Azure Monitor surfaces platform metrics (requests by status code, RU utilization, latency) that you split by dimensions to isolate failures.</figcaption>
+      </figure>
+
+      <div class="code">
+        <pre><code class="lang-kql">// Count data-plane responses by status code over the last hour
+CDBDataPlaneRequests
+| where TimeGenerated &gt; ago(1h)
+| summarize Requests = count() by StatusCode
+| order by Requests desc</code></pre>
+      </div>
+
+      <div class="callout key">
+        <b>Key:</b> A rising 429 count is the number-one troubleshooting signal — it means at least one physical partition ran out of its per-second RU budget.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>429 = throttling (add RU/s or fix a hot partition); 449 = retriable write conflict (safe to retry); don't confuse them.</li>
+          <li>Metrics need no diagnostic setting; resource <em>logs</em> do — that distinction is a common trap.</li>
+          <li>A 403 can be a firewall/network block, not just bad credentials.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Users report intermittent failures during traffic spikes and the app logs show HTTP 429. What does this indicate and what is the first remediation?</summary>
+          <div class="answer"><b>Answer:</b> Requests are being rate-limited because provisioned RU/s were exceeded on a partition. First remediation: increase throughput (or enable autoscale) and/or fix a hot partition key. <em>Why:</em> 429 means the RU budget for that second on a physical partition was exhausted.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> You want to chart how many of each HTTP status code your account returns without enabling any logging. What do you use?</summary>
+          <div class="answer"><b>Answer:</b> The Total Requests metric in Azure Monitor Metrics, split by the StatusCode dimension. <em>Why:</em> Metrics are collected automatically; only resource logs require a diagnostic setting.</div>
+        </details>
+        <details class="q"><summary><b>Q3.</b> A write returns 449 sporadically under concurrency. Should the client fail the operation?</summary>
+          <div class="answer"><b>Answer:</b> No — 449 is a retriable transient write conflict; retry the operation. <em>Why:</em> 449 signals a concurrent metadata/write conflict that typically succeeds on retry.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/monitor">Monitor Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-reference">Azure Cosmos DB monitoring data reference</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.1.2 -->
+    <section class="objective" id="obj-5-1-2" data-skill="normalized-ru">
+      <h3 id="o-5-1-2">5.1.2 Monitor the Normalized RU Consumption Metric by Using Azure Monitor</h3>
+
+      <div class="concept">
+        <p><strong>Normalized RU Consumption</strong> is a 0–100% metric that reports how close you are to fully using provisioned throughput. Crucially, it is the <strong>maximum</strong> utilization across all partition key ranges (and regions) — not an average — so it exposes a single hot partition even when the account as a whole looks idle.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Value 0–100%; 100% means at least one physical partition's per-second RU budget is fully consumed and further requests to it are throttled (429).</li>
+          <li>Because it's a MAX, a single hot partition can pin it at 100% while total account RU usage is low → classic skew signal.</li>
+          <li>Split by <strong>PhysicalPartitionId</strong> and <strong>Region</strong> to locate the hot partition.</li>
+          <li>Sustained near-100% with 429s → scale up, switch to autoscale, or redesign the partition key.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-kql">// Correlate normalized RU with per-logical-partition RU spend
+CDBPartitionKeyRUConsumption
+| where TimeGenerated &gt; ago(1h)
+| summarize TotalRU = sum(RequestCharge) by PartitionKey
+| top 10 by TotalRU desc</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> If Normalized RU Consumption is high but Total Request Units is low, you have a hot partition — investigate data/access skew rather than adding throughput blindly.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>It's a maximum across partitions, not an average — the exam loves this distinction.</li>
+          <li>Adding RU/s does not help a hot partition much; each physical partition gets an equal slice of total RU/s.</li>
+          <li>Split by PhysicalPartitionId to prove skew.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Normalized RU Consumption sits at 100% and clients see 429s, yet the account is provisioned well above its average total RU usage. What is the likely cause?</summary>
+          <div class="answer"><b>Answer:</b> A hot logical/physical partition. <em>Why:</em> The metric is the maximum utilization across partitions, so one overloaded partition can hit 100% while total usage is low.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Which dimension do you split Normalized RU Consumption by to identify which partition is hot?</summary>
+          <div class="answer"><b>Answer:</b> PhysicalPartitionId (and Region for multi-region). <em>Why:</em> It pinpoints the specific partition and location driving the utilization.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-normalized-request-units">Monitor Normalized RU Consumption</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.1.3 -->
+    <section class="objective" id="obj-5-1-3" data-skill="server-latency">
+      <h3 id="o-5-1-3">5.1.3 Monitor Server-Side Latency Metrics by Using Azure Monitor</h3>
+
+      <div class="concept">
+        <p>The <strong>server-side latency</strong> metric measures time spent <em>inside</em> the Cosmos DB service and deliberately <strong>excludes network</strong> round-trip. Comparing server-side latency to the total latency your client observes tells you whether a slowdown is the database's fault or the network/SDK's.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Split by operation type, region, and connection mode.</li>
+          <li>High server-side latency → cross-partition/fan-out queries, unindexed queries, or large response payloads.</li>
+          <li>Low server-side latency but high client latency → network, SDK config, gateway vs direct mode, or client-side resource pressure.</li>
+          <li>Use it alongside query metrics and RU charge to tune the offending query.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-kql">// Find the slowest data-plane operations server-side
+CDBDataPlaneRequests
+| where TimeGenerated &gt; ago(1h)
+| summarize p99 = percentile(DurationMs, 99), reqs = count() by OperationName
+| order by p99 desc</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Server-side latency excludes network — don't blame the service for client/network latency.</li>
+          <li>Direct mode usually lowers latency versus gateway mode for high-throughput apps.</li>
+          <li>Cross-partition queries and unindexed scans are the usual server-side latency culprits.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Clients report ~120 ms request latency, but the server-side latency metric is ~4 ms. Where should you look?</summary>
+          <div class="answer"><b>Answer:</b> The network/SDK/client — not the service. <em>Why:</em> Server-side latency excludes network time, so a large gap points to client region distance, gateway mode, or client resource pressure.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Server-side latency spikes for one query type. What database-side factors most likely explain it?</summary>
+          <div class="answer"><b>Answer:</b> Cross-partition fan-out, missing indexes causing scans, or large response sizes. <em>Why:</em> These force more work inside the engine, raising server-side latency and RU charge.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-server-side-latency">Monitor server-side latency</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.1.4 -->
+    <section class="objective" id="obj-5-1-4" data-skill="monitor-replication">
+      <h3 id="o-5-1-4">5.1.4 Monitor Data Replication in Relation to Latency and Availability</h3>
+
+      <div class="concept">
+        <p>In a multi-region account, data replicates asynchronously from the write region to read regions. You monitor the <strong>availability</strong> metric to confirm the account meets its SLA and watch <strong>replication latency</strong> to confirm read regions stay close to the write region — especially important under bounded staleness, which publishes explicit staleness bounds.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Availability metric confirms uptime against the SLA; a "Region failed over" activity fires when a region fails over.</li>
+          <li>Replication (P2P) latency between write and read regions should be monitored to validate consistency guarantees.</li>
+          <li>Bounded staleness surfaces explicit staleness (time/operation) bounds — monitor to ensure they hold.</li>
+          <li>Combine with per-region latency metrics to spot a lagging or unhealthy region.</li>
+        </ul>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Availability is a metric; a region failover is an activity-log event you can alert on.</li>
+          <li>Higher consistency (strong/bounded staleness) trades latency and RU for freshness — monitor accordingly.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You must be notified whenever the account performs a regional failover. What monitoring construct fits best?</summary>
+          <div class="answer"><b>Answer:</b> An alert on the "Region failed over" activity/metric signal. <em>Why:</em> Failovers are surfaced as an activity/metric event that alerting can watch.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Under bounded staleness, which signal confirms read regions are keeping up?</summary>
+          <div class="answer"><b>Answer:</b> Replication latency between write and read regions (plus availability). <em>Why:</em> It validates that staleness bounds are being honored across regions.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-reference">Azure Cosmos DB monitoring data reference</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/monitor">Monitor Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.1.5 -->
+    <section class="objective" id="obj-5-1-5" data-skill="configure-alerts">
+      <h3 id="o-5-1-5">5.1.5 Configure Azure Monitor Alerts for Azure Cosmos DB</h3>
+
+      <div class="concept">
+        <p>Alerts turn passive metrics and logs into proactive notifications. Cosmos DB supports three alert types: <strong>metric alerts</strong> (static or dynamic thresholds), <strong>log (KQL) alerts</strong> over Log Analytics, and <strong>activity-log alerts</strong> for control-plane events. Azure even ships recommended alert rules for the most common failure modes.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Recommended rules: <strong>rate limiting on RU</strong> (metric alert on StatusCode = 429), <strong>region failed over</strong> (count &gt; threshold), and <strong>account keys rotated</strong> (activity-log alert).</li>
+          <li>Metric alerts fire on thresholds or dynamic baselines; log alerts run a saved KQL query on a schedule.</li>
+          <li>A dedicated how-to covers alerting when a <strong>logical partition key approaches the 20-GB</strong> storage limit.</li>
+          <li>Alerts route to action groups (email, SMS, webhook, Logic Apps, Functions).</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Metric alert: fire when 429 (throttled) requests exceed a threshold
+$acct = Get-AzResource -ResourceGroupName "rg-cosmos" `
+  -ResourceType "Microsoft.DocumentDB/databaseAccounts" -Name "cosmos-prod"
+
+$condition = New-AzMetricAlertRuleV2Criteria `
+  -MetricName "TotalRequests" `
+  -DimensionSelection (New-AzMetricAlertRuleV2DimensionSelection `
+      -DimensionName "StatusCode" -ValuesToInclude "429") `
+  -TimeAggregation Total -Operator GreaterThan -Threshold 100
+
+Add-AzMetricAlertRuleV2 -Name "cosmos-429-alert" -ResourceGroupName "rg-cosmos" `
+  -WindowSize 00:05:00 -Frequency 00:01:00 -TargetResourceId $acct.ResourceId `
+  -Condition $condition -Severity 2 -ActionGroupId $actionGroupId</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Key rotation and region failover are control-plane events → use <em>activity-log</em> alerts, not metric alerts.</li>
+          <li>Throttling (429) is a metric alert on Total Requests split by StatusCode.</li>
+          <li>Log alerts require a diagnostic setting sending logs to Log Analytics first.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You want to be paged when someone rotates the account keys. Which alert type do you configure?</summary>
+          <div class="answer"><b>Answer:</b> An activity-log alert on the key-rotation operation. <em>Why:</em> Key rotation is a control-plane event captured in the activity log, not a metric.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> You need an alert when throttling becomes frequent. What signal and split do you use?</summary>
+          <div class="answer"><b>Answer:</b> A metric alert on Total Requests split by StatusCode = 429. <em>Why:</em> Throttling surfaces as 429 responses in the request metric.</div>
+        </details>
+        <details class="q"><summary><b>Q3.</b> A logical partition is nearing its storage ceiling. How do you get warned early?</summary>
+          <div class="answer"><b>Answer:</b> Configure the alert on logical partition key storage size approaching 20 GB (using PartitionKeyStatistics logs). <em>Why:</em> The 20-GB logical partition limit is hard; alerting early prevents write failures.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/create-alerts">Create alerts for Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-alert-on-logical-partition-key-storage-size">Alert on logical partition key storage size</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.1.6 -->
+    <section class="objective" id="obj-5-1-6" data-skill="resource-logs">
+      <h3 id="o-5-1-6">5.1.6 Implement and Query Azure Monitor Resource Logs for Azure Cosmos DB</h3>
+
+      <div class="concept">
+        <p>Unlike metrics, resource (data-plane) <strong>logs are not collected until you create a diagnostic setting</strong> that routes them to Log Analytics, a storage account, or Event Hubs. Once flowing to Log Analytics you query them with <strong>KQL</strong> to inspect individual requests, query runtime statistics, and per-partition data.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Create a <strong>diagnostic setting</strong> to enable log categories: <code>DataPlaneRequests</code>, <code>QueryRuntimeStatistics</code>, <code>PartitionKeyStatistics</code>, <code>PartitionKeyRUConsumption</code>, <code>ControlPlaneRequests</code>, and more.</li>
+          <li><strong>Resource-specific mode</strong> (recommended) writes to dedicated tables (<code>CDBDataPlaneRequests</code>, <code>CDBPartitionKeyStatistics</code>, <code>CDBPartitionKeyRUConsumption</code>, <code>CDBControlPlaneRequests</code>); the legacy alternative is the shared <code>AzureDiagnostics</code> table.</li>
+          <li>The full-text query feature deobfuscates query text in logs (extra cost — turn off after troubleshooting).</li>
+          <li>Log Analytics retention and cost are separate from the account.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Route Cosmos DB resource logs to Log Analytics (resource-specific tables)
+az monitor diagnostic-settings create `
+  --name "cosmos-diag" `
+  --resource $(az cosmosdb show -g rg-cosmos -n cosmos-prod --query id -o tsv) `
+  --workspace $(az monitor log-analytics workspace show -g rg-cosmos -n law-cosmos --query id -o tsv) `
+  --logs '[{"category":"DataPlaneRequests","enabled":true},{"category":"PartitionKeyStatistics","enabled":true},{"category":"PartitionKeyRUConsumption","enabled":true}]' `
+  --export-to-resource-specific true</code></pre>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-kql">// Top RU-consuming operations by collection in the last day
+CDBDataPlaneRequests
+| where TimeGenerated &gt; ago(1d)
+| summarize TotalRU = sum(RequestCharge) by CollectionName, OperationName
+| top 15 by TotalRU desc</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> No diagnostic setting = no logs. Metrics flow automatically, but resource logs must be explicitly enabled and routed to a destination.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Prefer resource-specific mode (dedicated <code>CDB*</code> tables) over legacy <code>AzureDiagnostics</code>.</li>
+          <li>PartitionKeyStatistics and PartitionKeyRUConsumption are the go-to categories for partition analysis.</li>
+          <li>Full-text query logging exposes query text — disable it when you're done to control cost/exposure.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A team enabled metrics but can't find any data-plane request logs to run KQL against. What did they miss?</summary>
+          <div class="answer"><b>Answer:</b> They never created a diagnostic setting to send resource logs to Log Analytics. <em>Why:</em> Logs require an explicit diagnostic setting; only metrics are collected automatically.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Which log mode should you choose for cleaner, cheaper KQL queries with dedicated tables?</summary>
+          <div class="answer"><b>Answer:</b> Resource-specific mode (CDB* tables). <em>Why:</em> It writes to typed, per-category tables rather than the shared AzureDiagnostics table.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-resource-logs">Monitor Azure Cosmos DB with resource logs</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/diagnostic-queries">Troubleshoot issues with diagnostics queries</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.1.7 -->
+    <section class="objective" id="obj-5-1-7" data-skill="throughput-partitions">
+      <h3 id="o-5-1-7">5.1.7 Monitor Throughput Across Partitions</h3>
+
+      <div class="concept">
+        <p>To find <strong>hot partitions</strong> — logical partition keys that consume a disproportionate share of RUs — query the <strong>PartitionKeyRUConsumption</strong> resource log. Combined with Normalized RU Consumption split by physical partition, it reveals whether throughput is being spread evenly or funneled into a few keys.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>PartitionKeyRUConsumption</code> reports RU consumed per <strong>logical</strong> partition key → identifies hot keys.</li>
+          <li>Normalized RU Consumption split by <strong>PhysicalPartitionId</strong> shows physical-partition utilization.</li>
+          <li>Even RU distribution is the goal; concentration signals a partition-key design problem.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-kql">// Which logical partition keys burn the most RU?
+CDBPartitionKeyRUConsumption
+| where TimeGenerated &gt; ago(6h)
+| summarize RU = sum(RequestCharge) by PartitionKey, CollectionName
+| top 20 by RU desc</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>PartitionKeyRUConsumption = throughput per key; PartitionKeyStatistics = storage per key. Don't mix them up.</li>
+          <li>A hot partition is a design fix (better key), not just a scale-up.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You suspect one tenant's key is eating most of your RUs. Which resource log confirms it?</summary>
+          <div class="answer"><b>Answer:</b> PartitionKeyRUConsumption. <em>Why:</em> It aggregates RU charge per logical partition key, exposing hot keys.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Throughput is concentrated on a few keys. Is adding RU/s the correct long-term fix?</summary>
+          <div class="answer"><b>Answer:</b> No — redesign the partition key for even distribution. <em>Why:</em> RU/s is split evenly across physical partitions, so a hot key stays throttled regardless of total RU/s.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-resource-logs">Monitor Azure Cosmos DB with resource logs</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.1.8 -->
+    <section class="objective" id="obj-5-1-8" data-skill="data-distribution">
+      <h3 id="o-5-1-8">5.1.8 Monitor Distribution of Data Across Partitions</h3>
+
+      <div class="concept">
+        <p>Storage skew is as dangerous as throughput skew: a single logical partition key cannot exceed <strong>20 GB</strong>. The <strong>PartitionKeyStatistics</strong> resource log reports the storage size of your largest logical partition keys so you can detect skew and act before a key hits the ceiling.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>PartitionKeyStatistics</code> reports storage size for the top logical partition keys.</li>
+          <li>Hard limit: a logical partition is capped at 20 GB — approaching it blocks further writes for that key.</li>
+          <li>Use it to detect skew early and to drive the "approaching 20 GB" alert.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-kql">// Largest logical partitions by storage (bytes)
+CDBPartitionKeyStatistics
+| where TimeGenerated &gt; ago(1d)
+| summarize MaxBytes = max(SizeKb) * 1024 by PartitionKey, CollectionName
+| top 20 by MaxBytes desc</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>20 GB is the logical partition storage ceiling — memorize it.</li>
+          <li>PartitionKeyStatistics = storage; pair it with an alert to avoid write failures.</li>
+          <li>Fixing storage skew means a higher-cardinality or synthetic/hierarchical partition key.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Which log shows whether a single partition key is approaching its storage limit?</summary>
+          <div class="answer"><b>Answer:</b> PartitionKeyStatistics. <em>Why:</em> It reports per-logical-partition storage size, so you can spot a key nearing 20 GB.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A device-per-day partition key will grow forever for busy devices. What redesign prevents hitting 20 GB?</summary>
+          <div class="answer"><b>Answer:</b> A synthetic or hierarchical partition key (e.g., deviceId + time bucket) to bound each logical partition. <em>Why:</em> It caps growth per key and spreads storage across more partitions.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-resource-logs">Monitor Azure Cosmos DB with resource logs</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-alert-on-logical-partition-key-storage-size">Alert on logical partition key storage size</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.1.9 -->
+    <section class="objective" id="obj-5-1-9" data-skill="security-logging-audit">
+      <h3 id="o-5-1-9">5.1.9 Monitor Security by Using Logging and Auditing</h3>
+
+      <div class="concept">
+        <p>Security auditing focuses on the <strong>control plane</strong> — who changed throughput, firewall rules, network settings, or keys. The <strong>ControlPlaneRequests</strong> resource log records these operations, and disabling key-based metadata writes forces every metadata change through auditable ARM/RBAC paths.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>ControlPlaneRequests</code> audits throughput changes, firewall/network changes, and key operations — enable it via a diagnostic setting.</li>
+          <li><code>disableKeyBasedMetadataWriteAccess</code> blocks metadata changes made with account keys, forcing ARM/RBAC (which are auditable).</li>
+          <li>The Azure <strong>activity log</strong> records point-in-time restore actions and key rotation.</li>
+          <li>Pair control-plane logs with activity-log alerts for a complete audit trail.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Force metadata changes through ARM/RBAC (disable key-based metadata writes)
+az cosmosdb update `
+  --resource-group rg-cosmos `
+  --name cosmos-prod `
+  --disable-key-based-metadata-write-access true</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>ControlPlaneRequests audits management operations; DataPlaneRequests audits document operations.</li>
+          <li>Disabling key-based metadata writes hardens auditing by removing an unauditable path.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Security wants an audit trail of every throughput and firewall change. Which log category do you enable?</summary>
+          <div class="answer"><b>Answer:</b> ControlPlaneRequests. <em>Why:</em> Control-plane operations (throughput, firewall, keys) are recorded there.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> How do you ensure metadata changes can't bypass RBAC via account keys?</summary>
+          <div class="answer"><b>Answer:</b> Set disableKeyBasedMetadataWriteAccess to true. <em>Why:</em> It forces metadata writes through ARM/RBAC, which are auditable.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/audit-control-plane-logs">Audit control-plane operations</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 5.2 Backup and Restore ===== -->
+  <section class="skillgroup" id="sg-5-2">
+    <h2 id="g-5-2">5.2 Implement Backup and Restore for an Azure Cosmos DB Solution</h2>
+
+    <!-- 5.2.1 -->
+    <section class="objective" id="obj-5-2-1" data-skill="periodic-vs-continuous">
+      <h3 id="o-5-2-1">5.2.1 Choose Between Periodic and Continuous Backup</h3>
+
+      <div class="concept">
+        <p>Cosmos DB backs up your data automatically in one of two modes. <strong>Periodic</strong> (the default) takes full snapshots on an interval and requires a <strong>Microsoft support ticket</strong> to restore. <strong>Continuous</strong> gives you <strong>self-service point-in-time restore (PITR)</strong> to any second within the retention window. Both always restore into a <strong>new account</strong>.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Periodic</strong>: full backup every 4 hours by default; last two copies retained (interval/retention configurable); stored in geo-redundant blob storage; restore ONLY via a support request; deleted db/container snapshots kept 30 days.</li>
+          <li><strong>Continuous</strong>: self-service PITR to any second; two tiers — <strong>7-day (free)</strong> and <strong>30-day (paid)</strong>; you trigger restore via portal/CLI/PowerShell/ARM.</li>
+          <li>Restore always targets a <strong>new account</strong> (you cannot overwrite the source in place).</li>
+          <li>Backups don't consume your provisioned RUs.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="backup-modes">
+        <figcaption>Periodic backup restores via support ticket to a new account; continuous backup offers self-service point-in-time restore within a 7- or 30-day window.</figcaption>
+      </figure>
+
+      <div class="callout key">
+        <b>Key:</b> Need self-service, "restore to any second" recovery? Choose continuous backup. Periodic requires opening a support ticket.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Continuous = self-service PITR; periodic = support-ticket restore. This is the classic exam decision.</li>
+          <li>Restore always creates a new account, in both modes.</li>
+          <li>Continuous tiers are 7-day (free) and 30-day (paid) — you can't restore beyond the window.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A team must recover to the exact second before an accidental bulk delete, without contacting support. Which backup mode?</summary>
+          <div class="answer"><b>Answer:</b> Continuous backup with point-in-time restore. <em>Why:</em> Only continuous mode provides self-service restore to an arbitrary timestamp.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> With periodic backup, how is a restore initiated?</summary>
+          <div class="answer"><b>Answer:</b> By opening a Microsoft support ticket. <em>Why:</em> Periodic-mode restores are performed by Microsoft support, into a new account.</div>
+        </details>
+        <details class="q"><summary><b>Q3.</b> After any restore, where does the data land?</summary>
+          <div class="answer"><b>Answer:</b> In a new Cosmos DB account. <em>Why:</em> Both backup modes restore into a new account, never overwriting the source.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/periodic-backup-restore-introduction">Periodic backup and restore</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/continuous-backup-restore-introduction">Continuous backup with point-in-time restore</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.2.2 -->
+    <section class="objective" id="obj-5-2-2" data-skill="configure-periodic">
+      <h3 id="o-5-2-2">5.2.2 Configure Periodic Backup</h3>
+
+      <div class="concept">
+        <p>For periodic mode you tune two knobs — the <strong>backup interval</strong> and the <strong>retention</strong> (how many copies to keep) — plus the <strong>storage redundancy</strong> of the backup blobs. Two backup copies are free; extra copies are billed, and backups never touch your RU budget.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Configure interval + retention via portal, CLI, PowerShell, or ARM.</li>
+          <li>Backup storage redundancy: <strong>Geo</strong> (default), <strong>Zone</strong>, or <strong>Local</strong>.</li>
+          <li>What a restore does <em>not</em> bring back: account keys (new ones are generated), firewall/VNet/private-endpoint config, RBAC assignments, stored procedures/triggers/UDFs, TTL-expired documents, analytical store, and materialized views. The restored account is single-region (the write region).</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Set periodic backup interval, retention, and redundancy
+az cosmosdb update `
+  --resource-group rg-cosmos `
+  --name cosmos-prod `
+  --backup-interval 240 `
+  --backup-retention 16 `
+  --backup-redundancy Zone</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Interval is in minutes; retention is a count of copies (or hours depending on tool) — read the parameter carefully.</li>
+          <li>Restored accounts don't include keys, network rules, RBAC, or server-side scripts — you reconfigure those.</li>
+          <li>Backup redundancy (Geo/Zone/Local) is independent of the account's own data redundancy.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> After a periodic restore, apps fail to authenticate with the old connection string. Why?</summary>
+          <div class="answer"><b>Answer:</b> The restored account has new keys; account keys are not restored. <em>Why:</em> Restores generate fresh keys, so connection strings must be updated.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> You must keep backup blobs within a single region for data-residency reasons. Which redundancy do you pick?</summary>
+          <div class="answer"><b>Answer:</b> Local (locally redundant) backup storage. <em>Why:</em> It keeps backup copies within the region rather than geo-replicating them.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/periodic-backup-restore-introduction">Periodic backup and restore</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/periodic-backup-storage-redundancy">Configure periodic backup storage redundancy</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.2.3 -->
+    <section class="objective" id="obj-5-2-3" data-skill="configure-continuous">
+      <h3 id="o-5-2-3">5.2.3 Configure Continuous Backup and Point-in-Time Restore</h3>
+
+      <div class="concept">
+        <p>Continuous backup is enabled at <strong>account creation</strong> or by a <strong>one-way migration</strong> from periodic. You pick the 7-day (free) or 30-day (paid) tier, and mutations are captured asynchronously (within roughly 100 seconds), enabling restore to any point in the retention window.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Enable at creation or migrate periodic → continuous (irreversible). You can switch tiers (7 ↔ 30 day).</li>
+          <li>Mutations are backed up asynchronously within ~100 seconds.</li>
+          <li>Supported APIs: NoSQL, MongoDB, Gremlin, Table — <strong>not Cassandra</strong>.</li>
+          <li>Not restored: firewall/VNet/private-endpoint config, data-plane RBAC, stored procedures/triggers/UDFs, and all source regions (restore is single-region).</li>
+          <li>CMK + continuous backup requires a user- or system-assigned managed identity (not the first-party identity).</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Create an account with continuous 7-day backup
+az cosmosdb create `
+  --resource-group rg-cosmos `
+  --name cosmos-pitr `
+  --locations regionName=eastus `
+  --backup-policy-type Continuous `
+  --continuous-tier Continuous7Days
+
+# Migrate an existing periodic account to continuous (one-way)
+az cosmosdb update `
+  --resource-group rg-cosmos `
+  --name cosmos-prod `
+  --backup-policy-type Continuous</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> Migrating periodic → continuous is one-way; you cannot switch back to periodic. And Cassandra API does not support continuous backup.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Continuous supports NoSQL, MongoDB, Gremlin, Table — memorize that Cassandra is excluded.</li>
+          <li>Migration to continuous is irreversible.</li>
+          <li>CMK accounts need a managed identity to use continuous backup.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Which API cannot use continuous backup?</summary>
+          <div class="answer"><b>Answer:</b> API for Apache Cassandra. <em>Why:</em> Continuous backup supports NoSQL, MongoDB, Gremlin, and Table only.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A team migrated to continuous backup and now wants to revert to periodic. Can they?</summary>
+          <div class="answer"><b>Answer:</b> No — the migration is one-way. <em>Why:</em> Periodic → continuous cannot be reversed.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/provision-account-continuous-backup">Provision an account with continuous backup</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/migrate-continuous-backup">Migrate to continuous backup</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.2.4 -->
+    <section class="objective" id="obj-5-2-4" data-skill="locate-restore-point">
+      <h3 id="o-5-2-4">5.2.4 Locate a Restore Point for a Point-in-Time Restore</h3>
+
+      <div class="concept">
+        <p>Before restoring, you find a valid timestamp. Best practice is to get the <strong>latest restorable timestamp</strong> for the container, or use the <strong>event feed</strong> to see create/replace/delete events on databases and containers so you can restore to the moment just before an unwanted change.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Get the latest restorable timestamp for a container before restoring.</li>
+          <li>The event feed (portal "Click here" link) or enumerating restorable resources via CLI/PowerShell shows create/replace/delete events.</li>
+          <li>Choose a timestamp just before the destructive operation you want to undo.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># List restorable database accounts and their restorable resources
+az cosmosdb restorable-database-account list `
+  --query "[?contains(accountName,'cosmos-prod')].{name:accountName, id:id}" -o table
+
+# Enumerate restorable SQL containers to find create/delete timestamps
+az cosmosdb sql restorable-container list `
+  --location eastus `
+  --instance-id &lt;restorable-account-instance-id&gt; `
+  --database-rid &lt;database-rid&gt;</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Always confirm the latest restorable timestamp before kicking off a restore.</li>
+          <li>The event feed helps you pick a timestamp just before a delete/replace.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Before a PITR you want to confirm the newest point you can restore to. What do you retrieve?</summary>
+          <div class="answer"><b>Answer:</b> The latest restorable timestamp for the container. <em>Why:</em> It defines the most recent valid restore point within the window.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> How do you find the exact moment a container was deleted so you can restore just before it?</summary>
+          <div class="answer"><b>Answer:</b> Use the event feed / enumerate restorable resources to see the delete event timestamp. <em>Why:</em> It lists create/replace/delete events with timestamps.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/get-latest-restore-timestamp">Get the latest restorable timestamp</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/restore-account-continuous-backup">Restore an account with continuous backup</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.2.5 -->
+    <section class="objective" id="obj-5-2-5" data-skill="restore-from-point">
+      <h3 id="o-5-2-5">5.2.5 Restore a Database or Container from a Restore Point</h3>
+
+      <div class="concept">
+        <p>With continuous backup you self-service a restore of a live or deleted account — the whole account or selected databases/containers — into a <strong>new account in the same region</strong>. Note that TTL is restored by default, so pass <code>--disable-ttl</code> to stop restored documents from immediately expiring.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Restore a live or deleted account; entire account or chosen databases/containers, into a NEW account in the same region.</li>
+          <li>TTL is restored by default → use <code>--disable-ttl True</code> to prevent instant expiry of restored data.</li>
+          <li>A subset of containers under a <strong>shared-throughput database cannot be restored alone</strong> — you restore the whole database.</li>
+          <li>You can restrict public network access on the target with <code>--public-network-access Disabled</code>.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Point-in-time restore of specific databases/containers into a new account
+az cosmosdb restore `
+  --target-database-account-name cosmos-restored `
+  --account-name cosmos-prod `
+  --resource-group rg-cosmos `
+  --restore-timestamp "2026-07-14T22:05:00Z" `
+  --location eastus `
+  --databases-to-restore name=SalesDB collections=Orders Customers `
+  --disable-ttl True</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> If restored data seems to vanish, TTL likely expired it on arrival — restore again with <code>--disable-ttl True</code>.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>TTL restores on by default — a classic reason restored data "disappears."</li>
+          <li>Shared-throughput databases restore as a whole, not container-by-container.</li>
+          <li>The target is always a new account; update connection strings, network rules, and RBAC afterward.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> After restoring, documents with a short TTL vanish almost immediately. How do you preserve them next time?</summary>
+          <div class="answer"><b>Answer:</b> Restore with --disable-ttl True. <em>Why:</em> TTL is restored by default, so aged documents expire on arrival unless TTL is disabled during restore.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> You only need one container back, but it lives under a database with shared (database-level) throughput. What can you restore?</summary>
+          <div class="answer"><b>Answer:</b> The entire shared-throughput database (not just the single container). <em>Why:</em> Containers sharing database throughput can't be restored individually.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/restore-account-continuous-backup">Restore an account with continuous backup</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 5.3 Security ===== -->
+  <section class="skillgroup" id="sg-5-3">
+    <h2 id="g-5-3">5.3 Implement Security for an Azure Cosmos DB Solution</h2>
+
+    <!-- 5.3.1 -->
+    <section class="objective" id="obj-5-3-1" data-skill="smk-vs-cmk">
+      <h3 id="o-5-3-1">5.3.1 Choose Between Service-Managed and Customer-Managed Encryption Keys</h3>
+
+      <div class="concept">
+        <p>Encryption at rest is <strong>always on</strong> in Cosmos DB (AES-256) with no toggle and no extra cost, using <strong>service-managed keys</strong> by default. If your compliance regime demands that you control the key lifecycle, you can add <strong>customer-managed keys (CMK)</strong> stored in Azure Key Vault, giving a second layer of encryption you manage.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Default: service-managed keys (Microsoft-managed) — encryption at rest is automatic and free.</li>
+          <li>CMK adds a second encryption layer with keys you hold in Key Vault; must be enabled at account creation (or via an existing-accounts flow) and applies at account-level granularity.</li>
+          <li>CMK gives you key rotation and revocation control, at the cost of a small RU overhead and Key Vault dependency.</li>
+        </ul>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>You can't turn encryption at rest off; the choice is only <em>who manages the key</em>.</li>
+          <li>CMK is enabled at creation and is account-scoped.</li>
+          <li>Choose CMK only when compliance requires customer key control — it adds operational burden.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A compliance policy requires the organization to control and revoke the encryption key. Which option satisfies it?</summary>
+          <div class="answer"><b>Answer:</b> Customer-managed keys (CMK) in Azure Key Vault. <em>Why:</em> CMK gives the customer control over key rotation and revocation; service-managed keys do not.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> If you do nothing, is your data encrypted at rest?</summary>
+          <div class="answer"><b>Answer:</b> Yes — with service-managed keys, automatically and at no extra cost. <em>Why:</em> Encryption at rest is always enabled and defaults to Microsoft-managed keys.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/database-encryption-at-rest">Data encryption at rest in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-setup-customer-managed-keys">Configure customer-managed keys</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.3.2 -->
+    <section class="objective" id="obj-5-3-2" data-skill="network-access">
+      <h3 id="o-5-3-2">5.3.2 Configure Network-Level Access Control for Azure Cosmos DB</h3>
+
+      <div class="concept">
+        <p>Network controls decide <em>from where</em> requests may reach the account, layered on top of (never instead of) the auth token. The three mechanisms are the <strong>IP firewall</strong>, <strong>VNet service endpoints</strong>, and <strong>Private Link / private endpoints</strong>, with <code>publicNetworkAccess = Disabled</code> as the strongest lockdown.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>IP firewall</strong> (ipRules / CIDR): non-listed IPs get 403. "Accept connections from within Azure datacenters" adds 0.0.0.0 (needed for some Azure services with no fixed IP).</li>
+          <li><strong>VNet service endpoints</strong> allow specific subnets to reach the account over the Azure backbone.</li>
+          <li><strong>Private endpoints (Private Link)</strong> assign a private IP in your subnet; combine with <code>publicNetworkAccess = Disabled</code>, which takes precedence over all firewall rules.</li>
+          <li>A valid auth token is ALWAYS required regardless of network rules — network controls are additive.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="security-layers">
+        <figcaption>Layered defenses: auth token (always), then IP firewall, VNet service endpoints, and private endpoints — with public access disabled for the tightest posture.</figcaption>
+      </figure>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Restrict to specific IP ranges and Azure services, keep public access on
+az cosmosdb update `
+  --resource-group rg-cosmos --name cosmos-prod `
+  --ip-range-filter "13.88.56.148,40.65.0.0/16,0.0.0.0"
+
+# Lock down entirely: disable public network access (use private endpoints)
+az cosmosdb update `
+  --resource-group rg-cosmos --name cosmos-prod `
+  --public-network-access Disabled</code></pre>
+      </div>
+
+      <div class="callout key">
+        <b>Key:</b> Network rules never replace authentication — even from an allowed IP or private endpoint, a request still needs a valid key or Entra token.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><code>publicNetworkAccess=Disabled</code> overrides firewall rules — nothing public gets in.</li>
+          <li>0.0.0.0 in the IP filter is the special "allow Azure datacenter traffic" entry, not "allow the world."</li>
+          <li>Private endpoints give private IPs; service endpoints keep public IPs but restrict by subnet.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You want the account reachable only through a private IP in your VNet, with no public exposure. What do you configure?</summary>
+          <div class="answer"><b>Answer:</b> A private endpoint (Private Link) plus publicNetworkAccess = Disabled. <em>Why:</em> The private endpoint provides a private IP, and disabling public access blocks all public routes regardless of firewall rules.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> An Azure service with no fixed outbound IP must reach Cosmos DB behind an IP firewall. What enables it?</summary>
+          <div class="answer"><b>Answer:</b> Enable "Accept connections from within Azure datacenters" (adds 0.0.0.0). <em>Why:</em> It permits Azure-internal traffic when the caller lacks a static IP.</div>
+        </details>
+        <details class="q"><summary><b>Q3.</b> With a strict IP firewall in place, does a caller still need credentials?</summary>
+          <div class="answer"><b>Answer:</b> Yes. <em>Why:</em> Network rules are additive; a valid key or Entra token is always required.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall">Configure IP firewall</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-vnet-service-endpoint">Configure VNet service endpoints</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-private-endpoints">Configure private endpoints</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.3.3 -->
+    <section class="objective" id="obj-5-3-3" data-skill="data-encryption">
+      <h3 id="o-5-3-3">5.3.3 Configure Data Encryption for Azure Cosmos DB</h3>
+
+      <div class="concept">
+        <p>Cosmos DB encrypts data <strong>in transit</strong> (TLS/HTTPS) and <strong>at rest</strong> (AES-256) automatically. Adding CMK provides <strong>double encryption</strong> for the main transactional store, but you must understand its boundaries: some components and metadata are not covered by the customer key.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Encryption in transit (TLS) and at rest (AES-256) are automatic.</li>
+          <li>CMK double encryption covers the main transactional store; the Synapse Link <strong>analytical store</strong> and <strong>continuous backups</strong> are not double-encrypted with CMK.</li>
+          <li>Not encrypted with CMK: account/database/container names, stored-procedure names, index property paths, and partition key values (these are metadata).</li>
+        </ul>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>CMK protects data, not resource/metadata names or partition key values.</li>
+          <li>Analytical store and continuous backups fall outside CMK double encryption.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> With CMK enabled, are your container names and partition key values encrypted with the customer key?</summary>
+          <div class="answer"><b>Answer:</b> No — that metadata is not encrypted with CMK. <em>Why:</em> CMK protects stored data, but names, index paths, and partition key values are metadata excluded from CMK.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Does CMK double-encrypt the Synapse Link analytical store?</summary>
+          <div class="answer"><b>Answer:</b> No. <em>Why:</em> The analytical store and continuous backups are outside CMK double encryption.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/database-encryption-at-rest">Data encryption at rest in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.3.4 -->
+    <section class="objective" id="obj-5-3-4" data-skill="control-plane-rbac">
+      <h3 id="o-5-3-4">5.3.4 Manage Control Plane Access to Azure Cosmos DB by Using Azure Role-Based Access Control (RBAC)</h3>
+
+      <div class="concept">
+        <p>Cosmos DB has <strong>two RBAC planes</strong>. The <strong>control plane</strong> governs management of the account and its resources (metadata) through Azure RBAC — creating accounts, changing throughput, reading region config — but <strong>not</strong> the data inside. The built-in <strong>Cosmos DB Operator</strong> role manages accounts while explicitly blocking access to keys, connection strings, and data.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Control plane = manage resources/metadata via Azure RBAC; it does <strong>not</strong> grant data access.</li>
+          <li><strong>Cosmos DB Operator</strong> manages accounts but cannot read keys/connection strings or data.</li>
+          <li>Custom control-plane roles use <code>Microsoft.DocumentDB/*</code> actions; assign with <code>az role assignment create</code>.</li>
+          <li>Native data-plane RBAC definitions/assignments live <em>inside</em> the account, so creating them requires control-plane permissions.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="rbac-planes">
+        <figcaption>Two planes: Azure RBAC governs control-plane management (metadata, throughput, keys), while data-plane RBAC via Entra ID governs reads/writes to documents.</figcaption>
+      </figure>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Grant an operator management rights without data or key access
+az role assignment create `
+  --assignee "ops-team@contoso.com" `
+  --role "Cosmos DB Operator" `
+  --scope $(az cosmosdb show -g rg-cosmos -n cosmos-prod --query id -o tsv)</code></pre>
+      </div>
+
+      <div class="callout key">
+        <b>Key:</b> Control-plane Azure RBAC manages the <em>account</em>; it never grants read/write to documents. Data access needs data-plane RBAC (or keys).
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Cosmos DB Operator ≠ data access — it deliberately excludes keys and data.</li>
+          <li>Control-plane actions live under <code>Microsoft.DocumentDB/*</code>; data-plane uses dataActions.</li>
+          <li>Creating data-plane role assignments requires control-plane rights.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You need a team to create databases and change throughput but never see keys or data. Which built-in role fits?</summary>
+          <div class="answer"><b>Answer:</b> Cosmos DB Operator. <em>Why:</em> It grants account management while blocking keys, connection strings, and data access.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A user has the Cosmos DB Operator role. Can they read documents in a container?</summary>
+          <div class="answer"><b>Answer:</b> No. <em>Why:</em> Control-plane roles don't grant data-plane access; they'd need a data-plane RBAC assignment or keys.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/security/how-to-grant-control-plane-role-based-access">Grant control-plane role-based access</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.3.5 -->
+    <section class="objective" id="obj-5-3-5" data-skill="data-explorer-rbac">
+      <h3 id="o-5-3-5">5.3.5 Manage Control Plane Access to Azure Cosmos DB Data Explorer by Using Azure Role-Based Access Control (RBAC)</h3>
+
+      <div class="concept">
+        <p>The portal's <strong>Data Explorer</strong> honors control-plane Azure RBAC for what you can <em>see</em>, but reading or writing <em>data</em> there without keys requires <strong>data-plane RBAC</strong> as well. Disabling key-based metadata writes forces even Data Explorer metadata changes through ARM/RBAC.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Data Explorer respects control-plane Azure RBAC (e.g., Reader can view resources).</li>
+          <li>To read/write data in Data Explorer without keys, you also need a data-plane RBAC assignment (or key access).</li>
+          <li><code>disableKeyBasedMetadataWriteAccess</code> forces metadata changes via ARM/RBAC only.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># A viewer role lets a user open Data Explorer, but not read data without data-plane RBAC
+az role assignment create `
+  --assignee "analyst@contoso.com" `
+  --role "Cosmos DB Account Reader Role" `
+  --scope $(az cosmosdb show -g rg-cosmos -n cosmos-prod --query id -o tsv)</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Seeing resources in Data Explorer (control plane) ≠ reading documents (data plane).</li>
+          <li>Without keys, data operations in Data Explorer need a data-plane role assignment.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A user with Reader can browse containers in Data Explorer but gets errors reading items with keys disabled. What's missing?</summary>
+          <div class="answer"><b>Answer:</b> A data-plane RBAC role assignment (e.g., Data Reader). <em>Why:</em> Control-plane RBAC shows resources; data reads require data-plane RBAC when keys are disabled.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> How do you stop users from changing metadata in Data Explorer using account keys?</summary>
+          <div class="answer"><b>Answer:</b> Set disableKeyBasedMetadataWriteAccess = true. <em>Why:</em> It routes all metadata changes through ARM/RBAC instead of keys.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/security/how-to-grant-control-plane-role-based-access">Grant control-plane role-based access</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.3.6 -->
+    <section class="objective" id="obj-5-3-6" data-skill="data-plane-entra">
+      <h3 id="o-5-3-6">5.3.6 Manage Data Plane Access to Azure Cosmos DB by Using Microsoft Entra ID</h3>
+
+      <div class="concept">
+        <p>Native <strong>data-plane RBAC</strong> lets applications read and write documents using a <strong>Microsoft Entra ID</strong> identity — <strong>no keys</strong>. Two built-in role definitions cover most needs, and you can craft custom roles from data actions. Disabling local auth forces every data operation through Entra ID.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Built-in role definitions: <strong>Cosmos DB Built-in Data Reader</strong> and <strong>Cosmos DB Built-in Data Contributor</strong>.</li>
+          <li>Custom roles list <code>dataActions</code> such as <code>.../readMetadata</code>, <code>.../containers/*</code>, and <code>.../items/*</code>; there is <strong>no notDataActions</strong> support.</li>
+          <li>Manage with <code>az cosmosdb sql role definition create/list</code> and <code>az cosmosdb sql role assignment create --scope /</code> (scope can be account, database, or container).</li>
+          <li>Set <code>disableLocalAuth = true</code> to disable keys and require Entra ID.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Assign the built-in Data Contributor role to an app's managed identity
+$principalId = az ad sp show --id &lt;app-client-id&gt; --query id -o tsv
+az cosmosdb sql role assignment create `
+  --resource-group rg-cosmos `
+  --account-name cosmos-prod `
+  --role-definition-id "00000000-0000-0000-0000-000000000002" `
+  --principal-id $principalId `
+  --scope "/"
+
+# Enforce Entra ID by disabling account keys
+az cosmosdb update -g rg-cosmos -n cosmos-prod --disable-local-auth true</code></pre>
+      </div>
+
+      <div class="callout key">
+        <b>Key:</b> Data-plane RBAC = keyless data access via Entra ID. Pair it with <code>disableLocalAuth</code> to eliminate key-based access entirely.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Data-plane roles are Cosmos-specific definitions stored in the account — not Azure RBAC roles.</li>
+          <li>No notDataActions — you can only allow, not deny, specific data actions.</li>
+          <li><code>disableLocalAuth</code> kills keys; <code>disableKeyBasedMetadataWriteAccess</code> only blocks metadata writes via keys.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An app should read and write documents without ever using an account key. What do you configure?</summary>
+          <div class="answer"><b>Answer:</b> Assign the Cosmos DB Built-in Data Contributor role to the app's Entra identity (and optionally disable local auth). <em>Why:</em> Data-plane RBAC grants keyless read/write via Entra ID.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> You must guarantee that keys can no longer be used for data access. Which property do you set?</summary>
+          <div class="answer"><b>Answer:</b> disableLocalAuth = true. <em>Why:</em> It disables key-based authentication, forcing Entra ID.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/security/how-to-grant-data-plane-role-based-access">Grant data-plane role-based access</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/reference-data-plane-security">Data-plane security reference</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.3.7 -->
+    <section class="objective" id="obj-5-3-7" data-skill="cors">
+      <h3 id="o-5-3-7">5.3.7 Configure Cross-Origin Resource Sharing (CORS) Settings</h3>
+
+      <div class="concept">
+        <p><strong>CORS</strong> lets browser-based JavaScript apps on other origins call the account directly. It's supported for the <strong>API for NoSQL only</strong> (which uses HTTP), and you configure a list of allowed origins on the account.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>CORS applies to API for NoSQL only.</li>
+          <li>Set <code>cors.allowedOrigins</code> (comma-separated) via portal or ARM; wildcard <code>*</code> is allowed but sub-domain wildcards like <code>https://*.contoso.com</code> are <strong>not</strong>.</li>
+          <li>Only authenticated requests are evaluated against CORS rules.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-json">{
+  "type": "Microsoft.DocumentDB/databaseAccounts",
+  "properties": {
+    "cors": [
+      { "allowedOrigins": "https://app.contoso.com,https://admin.contoso.com" }
+    ]
+  }
+}</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>CORS = NoSQL API only.</li>
+          <li>Wildcard <code>*</code> works; per-subdomain wildcards do not.</li>
+          <li>List exact origins for production rather than <code>*</code>.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A single-page app at https://app.contoso.com calls Cosmos DB and browsers block it with a CORS error. What do you set?</summary>
+          <div class="answer"><b>Answer:</b> Add the origin to the account's CORS allowedOrigins list. <em>Why:</em> CORS must explicitly allow the calling origin for the NoSQL API.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Can you allow all subdomains of contoso.com with https://*.contoso.com?</summary>
+          <div class="answer"><b>Answer:</b> No — sub-domain wildcards aren't supported (only <code>*</code> or exact origins). <em>Why:</em> CORS on Cosmos DB doesn't accept per-subdomain wildcard patterns.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-cross-origin-resource-sharing">Configure CORS</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.3.8 -->
+    <section class="objective" id="obj-5-3-8" data-skill="key-vault-keys">
+      <h3 id="o-5-3-8">5.3.8 Manage Account Keys by Using Azure Key Vault</h3>
+
+      <div class="concept">
+        <p>When you still need account keys, don't scatter them through app settings — store them as <strong>secrets in Azure Key Vault</strong> and retrieve them at runtime using a <strong>managed identity</strong>, so no secret lives in code or config. Better still, prefer disabling keys entirely and using Entra ID.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Store account keys / connection strings as Key Vault secrets; fetch them at runtime via managed identity (no secrets in code).</li>
+          <li>Preferred posture: disable keys (<code>disableLocalAuth</code>) and use Entra ID data-plane RBAC; Key Vault is the mitigation when keys are unavoidable.</li>
+          <li>Rotate keys and update the Key Vault secret without redeploying the app.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Store a Cosmos DB key in Key Vault; app reads it via managed identity
+$key = az cosmosdb keys list -g rg-cosmos -n cosmos-prod `
+  --type keys --query primaryMasterKey -o tsv
+az keyvault secret set --vault-name kv-cosmos --name "cosmos-primary-key" --value $key</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Key Vault + managed identity keeps secrets out of code/config.</li>
+          <li>The stronger answer is usually keyless Entra ID access; Key Vault is the fallback.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Keys are still required, but they must never appear in source or config. What's the recommended pattern?</summary>
+          <div class="answer"><b>Answer:</b> Store keys as Key Vault secrets and retrieve them at runtime with a managed identity. <em>Why:</em> It removes secrets from code/config and centralizes rotation.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> What's an even stronger alternative to storing keys in Key Vault?</summary>
+          <div class="answer"><b>Answer:</b> Disable keys (disableLocalAuth) and use Entra ID data-plane RBAC. <em>Why:</em> Eliminating keys removes the secret entirely.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/key-vault/general/overview">Azure Key Vault overview</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-setup-managed-identity">Configure managed identities for Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.3.9 -->
+    <section class="objective" id="obj-5-3-9" data-skill="cmk-encryption">
+      <h3 id="o-5-3-9">5.3.9 Implement Customer-Managed Keys for Encryption</h3>
+
+      <div class="concept">
+        <p>Implementing CMK means creating a key in Key Vault, granting Cosmos DB the rights to wrap/unwrap it, and setting the key URI at <strong>account creation</strong>. Key Vault must have <strong>Soft Delete and Purge Protection</strong> enabled, and you accept a small RU overhead on operations.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Key in Azure Key Vault (RSA ≥ 3072). Key Vault requires Soft Delete + Purge Protection.</li>
+          <li>Grant the Cosmos DB principal <strong>Get / WrapKey / UnwrapKey</strong> (access policy) or the <strong>Key Vault Crypto Service Encryption User</strong> role (RBAC).</li>
+          <li>Set the Key URI at account creation. Revoke by disabling the key → after revoke, only account deletion is possible. Rotate via a new key version or a new Key URI.</li>
+          <li>Overhead is roughly +5% for point reads, +6% for writes, +15% for queries/change feed.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Create a CMK-enabled account referencing a Key Vault key
+az cosmosdb create `
+  --resource-group rg-cosmos --name cosmos-cmk `
+  --locations regionName=eastus `
+  --key-uri "https://kv-cosmos.vault.azure.net/keys/cosmos-cmk/&lt;version&gt;" `
+  --assign-identity [system]</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> Revoking (disabling) the CMK makes the account unreadable — the only remaining action is to delete the account. Never revoke without a plan.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Key Vault needs Soft Delete + Purge Protection or CMK setup fails.</li>
+          <li>CMK is set at account creation; grant Get/WrapKey/UnwrapKey to Cosmos DB.</li>
+          <li>Expect measurable RU overhead, largest on queries/change feed.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> CMK account creation fails referencing the Key Vault. Which two Key Vault settings are required?</summary>
+          <div class="answer"><b>Answer:</b> Soft Delete and Purge Protection. <em>Why:</em> Cosmos DB CMK requires both to protect against irreversible key loss.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A security incident requires immediately blocking all data access via the customer key. What happens after you disable the key?</summary>
+          <div class="answer"><b>Answer:</b> The account becomes inaccessible and can only be deleted. <em>Why:</em> Revoking the CMK removes unwrap capability, leaving deletion as the sole option.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-setup-customer-managed-keys">Configure customer-managed keys</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.3.10 -->
+    <section class="objective" id="obj-5-3-10" data-skill="always-encrypted">
+      <h3 id="o-5-3-10">5.3.10 Implement Always Encrypted</h3>
+
+      <div class="concept">
+        <p><strong>Always Encrypted</strong> protects specific sensitive <em>fields</em> with <strong>client-side</strong> encryption — the service never sees plaintext or the keys. It uses a database-level <strong>data encryption key (DEK)</strong> wrapped by a <strong>customer-managed key (CMK / column master key)</strong> in Key Vault, and a container <strong>encryption policy</strong> that maps each property to a key and encryption type.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Field-level, client-side encryption; the service can't decrypt.</li>
+          <li>Uses a DEK (database-scoped, stored in Cosmos DB) wrapped by a CMK in Key Vault.</li>
+          <li>The container's <strong>encryption policy is immutable</strong> — set at creation — and maps each property to a DEK + encryption type.</li>
+          <li><strong>Deterministic</strong> encryption allows equality filters (same plaintext → same ciphertext, weaker); <strong>randomized</strong> is stronger but not queryable.</li>
+          <li>Implemented with the .NET (Microsoft.Azure.Cosmos.Encryption) or Java packages using a KeyResolver + managed identity.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-csharp">// Client-side Always Encrypted with a Key Vault-backed key resolver
+var keyResolver = new KeyResolver(new DefaultAzureCredential());
+var client = new CosmosClient(endpoint, credential)
+    .WithEncryption(keyResolver, KeyEncryptionKeyResolverName.AzureKeyVault);
+
+// Container encryption policy: SSN deterministic (queryable), Salary randomized
+var paths = new List&lt;ClientEncryptionIncludedPath&gt;
+{
+    new() { Path = "/ssn",    ClientEncryptionKeyId = "cek1",
+            EncryptionType = "Deterministic",
+            EncryptionAlgorithm = "AEAD_AES_256_CBC_HMAC_SHA256" },
+    new() { Path = "/salary", ClientEncryptionKeyId = "cek1",
+            EncryptionType = "Randomized",
+            EncryptionAlgorithm = "AEAD_AES_256_CBC_HMAC_SHA256" }
+};</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Deterministic = queryable by equality; randomized = strongest but no querying.</li>
+          <li>The encryption policy is immutable once the container is created.</li>
+          <li>Always Encrypted is field-level and client-side; CMK-at-rest is account-level and server-side. Different features.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You must encrypt an SSN field but still filter by exact SSN value. Which encryption type do you choose?</summary>
+          <div class="answer"><b>Answer:</b> Deterministic. <em>Why:</em> Deterministic encryption produces identical ciphertext for identical plaintext, enabling equality queries (randomized doesn't).</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> After creating a container you need to change which properties are encrypted. Is that allowed?</summary>
+          <div class="answer"><b>Answer:</b> No — the encryption policy is immutable and set at container creation. <em>Why:</em> You must recreate the container (and migrate data) to change encrypted paths.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-always-encrypted">Use Always Encrypted with Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 5.4 Data Movement ===== -->
+  <section class="skillgroup" id="sg-5-4">
+    <h2 id="g-5-4">5.4 Implement Data Movement for an Azure Cosmos DB Solution</h2>
+
+    <!-- 5.4.1 -->
+    <section class="objective" id="obj-5-4-1" data-skill="movement-strategy">
+      <h3 id="o-5-4-1">5.4.1 Choose a Data Movement Strategy</h3>
+
+      <div class="concept">
+        <p>Moving data in or out of Cosmos DB has a purpose-built tool for each scenario. The choice hinges on three questions: is the workload <strong>batch or streaming</strong>, do you want <strong>code or no-code</strong>, and what is the <strong>source/sink</strong>?</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>SDK Bulk</strong>: code, high-throughput one-off migrations/imports.</li>
+          <li><strong>Azure Data Factory / Synapse pipelines</strong>: no-code, scheduled ETL, copy in and out.</li>
+          <li><strong>Kafka connector</strong>: streaming pipelines (sink and source).</li>
+          <li><strong>Stream Analytics</strong>: streaming output sink for query results.</li>
+          <li><strong>Spark connector</strong>: data engineering / analytics read-write.</li>
+          <li><strong>IoT Hub custom endpoint</strong>: route device telemetry directly into Cosmos DB.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="data-movement">
+        <figcaption>Choose the movement tool by scenario: SDK bulk, Data Factory/Synapse, Kafka, Stream Analytics, Spark, or IoT Hub routing — each fits a different source, cadence, and code model.</figcaption>
+      </figure>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>One-off, code-driven high-volume import → SDK Bulk.</li>
+          <li>Scheduled no-code ETL → Data Factory / Synapse pipelines.</li>
+          <li>Continuous streaming → Kafka, Stream Analytics, or IoT Hub, depending on source.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A team needs a scheduled, no-code nightly copy from SQL Server into Cosmos DB. Which tool?</summary>
+          <div class="answer"><b>Answer:</b> Azure Data Factory (or Synapse) pipelines. <em>Why:</em> They provide no-code, scheduled ETL with a Cosmos DB connector.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> You must import millions of documents once, from custom code, as fast as possible. Which approach?</summary>
+          <div class="answer"><b>Answer:</b> SDK bulk operations (AllowBulkExecution). <em>Why:</em> Bulk mode maximizes import throughput from application code.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/tutorial-dotnet-bulk-import">Bulk import data with the .NET SDK</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/data-factory/connector-azure-cosmos-db">Azure Data Factory Cosmos DB connector</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.4.2 -->
+    <section class="objective" id="obj-5-4-2" data-skill="sdk-bulk">
+      <h3 id="o-5-4-2">5.4.2 Move Data by Using Client SDK Bulk Operations</h3>
+
+      <div class="concept">
+        <p>Setting <code>AllowBulkExecution = true</code> on the client changes how the SDK dispatches concurrent point operations: it <strong>groups them into batched service calls per partition</strong>, dramatically increasing import throughput. You fire many operations concurrently (for example, with <code>Task.WhenAll</code>) and let the SDK optimize the batching.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>new CosmosClient(..., new CosmosClientOptions { AllowBulkExecution = true })</code>; the setting is immutable once the client is built.</li>
+          <li>The SDK batches concurrent point operations per partition into fewer service calls.</li>
+          <li>Use <code>Task.WhenAll</code> to submit many operations at once.</li>
+          <li>Fastest import: temporarily raise RU/s and reduce indexing (e.g., exclude paths) during the load.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-csharp">var options = new CosmosClientOptions { AllowBulkExecution = true };
+using var client = new CosmosClient(endpoint, key, options);
+var container = client.GetContainer("SalesDB", "Orders");
+
+var tasks = orders.Select(o =&gt;
+    container.CreateItemAsync(o, new PartitionKey(o.CustomerId)));
+await Task.WhenAll(tasks);   // SDK batches these per partition</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><code>AllowBulkExecution</code> is set at client construction and can't change later.</li>
+          <li>Bulk trades per-request latency for aggregate throughput — great for imports, not for chatty low-latency apps.</li>
+          <li>Raise RU/s and trim indexing during the load, then restore both.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> How do you enable bulk mode in the .NET SDK, and when is it fixed?</summary>
+          <div class="answer"><b>Answer:</b> Set AllowBulkExecution = true in CosmosClientOptions at client creation; it's immutable afterward. <em>Why:</em> Bulk batching is a client-construction-time option.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Beyond enabling bulk, what two changes speed a large import?</summary>
+          <div class="answer"><b>Answer:</b> Temporarily increase RU/s and reduce indexing (exclude paths or mode none). <em>Why:</em> More throughput and less index write cost accelerate ingest.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/tutorial-dotnet-bulk-import">Bulk import data to Azure Cosmos DB with the .NET SDK</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.4.3 -->
+    <section class="objective" id="obj-5-4-3" data-skill="adf-synapse">
+      <h3 id="o-5-4-3">5.4.3 Move Data by Using Azure Data Factory and Azure Synapse Pipelines</h3>
+
+      <div class="concept">
+        <p>The Cosmos DB connector for <strong>Azure Data Factory and Synapse pipelines</strong> supports copying data both <strong>into and out of</strong> the account with a no-code, scheduled Copy activity. It can also serve as a manual export mechanism (for example, to blob storage) for periodic-style backups.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Connector works as both <strong>source and sink</strong> — copy in or out.</li>
+          <li>No-code, schedulable via triggers; part of a broader ETL/orchestration pipeline.</li>
+          <li>Can export Cosmos DB data to storage as a manual/periodic backup approach.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-json">{
+  "type": "Copy",
+  "inputs":  [ { "referenceName": "AzureSqlOrders" } ],
+  "outputs": [ { "referenceName": "CosmosDbOrders" } ],
+  "typeProperties": {
+    "source": { "type": "AzureSqlSource" },
+    "sink":   { "type": "CosmosDbSqlApiSink", "writeBehavior": "upsert" }
+  }
+}</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>The connector is bidirectional (source and sink).</li>
+          <li>Use it for scheduled, no-code ETL — not for ultra-low-latency streaming.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You must export Cosmos DB data to Azure Blob Storage on a schedule without writing code. What fits?</summary>
+          <div class="answer"><b>Answer:</b> A Data Factory/Synapse Copy activity using the Cosmos DB connector as the source. <em>Why:</em> It supports no-code, scheduled copy out of Cosmos DB.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Can the same connector load data into Cosmos DB?</summary>
+          <div class="answer"><b>Answer:</b> Yes — it works as both source and sink. <em>Why:</em> The connector supports copy in and out.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/data-factory/connector-azure-cosmos-db">Copy data to/from Azure Cosmos DB with Data Factory</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.4.4 -->
+    <section class="objective" id="obj-5-4-4" data-skill="kafka-connector">
+      <h3 id="o-5-4-4">5.4.4 Move Data by Using a Kafka Connector</h3>
+
+      <div class="concept">
+        <p>The Cosmos DB <strong>Kafka Connect</strong> connectors bridge Apache Kafka and Cosmos DB. The <strong>sink</strong> connector writes Kafka topic records into Cosmos DB; the <strong>source</strong> connector reads the Cosmos DB <strong>change feed</strong> and publishes records to Kafka.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Sink</strong> (Kafka → Cosmos DB): supports exactly-once delivery.</li>
+          <li><strong>Source</strong> (Cosmos DB change feed → Kafka): at-least-once (exactly-once for a single task).</li>
+          <li>Supported formats: JSON, JSON with schema, and AVRO.</li>
+          <li>Key config: <code>connection.endpoint</code>, <code>master.key</code>, <code>database name</code>, and <code>containers.topicmap</code> (mapping <code>topic#container</code>).</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-json">{
+  "name": "cosmosdb-sink",
+  "config": {
+    "connector.class": "com.azure.cosmos.kafka.connect.sink.CosmosDBSinkConnector",
+    "connect.cosmos.connection.endpoint": "https://cosmos-prod.documents.azure.com:443/",
+    "connect.cosmos.master.key": "${file:/secrets:cosmos-key}",
+    "connect.cosmos.databasename": "SalesDB",
+    "connect.cosmos.containers.topicmap": "orders#Orders,customers#Customers"
+  }
+}</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Sink = into Cosmos DB; Source = out of Cosmos DB via change feed.</li>
+          <li><code>containers.topicmap</code> maps each Kafka topic to a container with <code>topic#container</code>.</li>
+          <li>Sink is exactly-once; source is at-least-once (single-task exactly-once).</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You need to publish every Cosmos DB change to a Kafka topic. Which connector and Cosmos feature?</summary>
+          <div class="answer"><b>Answer:</b> The source connector, reading the change feed. <em>Why:</em> The source connector streams change-feed events into Kafka.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> How do you tell the sink connector which topic writes to which container?</summary>
+          <div class="answer"><b>Answer:</b> The containers.topicmap setting using topic#container pairs. <em>Why:</em> It maps Kafka topics to Cosmos DB containers.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/kafka-connector">Kafka Connect for Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/kafka-connector-sink">Kafka Connect sink connector</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/kafka-connector-source">Kafka Connect source connector</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.4.5 -->
+    <section class="objective" id="obj-5-4-5" data-skill="stream-analytics">
+      <h3 id="o-5-4-5">5.4.5 Move Data by Using Azure Stream Analytics</h3>
+
+      <div class="concept">
+        <p><strong>Azure Stream Analytics</strong> can write the results of a streaming query directly to a Cosmos DB (NoSQL) container as an <strong>output sink</strong>, upserting documents by <code>id</code>. Because Stream Analytics has no fixed outbound IP, you allow it through the firewall via the "Accept connections from within Azure datacenters" option.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Cosmos DB (NoSQL) is an ASA output sink; writes upsert on document <code>id</code>.</li>
+          <li>ASA has no fixed IP → enable "Accept connections from within Azure datacenters" (0.0.0.0) on the Cosmos DB firewall.</li>
+          <li>Great for continuously landing aggregated/streamed results into Cosmos DB.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- Stream Analytics query writing aggregates to a Cosmos DB output named "CosmosOut"
+SELECT
+    deviceId AS id,
+    System.Timestamp() AS windowEnd,
+    AVG(temperature) AS avgTemp
+INTO CosmosOut
+FROM SensorInput TIMESTAMP BY eventTime
+GROUP BY deviceId, TumblingWindow(minute, 5)</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> If ASA can't write to Cosmos DB behind a firewall, enable "Accept connections from within Azure datacenters" — ASA has no static IP to allowlist.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>ASA → Cosmos DB is an output sink that upserts by <code>id</code>.</li>
+          <li>Allow ASA through the firewall with the Azure-datacenters option, not a specific IP.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A Stream Analytics job can't write to Cosmos DB because of the IP firewall. What's the fix?</summary>
+          <div class="answer"><b>Answer:</b> Enable "Accept connections from within Azure datacenters" on the Cosmos DB firewall. <em>Why:</em> ASA lacks a fixed IP, so you allow Azure-internal traffic.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> How does the Cosmos DB output sink handle documents with the same id?</summary>
+          <div class="answer"><b>Answer:</b> It upserts (insert or replace) by id. <em>Why:</em> The ASA Cosmos DB sink writes with upsert semantics on the document id.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/stream-analytics/stream-analytics-documentdb-output">Azure Cosmos DB output from Stream Analytics</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.4.6 -->
+    <section class="objective" id="obj-5-4-6" data-skill="spark-connector">
+      <h3 id="o-5-4-6">5.4.6 Move Data by Using the Azure Cosmos DB Spark Connector</h3>
+
+      <div class="concept">
+        <p>The Cosmos DB <strong>Spark connector</strong> exposes two data source formats. <code>cosmos.oltp</code> reads and writes the <strong>transactional store</strong> (consuming RUs), while <code>cosmos.olap</code> reads the <strong>analytical store</strong> (RU-free, read-only, via Synapse Link). Only Spark can write back to the transactional store from the analytics layer.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>cosmos.oltp</code>: transactional store read/write, consumes RUs.</li>
+          <li><code>cosmos.olap</code>: analytical store read, RU-free, read-only, requires Synapse Link.</li>
+          <li>Use OLTP writes to move/transform data back into Cosmos DB from Spark.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-python"># Read the analytical store (RU-free) and write results to the transactional store
+df = (spark.read.format("cosmos.olap")
+      .option("spark.synapse.linkedService", "CosmosLink")
+      .option("spark.cosmos.container", "Orders")
+      .load())
+
+(df.write.format("cosmos.oltp")
+   .option("spark.cosmos.container", "OrdersCurated")
+   .mode("append")
+   .save())</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><code>cosmos.olap</code> = analytical store, RU-free, read-only; <code>cosmos.oltp</code> = transactional, costs RUs.</li>
+          <li>Analytical reads need Synapse Link enabled on the container.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You want to run heavy Spark analytics over Cosmos DB data without consuming transactional RUs. Which format?</summary>
+          <div class="answer"><b>Answer:</b> cosmos.olap (the analytical store via Synapse Link). <em>Why:</em> Analytical-store reads are RU-free and don't affect transactional throughput.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Which format do you use to write curated results back into a Cosmos DB container?</summary>
+          <div class="answer"><b>Answer:</b> cosmos.oltp. <em>Why:</em> Writes go to the transactional store using the OLTP format (consuming RUs).</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/quickstart-spark">Connect to Azure Cosmos DB with the Spark connector</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.4.7 -->
+    <section class="objective" id="obj-5-4-7" data-skill="iot-hub-endpoint">
+      <h3 id="o-5-4-7">5.4.7 Configure Azure Cosmos DB as a Custom Endpoint for an Azure IoT Hub</h3>
+
+      <div class="concept">
+        <p><strong>Azure IoT Hub</strong> can route device messages <strong>directly into Cosmos DB</strong> as a custom endpoint — no intermediate function needed. Messages land as JSON when properly typed, and IoT Hub can apply a <strong>synthetic partition key</strong> template to keep logical partitions under the 20-GB limit.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>IoT Hub routes device messages to Cosmos DB via a custom endpoint.</li>
+          <li>Stored as JSON when <code>contentType = application/json</code> and <code>contentEncoding = UTF-8</code>; otherwise the body is base64-encoded.</li>
+          <li>Supports a <strong>synthetic partition key template</strong> (e.g., deviceId + month) to bound logical partition growth.</li>
+          <li>System-assigned managed identity auth requires assigning <strong>Cosmos DB Built-in Data Contributor</strong> via CLI/PowerShell (not the portal).</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Grant IoT Hub's managed identity data-plane write access to Cosmos DB
+az cosmosdb sql role assignment create `
+  --resource-group rg-cosmos `
+  --account-name cosmos-prod `
+  --role-definition-name "Cosmos DB Built-in Data Contributor" `
+  --principal-id $(az iot hub identity show -n iothub-prod --query principalId -o tsv) `
+  --scope "/"</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Set contentType=application/json + contentEncoding=UTF-8 or messages store as base64.</li>
+          <li>Use the synthetic partition key template to avoid the 20-GB logical partition ceiling.</li>
+          <li>Assign Cosmos DB Built-in Data Contributor to IoT Hub's identity via CLI/PowerShell.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Device messages land in Cosmos DB as base64 instead of JSON. What did the devices fail to set?</summary>
+          <div class="answer"><b>Answer:</b> contentType = application/json and contentEncoding = UTF-8 on the messages. <em>Why:</em> Without them IoT Hub stores the body base64-encoded.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> High-volume devices risk exceeding 20 GB per logical partition. What IoT Hub feature helps?</summary>
+          <div class="answer"><b>Answer:</b> A synthetic partition key template (e.g., deviceId + time bucket). <em>Why:</em> It bounds each logical partition's growth.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-endpoints">IoT Hub endpoints and message routing</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 5.5 DevOps ===== -->
+  <section class="skillgroup" id="sg-5-5">
+    <h2 id="g-5-5">5.5 Implement a DevOps Process for an Azure Cosmos DB Solution</h2>
+
+    <!-- 5.5.1 -->
+    <section class="objective" id="obj-5-5-1" data-skill="declarative-vs-imperative">
+      <h3 id="o-5-5-1">5.5.1 Choose When to Use Declarative Versus Imperative Operations</h3>
+
+      <div class="concept">
+        <p><strong>Declarative</strong> tools (ARM, Bicep, Terraform) describe the <em>desired end state</em> and are idempotent, repeatable, and source-controllable — ideal for CI/CD and environment parity. <strong>Imperative</strong> tools (Azure CLI, PowerShell, SDK) issue step-by-step commands — ideal for one-off operations, scripting, and ad-hoc automation.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Declarative = desired-state, idempotent, repeatable, version-controlled → best for CI/CD and consistent environments.</li>
+          <li>Imperative = explicit commands → best for one-off ops, quick fixes, and scripting.</li>
+          <li>The control-plane API is not designed for high-volume calls — use it sparingly.</li>
+        </ul>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>"Repeatable, source-controlled, environment parity" → declarative (ARM/Bicep).</li>
+          <li>"One-time change" or "quick script" → imperative (CLI/PowerShell).</li>
+          <li>Some operations (like throughput migration) are imperative-only.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A team wants identical Cosmos DB environments provisioned repeatably through a release pipeline. Which approach?</summary>
+          <div class="answer"><b>Answer:</b> Declarative (ARM/Bicep) templates. <em>Why:</em> They're idempotent, version-controlled, and enforce consistent desired state across environments.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> An operator needs to make a single ad-hoc change to one account right now. What fits best?</summary>
+          <div class="answer"><b>Answer:</b> Imperative CLI/PowerShell. <em>Why:</em> Imperative commands suit one-off, immediate operations.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/manage-with-templates">Manage Azure Cosmos DB with ARM templates</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/manage-with-cli">Manage Azure Cosmos DB with Azure CLI</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.5.2 -->
+    <section class="objective" id="obj-5-5-2" data-skill="arm-provision">
+      <h3 id="o-5-5-2">5.5.2 Provision and Manage Azure Cosmos DB Resources by Using Azure Resource Manager Templates</h3>
+
+      <div class="concept">
+        <p>ARM (and Bicep) templates provision and manage the whole account surface declaratively — account, databases, containers, throughput, indexing policy, RBAC, firewall rules, CORS, and backup policy — deployed through <code>az deployment group create</code> and driven from a CI/CD pipeline for repeatable, reviewable infrastructure.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>ARM/Bicep manage account, databases, containers, throughput, indexing policy, RBAC, firewall (ipRules), CORS, and backup policy.</li>
+          <li>Deploy with <code>az deployment group create --template-file</code>; a quickstart samples repo is available.</li>
+          <li>Templates are the backbone of consistent CI/CD and environment parity.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="devops-arm">
+        <figcaption>A CI/CD pipeline deploys declarative ARM/Bicep templates to provision and update accounts, containers, throughput, and indexing policies consistently across environments.</figcaption>
+      </figure>
+
+      <div class="code">
+        <pre><code class="lang-bicep">resource account 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' = {
+  name: 'cosmos-prod'
+  location: location
+  properties: {
+    databaseAccountOfferType: 'Standard'
+    locations: [ { locationName: location, failoverPriority: 0 } ]
+    consistencyPolicy: { defaultConsistencyLevel: 'Session' }
+  }
+}
+
+resource db 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-11-15' = {
+  parent: account
+  name: 'SalesDB'
+  properties: { resource: { id: 'SalesDB' } }
+}</code></pre>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Deploy the template into a resource group
+az deployment group create `
+  --resource-group rg-cosmos `
+  --template-file ./cosmos.bicep `
+  --parameters location=eastus</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>ARM/Bicep can manage indexing policy, firewall, CORS, RBAC, and backup policy — not just the account shell.</li>
+          <li>Throughput migration (manual↔autoscale) is NOT done through ARM — it's CLI/PowerShell only.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You want a container's indexing policy defined in source control and deployed with the rest of the infrastructure. How?</summary>
+          <div class="answer"><b>Answer:</b> Include the indexingPolicy in the ARM/Bicep template and deploy via the pipeline. <em>Why:</em> Templates manage indexing policy declaratively alongside other resources.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Which command deploys a Bicep/ARM template to a resource group?</summary>
+          <div class="answer"><b>Answer:</b> az deployment group create --template-file. <em>Why:</em> It submits the template for resource-group-scoped deployment.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/manage-with-templates">Manage Azure Cosmos DB with ARM templates</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/samples-resource-manager-templates">ARM template samples</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/manage-with-bicep">Manage Azure Cosmos DB with Bicep</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.5.3 -->
+    <section class="objective" id="obj-5-5-3" data-skill="throughput-migrate">
+      <h3 id="o-5-5-3">5.5.3 Migrate Between Standard and Autoscale Throughput by Using PowerShell or Azure CLI</h3>
+
+      <div class="concept">
+        <p>Switching a database or container between <strong>manual (standard)</strong> and <strong>autoscale</strong> throughput is supported <strong>only</strong> through the portal, Azure <strong>CLI</strong>, or <strong>PowerShell</strong> — not the SDK and not ARM. When you enable autoscale, the system chooses a starting max RU/s based on current manual RU/s and storage.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Migration paths: portal, CLI, or PowerShell only (NOT SDK, NOT ARM template).</li>
+          <li>CLI: <code>az cosmosdb sql database|container throughput migrate --throughput-type 'autoscale'|'manual'</code>.</li>
+          <li>Enabling autoscale sets a starting max RU/s derived from the current manual value and storage.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Migrate a container from manual to autoscale throughput
+az cosmosdb sql container throughput migrate `
+  --resource-group rg-cosmos `
+  --account-name cosmos-prod `
+  --database-name SalesDB `
+  --name Orders `
+  --throughput-type autoscale</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> You cannot migrate throughput type via an ARM/Bicep template — use CLI or PowerShell (or the portal).
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Throughput migration is imperative-only (CLI/PowerShell/portal).</li>
+          <li>Autoscale's initial max RU/s is auto-chosen from current manual RU/s and storage.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A pipeline tries to switch a container to autoscale via an ARM template and fails. Why?</summary>
+          <div class="answer"><b>Answer:</b> Throughput-type migration isn't supported through ARM — only portal, CLI, or PowerShell. <em>Why:</em> The migration operation is imperative-only.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Which CLI command migrates a database to manual throughput?</summary>
+          <div class="answer"><b>Answer:</b> az cosmosdb sql database throughput migrate --throughput-type manual. <em>Why:</em> It converts the database's throughput type imperatively.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-provision-autoscale-throughput">Provision autoscale throughput</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-choose-offer">Choose between standard and autoscale throughput</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.5.4 -->
+    <section class="objective" id="obj-5-5-4" data-skill="regional-failover">
+      <h3 id="o-5-5-4">5.5.4 Initiate a Regional Failover by Using PowerShell or Azure CLI</h3>
+
+      <div class="concept">
+        <p>For single-write-region accounts you can trigger a <strong>manual failover</strong> by reordering failover priorities with <code>az cosmosdb failover-priority-change</code>, promoting a read region to the new write region. Service-managed failover, when enabled, handles regional outages automatically.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>az cosmosdb failover-priority-change --failover-policies &lt;region&gt;=&lt;priority&gt;</code> reorders priorities / triggers manual failover of the write region.</li>
+          <li>Manual failover applies to single-write-region accounts; priority 0 is the write region.</li>
+          <li>Service-managed (automatic) failover reacts to outages without manual action.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-powershell"># Promote West US to write region (priority 0), East US becomes priority 1
+az cosmosdb failover-priority-change `
+  --resource-group rg-cosmos `
+  --name cosmos-prod `
+  --failover-policies westus=0 eastus=1</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Priority 0 = the write region; changing priorities triggers/plans the failover.</li>
+          <li>Manual failover = single-write accounts; multi-region-write accounts don't need it the same way.</li>
+          <li>Service-managed failover is automatic; manual failover is deliberate via CLI/PowerShell.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You need to deliberately move the write region to West US for a planned maintenance test. Which command?</summary>
+          <div class="answer"><b>Answer:</b> az cosmosdb failover-priority-change with westus=0. <em>Why:</em> Setting a region to priority 0 promotes it to the write region.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> What does priority 0 represent in the failover policy?</summary>
+          <div class="answer"><b>Answer:</b> The current write region. <em>Why:</em> Failover priority 0 is always the write region for single-write accounts.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-database-account">Manage an Azure Cosmos DB account</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/manage-with-cli">Manage Azure Cosmos DB with Azure CLI</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 5.5.5 -->
+    <section class="objective" id="obj-5-5-5" data-skill="indexing-in-prod">
+      <h3 id="o-5-5-5">5.5.5 Maintain Indexing Policies in Production by Using Azure Resource Manager Templates</h3>
+
+      <div class="concept">
+        <p>Keeping indexing policies under source control means storing each container's <code>indexingPolicy</code> in the ARM/Bicep template and rolling changes through CI/CD. Because index changes trigger an <strong>online transformation</strong>, production queries keep working while the new policy is applied.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Store the container's <code>indexingPolicy</code> in the ARM/Bicep template; deploy changes through the pipeline.</li>
+          <li>Index transformation runs online (track with the index transformation progress) — no write downtime.</li>
+          <li>This keeps production indexing consistent, reviewable, and reproducible.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-bicep">resource container 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-11-15' = {
+  parent: db
+  name: 'Orders'
+  properties: {
+    resource: {
+      id: 'Orders'
+      partitionKey: { paths: [ '/customerId' ], kind: 'Hash' }
+      indexingPolicy: {
+        indexingMode: 'consistent'
+        includedPaths: [ { path: '/*' } ]
+        excludedPaths: [ { path: '/notes/?' } ]
+      }
+    }
+  }
+}</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Index changes deployed via template still trigger an online transformation — no downtime.</li>
+          <li>Source-controlling indexing policy prevents config drift between environments.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A production container's indexing policy keeps drifting from what's in Git after manual portal edits. How do you enforce consistency?</summary>
+          <div class="answer"><b>Answer:</b> Define indexingPolicy in the ARM/Bicep template and deploy only through CI/CD. <em>Why:</em> Declarative deployment makes the template the single source of truth.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Will deploying a new indexing policy to production block writes?</summary>
+          <div class="answer"><b>Answer:</b> No — the index transformation runs online with no write-availability impact. <em>Why:</em> Cosmos DB applies index changes asynchronously in place.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-indexing-policy">Manage indexing policies</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy">Indexing policies in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+  </section>
+</section>

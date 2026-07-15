@@ -1,0 +1,2137 @@
+<section class="domain" id="domain1" data-domain="1">
+  <h1 id="d1">Domain 1 — Design and Implement Data Models <span class="weight">35–40%</span></h1>
+  <p class="domain-intro">This is the largest domain on DP-420, and it is the heart of building on Azure Cosmos DB for NoSQL. It runs from <strong>data modeling</strong> (schema-agnostic containers, embedding vs. referencing, TTL, versioning) through <strong>partitioning strategy</strong> (logical vs. physical partitions, choosing a key, synthetic and hierarchical keys) and <strong>sizing and scaling</strong> (RUs, serverless vs. provisioned vs. free tier, database-level throughput) to the hands-on SDK skills: <strong>connectivity</strong>, the <strong>SQL query language</strong>, <strong>point/batch/bulk operations</strong>, concurrency and consistency controls, and <strong>server-side JavaScript</strong>. The recurring exam theme is that everything is driven by <em>access patterns</em>: you shape documents and pick a partition key to serve your most important and most frequent queries with cheap, single-partition operations.</p>
+
+  <!-- ===== 1.1 Non-relational data model ===== -->
+  <section class="skillgroup" id="sg-1-1">
+    <h2 id="g-1-1">1.1 Design and Implement a Non-Relational Data Model for Azure Cosmos DB for NoSQL</h2>
+
+    <!-- 1.1.1 -->
+    <section class="objective" id="obj-1-1-1" data-skill="multi-entity-container">
+      <h3 id="o-1-1-1">1.1.1 Store Multiple Entity Types in the Same Container</h3>
+      <div class="concept">
+        <p>Cosmos DB containers are <strong>schema-agnostic</strong>: unlike a relational table, a single container can hold items of completely different shapes. The resource hierarchy is <strong>account → database → container → item</strong>, and throughput is provisioned at the database or container level — so co-locating entity types can mean fewer throughput buckets to pay for.</p>
+        <p>You tell entity types apart with a <strong>discriminator</strong> property, commonly named <code>type</code>. When related types share a partition key value, they land in the same logical partition and can be read together in a single, cheap query.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>One container can store heterogeneous items (e.g., <code>book</code> and <code>review</code>) — there is no fixed schema.</li>
+          <li>Add a discriminator property (e.g., <code>type</code>/<code>entityType</code>) so application code and queries can filter by shape.</li>
+          <li>Co-locating types that share a partition key value enables single-partition reads across those types.</li>
+          <li>Fewer containers can reduce the number of separately provisioned throughput allocations.</li>
+        </ul>
+      </div>
+      <figure class="diagram" data-svg="cosmos-hierarchy">
+        <figcaption>Account → database → container → item. A single container can hold multiple entity types distinguished by a discriminator property.</figcaption>
+      </figure>
+      <div class="code">
+        <pre><code class="lang-sql">-- Two entity types share partition key /bookId, distinguished by c.type
+SELECT * FROM c WHERE c.bookId = "B-100" AND c.type = "review"</code></pre>
+      </div>
+      <div class="callout key">
+        <b>Key:</b> Co-locate entity types that are read together and share a partition key value; use a <code>type</code> discriminator to separate them in queries.
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>"Multiple types in one container" is a modeling <em>advantage</em> in Cosmos DB — not something to normalize away.</li>
+          <li>The benefit only appears when the types share a partition key value; otherwise reads still fan out.</li>
+          <li>Don't confuse a discriminator (<code>type</code>) with the partition key — they are separate properties.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You want to read a book and all of its reviews in a single, low-cost request. What two design choices make this possible?</summary>
+          <div class="answer"><b>Answer:</b> Store books and reviews in the same container, both partitioned by the same value (e.g., <code>/bookId</code>), and add a <code>type</code> discriminator. <em>Why:</em> Shared partition key value = one logical partition = a single-partition query returns both types.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> How does an application distinguish a "book" item from a "review" item when they live in the same container?</summary>
+          <div class="answer"><b>Answer:</b> By a discriminator property such as <code>type</code> that each item carries. <em>Why:</em> Containers have no schema, so the app relies on a known property to branch logic and filter queries.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data">Data modeling in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/resource-model">Azure Cosmos DB resource model</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.1.2 -->
+    <section class="objective" id="obj-1-1-2" data-skill="embedding">
+      <h3 id="o-1-1-2">1.1.2 Store Multiple Related Entities in the Same Document (Embedding)</h3>
+      <div class="concept">
+        <p><strong>Embedding</strong> nests related data — arrays and sub-objects — inside a single JSON item. Because Cosmos DB has no server-side joins across items, an embedded (denormalized) aggregate is returned by a <strong>single point read</strong>, which is the fastest and cheapest operation available.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Embed for <strong>contained / one-to-few</strong> relationships, data that <strong>changes together</strong>, and data that is <strong>read together</strong>.</li>
+          <li>Embedding generally gives the best <strong>read</strong> performance (one operation, no follow-up reads).</li>
+          <li>Do <strong>not</strong> embed unbounded (1:many that grows without limit) or high-write child collections — an item has a hard <strong>2 MB</strong> size limit.</li>
+        </ul>
+      </div>
+      <figure class="diagram" data-svg="embed-vs-reference">
+        <figcaption>Embed bounded, read-together data inside one item; reference unbounded or independently written data across items.</figcaption>
+      </figure>
+      <div class="code">
+        <pre><code class="lang-json">{
+  "id": "order-42",
+  "customerId": "C-1001",
+  "type": "order",
+  "lines": [
+    { "sku": "A1", "qty": 2 },
+    { "sku": "B7", "qty": 1 }
+  ]
+}</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Trigger words for <em>embed</em>: "read together", "one-to-few", "bounded", "changes together".</li>
+          <li>Trigger words <em>against</em> embed: "unbounded growth", "written independently", "very large child list".</li>
+          <li>The 2 MB item ceiling is the concrete reason unbounded embedding fails.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An order has at most a handful of line items always displayed with the order. Embed or reference?</summary>
+          <div class="answer"><b>Answer:</b> Embed the line items in the order document. <em>Why:</em> Bounded, one-to-few, always read together — a single point read returns everything.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A social post can accumulate millions of comments over time. Why is embedding the comments a poor choice?</summary>
+          <div class="answer"><b>Answer:</b> Unbounded growth would eventually exceed the 2 MB item limit and make every post read expensive. <em>Why:</em> Unbounded 1:many should be referenced, not embedded.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data">Data modeling in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/concepts-limits">Azure Cosmos DB service quotas and limits</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.1.3 -->
+    <section class="objective" id="obj-1-1-3" data-skill="denormalize">
+      <h3 id="o-1-1-3">1.1.3 Develop a Model That Denormalizes Data Across Documents</h3>
+      <div class="concept">
+        <p><strong>Denormalization</strong> copies frequently read fields into other documents so a read doesn't need a second lookup. It trades cheaper reads for more expensive writes (duplicated data must be kept in sync) and extra storage — an excellent bargain for read-heavy, rarely-changing data.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Duplicate stable fields (e.g., author name, thumbnail) into each document that displays them, avoiding a join/second read.</li>
+          <li>Keep duplicated copies consistent with the <strong>change feed</strong> (e.g., an Azure Function) when the source of truth changes.</li>
+          <li>Precomputed aggregates (e.g., <code>countOfReviews</code>) are a denormalization pattern that optimizes read-heavy workloads.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-json">{
+  "id": "book-100",
+  "type": "book",
+  "title": "Cosmos in Depth",
+  "authorId": "A-9",
+  "authorName": "Jordan Lee",   // denormalized copy
+  "reviewCount": 128            // precomputed aggregate
+}</code></pre>
+      </div>
+      <div class="callout tip">
+        <b>Tip:</b> Denormalize the <em>few</em>, stable, read-together fields — not the whole related entity. Sync via change feed when the master changes.
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Denormalization is right when reads dominate and the duplicated field rarely changes.</li>
+          <li>The cost is write fan-out; the change feed is the standard mechanism to propagate updates.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A book listing shows the author's name on every card, and author names almost never change. What denormalization improves read performance, and how do you keep it correct?</summary>
+          <div class="answer"><b>Answer:</b> Copy <code>authorName</code> into each book document; on the rare author rename, use the change feed to update the copies. <em>Why:</em> Stable, read-together data denormalizes well; change feed handles the infrequent sync.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data">Data modeling in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed">Change feed in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.1.4 -->
+    <section class="objective" id="obj-1-1-4" data-skill="referencing">
+      <h3 id="o-1-1-4">1.1.4 Develop a Design by Referencing Between Documents (Normalization)</h3>
+      <div class="concept">
+        <p><strong>Referencing</strong> stores a related item's <code>id</code> (a soft foreign key) instead of embedding it. Each entity is its own item, so the app issues additional reads to follow references. Cosmos DB enforces no foreign keys — referential integrity is the application's (or a trigger/change-feed's) responsibility.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Reference for <strong>one-to-many unbounded</strong>, <strong>many-to-many</strong>, and <strong>frequently changing / large</strong> related data.</li>
+          <li>Normalizing generally gives better <strong>write</strong> performance but can require more round trips on read.</li>
+          <li>No enforced constraints — no cascading deletes; the app maintains integrity.</li>
+          <li><strong>Hybrid</strong> models are the norm: embed the few, reference the many.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Embed vs. reference is the single most tested modeling decision — anchor on read pattern, cardinality, and volatility.</li>
+          <li>"Frequently updated independently" or "unbounded" → reference; "small, stable, read together" → embed.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Publishers each have thousands of books, and book records change often. Should a book embed its publisher, or reference it?</summary>
+          <div class="answer"><b>Answer:</b> Reference the publisher (store <code>publisherId</code>). <em>Why:</em> One-to-many-unbounded and volatile data is referenced; embedding would bloat items and duplicate volatile data.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Who enforces that a referenced <code>publisherId</code> actually exists?</summary>
+          <div class="answer"><b>Answer:</b> The application (optionally aided by triggers or change-feed processing). <em>Why:</em> Cosmos DB has no foreign-key constraints or referential integrity.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data">Data modeling in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.1.5 -->
+    <section class="objective" id="obj-1-1-5" data-skill="keys-ids-unique">
+      <h3 id="o-1-1-5">1.1.5 Identify the Partition Key, id, and Unique Keys</h3>
+      <div class="concept">
+        <p>An item is uniquely identified by the combination of its <strong>partition key value + <code>id</code></strong>. The <code>id</code> only has to be unique <em>within</em> a logical partition. <strong>Unique keys</strong> add extra uniqueness constraints on other property paths — but, like <code>id</code>, they are enforced only within a single logical partition.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>id</code> is a required string, unique within a logical partition, and <strong>case-sensitive</strong>.</li>
+          <li>The partition key value is <strong>immutable</strong> after an item is created — to "change" it you delete and recreate the item.</li>
+          <li>Unique keys are defined <strong>only at container creation</strong> and are immutable thereafter.</li>
+          <li>Uniqueness is scoped to a <strong>logical partition</strong> (the same email can exist under two different partition key values).</li>
+          <li>Limits: up to <strong>16 paths</strong> across unique-key definitions and up to <strong>10 unique-key constraints</strong>; sparse is not supported; unique keys add a small write RU overhead.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">// Unique key on /email, scoped to each logical partition (set at creation only)
+var props = new ContainerProperties("users", partitionKeyPath: "/tenantId");
+props.UniqueKeyPolicy = new UniqueKeyPolicy
+{
+    UniqueKeys = { new UniqueKey { Paths = { "/email" } } }
+};
+await database.CreateContainerAsync(props, throughput: 400);</code></pre>
+      </div>
+      <div class="callout warn">
+        <b>Gotcha:</b> Unique keys are enforced <em>per logical partition</em> — not globally. They cannot be added or changed after the container exists.
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Partition key + <code>id</code> = the unique identity of an item; a point read needs both.</li>
+          <li>You cannot alter the partition key path, the <code>id</code> uniqueness scope, or the unique-key policy after creation.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You need every user's email to be unique per tenant, and the container is partitioned by <code>/tenantId</code>. How do you enforce it, and when must you configure it?</summary>
+          <div class="answer"><b>Answer:</b> Add a unique key on <code>/email</code> at container creation. <em>Why:</em> Unique keys are scoped to the logical partition (here, a tenant) and can only be set when the container is created.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A developer wants to change an item's partition key value after inserting it. What must they do?</summary>
+          <div class="answer"><b>Answer:</b> Delete the item and recreate it with the new partition key value. <em>Why:</em> The partition key value is immutable once the item exists.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/unique-keys">Unique key constraints in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview">Partitioning in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.1.6 -->
+    <section class="objective" id="obj-1-1-6" data-skill="access-patterns">
+      <h3 id="o-1-1-6">1.1.6 Identify Data and Associated Access Patterns</h3>
+      <div class="concept">
+        <p>In Cosmos DB you model around <strong>how the application reads and writes</strong>, not around normalized entity relationships. List the queries and mutations first — their frequency, latency needs, and volume — then choose document shape (embed vs. reference) and partition key to serve the top ones with cheap single-partition operations.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Read-heavy workloads favor <strong>embedding/denormalization</strong>; write-heavy favor <strong>referencing/normalization</strong>.</li>
+          <li>Enumerate access patterns first; then shape items and pick the partition key to make the most frequent/critical query a single-partition read.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>"Query-first" (access-pattern-driven) design is the mindset the exam rewards — do not start from a normalized ER diagram.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Before choosing embed vs. reference and a partition key, what should you enumerate first?</summary>
+          <div class="answer"><b>Answer:</b> The application's read and write access patterns (queries, frequency, latency, volume). <em>Why:</em> Cosmos DB modeling is driven by access patterns, not entity normalization.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data">Data modeling in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-model-partition-example">Model and partition data — a real example</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.1.7 -->
+    <section class="objective" id="obj-1-1-7" data-skill="container-ttl">
+      <h3 id="o-1-1-7">1.1.7 Specify a Default TTL on a Container for a Transactional Store</h3>
+      <div class="concept">
+        <p><strong>Time to Live (TTL)</strong> auto-expires items so you don't pay to store or delete stale data manually. The container's <code>DefaultTimeToLive</code> master-switch decides whether TTL is on at all, and what the default expiry is; individual items can override it.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>DefaultTimeToLive</code>: <strong>null</strong> = TTL off (no expiry); <strong>-1</strong> = TTL on, no default expiry (items only expire if they set their own <code>ttl</code>); <strong>n</strong> = items expire <code>n</code> seconds after last modification (<code>_ts</code>).</li>
+          <li>An item's <code>ttl</code> overrides the container default, but only takes effect if the container's <code>DefaultTimeToLive</code> is <strong>not null</strong>.</li>
+          <li>Expired items vanish from queries immediately; a background process deletes them using leftover RUs (provisioned) or billed RUs (serverless).</li>
+          <li><strong>TTL requires indexing</strong> — it cannot be enabled on an indexing-mode-<code>none</code> container. Max TTL = 2,147,483,647 seconds.</li>
+        </ul>
+      </div>
+      <figure class="diagram" data-svg="ttl">
+        <figcaption>Container DefaultTimeToLive is the master switch; item-level ttl overrides it only when the container switch is non-null.</figcaption>
+      </figure>
+      <div class="code">
+        <pre><code class="lang-csharp">// Enable TTL with a 30-day default; items can override with their own ttl
+var props = await container.ReadContainerAsync();
+props.Resource.DefaultTimeToLive = 60 * 60 * 24 * 30; // 2,592,000 seconds
+await container.ReplaceContainerAsync(props.Resource);</code></pre>
+      </div>
+      <div class="callout key">
+        <b>Key:</b> <code>-1</code> means "TTL is enabled but nothing expires by default" — the switch that lets per-item <code>ttl</code> work without expiring everything.
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Item <code>ttl</code> does nothing if the container's <code>DefaultTimeToLive</code> is <code>null</code>.</li>
+          <li>Distinguish the three container values: <code>null</code> (off), <code>-1</code> (on, no default), positive <code>n</code> (on, default n seconds).</li>
+          <li>You can't use TTL with indexing mode <code>none</code>.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You want most items to live forever but a few to self-expire via their own <code>ttl</code>. What container <code>DefaultTimeToLive</code> value do you set?</summary>
+          <div class="answer"><b>Answer:</b> <code>-1</code>. <em>Why:</em> It enables TTL without a blanket expiry, so only items that set their own <code>ttl</code> expire.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Items set a <code>ttl</code> property but never expire. The container's <code>DefaultTimeToLive</code> is null. What's wrong?</summary>
+          <div class="answer"><b>Answer:</b> TTL is disabled at the container level; item <code>ttl</code> is ignored until <code>DefaultTimeToLive</code> is set to <code>-1</code> or a positive number. <em>Why:</em> The container switch must be non-null for item TTL to work.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/time-to-live">Time to Live (TTL) in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-time-to-live">Configure time to live</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.1.8 -->
+    <section class="objective" id="obj-1-1-8" data-skill="versioning-docs">
+      <h3 id="o-1-1-8">1.1.8 Develop a Design for Versioning Documents</h3>
+      <div class="concept">
+        <p>To keep a <strong>history</strong> of an entity, don't overwrite in place — store prior states as separate versioned items (snapshot, or event-sourcing snapshot+delta). The "current" document stays a fast point read; historical versions are queried on demand and can be aged out with TTL.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Keep each version as its own item (e.g., <code>id = "order-42_v3"</code>) or in a dedicated history container fed by the change feed.</li>
+          <li>Use per-item <code>ttl</code> (with container TTL <code>-1</code>) to automatically age out old versions.</li>
+          <li>The change feed is a natural trigger to write a history record whenever the source item changes.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Versioning = new items, not in-place mutation; that's what preserves history.</li>
+          <li>Combine with the change feed (to capture changes) and TTL (to retire old versions).</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A compliance rule requires keeping the last 12 months of edits to each contract but the app must still read the current contract with one point read. Outline a design.</summary>
+          <div class="answer"><b>Answer:</b> Keep the current contract as one item; on each change, write a versioned history item (change-feed triggered) with a 12-month <code>ttl</code>. <em>Why:</em> Current stays a fast point read; history is retained and auto-expired.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed">Change feed in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns">Change feed design patterns</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.1.9 -->
+    <section class="objective" id="obj-1-1-9" data-skill="schema-versioning">
+      <h3 id="o-1-1-9">1.1.9 Develop a Design for Document Schema Versioning</h3>
+      <div class="concept">
+        <p>Because containers are schema-free, item shapes can evolve over time. Add a <strong><code>schemaVersion</code></strong> property to each item so code can branch on the shape it reads, supporting forward/backward compatibility while you migrate lazily (on read/write) or in bulk.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Tag items with <code>schemaVersion</code> (or <code>_schema</code>) so consumers know how to interpret them.</li>
+          <li>Migrate <strong>lazily</strong> (upgrade an item when it's next written) or with a one-time bulk pass.</li>
+          <li>Mixing versions in one container is fine — the schema-free engine doesn't care.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Schema <em>versioning</em> (tracking item shape) is different from document <em>versioning</em> (history of an entity's data).</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Your item shape must change but you can't migrate all existing items at once. What single property lets old and new code coexist?</summary>
+          <div class="answer"><b>Answer:</b> A <code>schemaVersion</code> property on each item. <em>Why:</em> Consumers branch on it, so mixed shapes coexist and you can migrate lazily.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data">Data modeling in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 1.2 Partitioning strategy ===== -->
+  <section class="skillgroup" id="sg-1-2">
+    <h2 id="g-1-2">1.2 Design a Data Partitioning Strategy for Azure Cosmos DB for NoSQL</h2>
+
+    <!-- 1.2.1 -->
+    <section class="objective" id="obj-1-2-1" data-skill="partitioning-strategy">
+      <h3 id="o-1-2-1">1.2.1 Choose a Partitioning Strategy Based on a Specific Workload</h3>
+      <div class="concept">
+        <p>A <strong>logical partition</strong> is the set of all items sharing a partition key value; it is also the <strong>scope of transactions</strong>. Cosmos DB maps logical partitions onto internally managed <strong>physical partitions</strong> and splits them automatically as data and throughput grow — you never manage physical partitions directly. Your job is to pick a key that spreads storage and requests evenly.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Logical partition limits: up to <strong>20 GB</strong> of storage and <strong>10,000 RU/s</strong> per partition key value.</li>
+          <li>Physical partitions are managed internally (each up to ~50 GB and ~10,000 RU/s); <strong>splits are automatic and non-disruptive</strong>.</li>
+          <li>Provisioned RU/s is divided evenly across physical partitions.</li>
+        </ul>
+      </div>
+      <figure class="diagram" data-svg="logical-physical-partitions">
+        <figcaption>Items group into logical partitions by key value; Cosmos DB maps and splits those across managed physical partitions automatically.</figcaption>
+      </figure>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Memorize the two ceilings: 20 GB per logical partition; ~10,000 RU/s per physical partition.</li>
+          <li>You never create/split physical partitions; the service does. You only choose the partition key.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A single partition key value is projected to store 35 GB. What limit does this violate and what must change?</summary>
+          <div class="answer"><b>Answer:</b> It exceeds the 20 GB logical-partition limit; choose a higher-cardinality, synthetic, or hierarchical key so no single value grows that large. <em>Why:</em> A logical partition (one key value) cannot exceed 20 GB.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview">Partitioning and horizontal scaling</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.2.2 -->
+    <section class="objective" id="obj-1-2-2" data-skill="choose-partition-key">
+      <h3 id="o-1-2-2">1.2.2 Choose a Partition Key</h3>
+      <div class="concept">
+        <p>The partition key is the most consequential design decision. A good key has <strong>high cardinality</strong> (many distinct values), spreads both storage and request volume evenly, and appears as an <strong>equality filter</strong> in the most frequent and critical queries so those queries stay single-partition.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Ideal key: high cardinality, immutable, even storage + RU distribution, aligned to common query filters.</li>
+          <li>Anti-patterns: low-cardinality fields (status, country, type); a monotonically increasing value like a timestamp (write hotspot); a random GUID that's never used in filters (all queries fan out).</li>
+          <li>Partition key value length ≤ 2048 bytes (≤ 101 bytes without the large-partition-key setting).</li>
+        </ul>
+      </div>
+      <figure class="diagram" data-svg="partition-key-quality">
+        <figcaption>A high-cardinality key aligned to query filters spreads load evenly; a low-cardinality or unfiltered key creates hot partitions or forces fan-out.</figcaption>
+      </figure>
+      <div class="callout warn">
+        <b>Gotcha:</b> A perfectly distributed key that never appears in your query filters is still bad — every query fans out. Alignment to query filters matters as much as cardinality.
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Balance two forces: even distribution (avoid hot partitions) <em>and</em> filter alignment (avoid fan-out).</li>
+          <li>A timestamp key concentrates all current writes on one partition — classic hotspot.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Most queries filter by <code>customerId</code>, and customers are numerous and evenly active. Why is <code>/customerId</code> a strong partition key?</summary>
+          <div class="answer"><b>Answer:</b> High cardinality + even load + it's the common query filter, so those queries are single-partition. <em>Why:</em> It satisfies distribution and filter-alignment together.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Why is partitioning telemetry by <code>/eventDate</code> (today's date) a poor choice for a write-heavy workload?</summary>
+          <div class="answer"><b>Answer:</b> All of today's writes hit a single logical partition — a hot partition that throttles. <em>Why:</em> A monotonically changing key concentrates current traffic.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview">Partitioning and horizontal scaling</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-model-partition-example">Model and partition data — a real example</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.2.3 -->
+    <section class="objective" id="obj-1-2-3" data-skill="partition-transactions">
+      <h3 id="o-1-2-3">1.2.3 Plan for Transactions When Choosing a Partition Key</h3>
+      <div class="concept">
+        <p>Every Cosmos DB transaction — a transactional batch or a stored-procedure/trigger — is scoped to a <strong>single logical partition</strong>. If a group of items must be modified atomically, they must share the same partition key value. This constraint often <em>drives</em> the partition key choice.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Transactional batches and server-side scripts operate within one partition key value only.</li>
+          <li>Choose a key that co-locates items that need atomic multi-item changes.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>"Atomic across items" is a hard requirement for shared partition key value — there are no cross-partition transactions.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A funds transfer must debit and credit two accounts atomically. What partition-key constraint does this impose?</summary>
+          <div class="answer"><b>Answer:</b> Both account items must share the same partition key value (e.g., partition by <code>/transferGroupId</code>) so a transactional batch can update them atomically. <em>Why:</em> Transactions are single-logical-partition only.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/transactional-batch">Transactional batch operations</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview">Partitioning and horizontal scaling</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.2.4 -->
+    <section class="objective" id="obj-1-2-4" data-skill="cross-partition-cost">
+      <h3 id="o-1-2-4">1.2.4 Evaluate the Cost of a Cross-Partition Query</h3>
+      <div class="concept">
+        <p>A query that omits the partition key (or spans many values) is a <strong>cross-partition (fan-out) query</strong>: the engine runs it on every physical partition and merges results client-side, raising RU cost and latency. Including the partition key (or a hierarchical-key prefix) routes the query to a subset of partitions.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Fan-out adds roughly a few RU per extra physical partition plus merge latency; single-partition queries are cheapest.</li>
+          <li><code>ORDER BY</code> results are merge-sorted across partitions and <code>COUNT</code>/aggregates are summed across partitions on fan-out.</li>
+          <li>Add the partition key to the <code>WHERE</code> clause to make a query single-partition.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-sql">-- Single-partition (cheap): partition key in the filter
+SELECT * FROM c WHERE c.customerId = "C-1001" AND c.status = "open"
+
+-- Cross-partition (fans out to all physical partitions)
+SELECT * FROM c WHERE c.status = "open"</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>The single biggest RU lever on reads is whether the partition key is in the filter.</li>
+          <li>Cross-partition isn't forbidden — just costlier; the SDK parallelizes it with <code>MaxConcurrency</code>.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> The container is partitioned by <code>/customerId</code>. Which query is cheaper: filtering by <code>customerId</code> and status, or by status alone? Why?</summary>
+          <div class="answer"><b>Answer:</b> Filtering by <code>customerId</code> (and status) is cheaper — it's single-partition. Status alone fans out to every physical partition. <em>Why:</em> Including the partition key avoids fan-out.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics-performance">Query performance and metrics</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview">Partitioning and horizontal scaling</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.2.5 -->
+    <section class="objective" id="obj-1-2-5" data-skill="data-distribution">
+      <h3 id="o-1-2-5">1.2.5 Evaluate Data Distribution Based on Partition Key Selection</h3>
+      <div class="concept">
+        <p>Uneven partition key values create <strong>storage skew</strong>: one value grows toward the 20 GB logical-partition ceiling while others stay small. Estimate the storage each key value will accumulate, and use the Azure Monitor "storage per logical partition key" view to detect skew before it becomes a wall.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>A single logical partition (one key value) cannot exceed <strong>20 GB</strong>.</li>
+          <li>Evaluate value frequency/volume; a few "whale" values (a huge tenant) signal skew.</li>
+          <li>Remedy skew with a <strong>synthetic</strong> or <strong>hierarchical</strong> key when a value grows too large.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Storage skew → 20 GB wall; monitor the per-logical-partition storage metric.</li>
+          <li>Hierarchical keys specifically let a first-level value exceed 20 GB by subpartitioning.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Partitioning multi-tenant data by <code>/tenantId</code>, one enterprise tenant is heading toward 20 GB. What's a good remedy?</summary>
+          <div class="answer"><b>Answer:</b> Use a hierarchical partition key (e.g., <code>/tenantId</code> then <code>/userId</code>) so the large tenant is subpartitioned beyond 20 GB. <em>Why:</em> HPK lets a top-level value exceed the single-partition limit.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview">Partitioning and horizontal scaling</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-alert-on-logical-partition-key-storage-size">Alert on logical partition key storage size</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.2.6 -->
+    <section class="objective" id="obj-1-2-6" data-skill="throughput-distribution">
+      <h3 id="o-1-2-6">1.2.6 Evaluate Throughput Distribution Based on Partition Key Selection</h3>
+      <div class="concept">
+        <p>Provisioned RU/s is split <strong>evenly</strong> across physical partitions. If requests concentrate on one partition key value, that partition can <strong>throttle (429)</strong> even while the container's total RU/s sits well under budget — a hot partition wastes the rest of your throughput.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>RU/s ÷ number of physical partitions = the budget available to each; skew starves the hot one.</li>
+          <li>A hot partition causes 429s despite spare aggregate RU/s.</li>
+          <li>Aim for even RU consumption across partition key values.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>"429 even though total RU/s looks fine" = hot partition / uneven request distribution.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A container provisioned at 40,000 RU/s throttles requests to one popular product while overall usage is low. Diagnose it.</summary>
+          <div class="answer"><b>Answer:</b> A hot partition — that product's key value receives disproportionate requests and exceeds its per-partition RU slice. Repartition (synthetic/hierarchical key) to spread the load. <em>Why:</em> RU/s is divided evenly across partitions; concentration causes 429s.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview">Partitioning and horizontal scaling</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/troubleshoot-request-rate-too-large">Troubleshoot request rate too large (429)</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.2.7 -->
+    <section class="objective" id="obj-1-2-7" data-skill="synthetic-key">
+      <h3 id="o-1-2-7">1.2.7 Construct and Implement a Synthetic Partition Key</h3>
+      <div class="concept">
+        <p>When no single property distributes well, build a <strong>synthetic partition key</strong>: concatenate several properties, append a random/bucketed suffix (to spread writes), or precompute a hash. You store the composed value as a real property on each item and partition on it.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Techniques: concatenate properties (<code>tenantId-deviceId</code>), add a random suffix (e.g., 1–N buckets), or hash values.</li>
+          <li>Raises cardinality and spreads writes, avoiding hotspots.</li>
+          <li>Downside: queries that filter on only one component may fan out unless every component value is supplied.</li>
+        </ul>
+      </div>
+      <figure class="diagram" data-svg="synthetic-partition-key">
+        <figcaption>Combine multiple properties (or add a bucket suffix) into one stored property to raise cardinality and spread writes evenly.</figcaption>
+      </figure>
+      <div class="code">
+        <pre><code class="lang-csharp">// Compose and store a synthetic key before insert
+item.PartitionKey = $"{item.TenantId}-{item.DeviceId}";
+await container.CreateItemAsync(item, new PartitionKey(item.PartitionKey));</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>A random-suffix synthetic key spreads writes but makes reads that need all items scan every bucket.</li>
+          <li>The synthetic value must be a real, stored property — you can't partition on a computed-only value.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Devices all report under a handful of tenant IDs, causing hot partitions. What synthetic key improves distribution while keeping tenant queries efficient?</summary>
+          <div class="answer"><b>Answer:</b> Concatenate <code>tenantId</code> with <code>deviceId</code> (e.g., <code>tenantId-deviceId</code>) and store it as the partition key. <em>Why:</em> It raises cardinality and spreads writes; queries supplying both components stay targeted.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/synthetic-partition-keys">Create a synthetic partition key</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview">Partitioning and horizontal scaling</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.2.8 -->
+    <section class="objective" id="obj-1-2-8" data-skill="hierarchical-key">
+      <h3 id="o-1-2-8">1.2.8 Design and Implement a Hierarchical Partition Key (Subpartitioning)</h3>
+      <div class="concept">
+        <p>A <strong>hierarchical partition key (HPK)</strong> uses up to <strong>three</strong> ordered levels (e.g., <code>/tenantId</code> → <code>/userId</code> → <code>/sessionId</code>). Because data is subpartitioned, a single first-level value can exceed the 20 GB / 10,000 RU/s single-partition limits, while queries that supply the full key or a <strong>prefix</strong> still route to a small subset of partitions.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Up to <strong>3 levels</strong>; defined as <code>kind: MultiHash</code>, <code>version: 2</code>; set only at container creation.</li>
+          <li>Lets a first-level prefix exceed 20 GB and 10,000 RU/s by spreading it across physical partitions.</li>
+          <li>Queries by the <strong>full key or a leading prefix</strong> are targeted; filtering only a middle or lower level fans out.</li>
+          <li>The first level should have high cardinality; supported in newer .NET/Java/Python/JS SDKs.</li>
+        </ul>
+      </div>
+      <figure class="diagram" data-svg="hierarchical-partition-key">
+        <figcaption>Up to three ordered levels; a leading prefix targets a subset of partitions while letting a top-level value grow past 20 GB.</figcaption>
+      </figure>
+      <div class="code">
+        <pre><code class="lang-csharp">// Create a container with a 3-level hierarchical partition key
+var props = new ContainerProperties(
+    id: "sessions",
+    partitionKeyPaths: new List&lt;string&gt; { "/tenantId", "/userId", "/sessionId" });
+await database.CreateContainerAsync(props, throughput: 400);
+
+// Prefix read: all items for a tenant+user route to a partition subset
+var pk = new PartitionKeyBuilder().Add("tenant-9").Add("user-3").Build();</code></pre>
+      </div>
+      <div class="callout key">
+        <b>Key:</b> HPK's superpower is letting a first-level value exceed 20 GB while keeping <em>prefix</em> queries efficient. Filtering only a lower level still fans out.
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Prefix must be <em>leading</em>: filtering <code>/userId</code> without <code>/tenantId</code> fans out.</li>
+          <li>Max three levels; the policy is set only at creation and can't be changed later.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A multi-tenant app has a few huge tenants breaking the 20 GB limit, but most queries filter by tenant then user. What partitioning solves both?</summary>
+          <div class="answer"><b>Answer:</b> A hierarchical partition key <code>/tenantId</code> → <code>/userId</code> (optionally <code>/sessionId</code>). <em>Why:</em> Subpartitioning lets big tenants exceed 20 GB, and tenant/tenant+user prefix queries stay targeted.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> With HPK <code>/tenantId</code> → <code>/userId</code>, why is a query filtering only on <code>userId</code> inefficient?</summary>
+          <div class="answer"><b>Answer:</b> It doesn't supply the leading level (<code>tenantId</code>), so it fans out across all partitions. <em>Why:</em> Only full-key or leading-prefix filters are targeted.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/hierarchical-partition-keys">Hierarchical partition keys</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-model-partition-example">Model and partition data — a real example</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.2.9 -->
+    <section class="objective" id="obj-1-2-9" data-skill="multiple-partition-keys">
+      <h3 id="o-1-2-9">1.2.9 Design Partitioning for Workloads That Require Multiple Partition Keys</h3>
+      <div class="concept">
+        <p>A container has exactly <strong>one</strong> partition key definition. When different queries need to filter on different keys, you can't satisfy them all cheaply from one container. The standard answer is to <strong>denormalize into multiple containers</strong>, each keyed for a different access path, and keep them synchronized with the change feed (or use a hierarchical key when the accesses are prefix-compatible).</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Options: a second container partitioned by the other key (kept in sync via change feed); a hierarchical key when queries share a leading prefix; or global secondary indexes (a synchronized copy keyed differently).</li>
+          <li>Each copy serves its own query pattern with cheap single-partition reads.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>"Two very different query filters, both must be fast" → maintain a second, differently-partitioned copy synced by the change feed.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Orders are queried by <code>customerId</code> and, separately, by <code>productId</code>, both needing single-partition speed. How do you serve both?</summary>
+          <div class="answer"><b>Answer:</b> Keep the primary container partitioned by <code>/customerId</code> and maintain a second container partitioned by <code>/productId</code>, synced via the change feed. <em>Why:</em> One container has one partition key; a synced copy serves the other access path efficiently.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data">Data modeling in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed">Change feed in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 1.3 Sizing and scaling ===== -->
+  <section class="skillgroup" id="sg-1-3">
+    <h2 id="g-1-3">1.3 Plan and Implement Sizing and Scaling for a Database Created with Azure Cosmos DB</h2>
+
+    <!-- 1.3.1 -->
+    <section class="objective" id="obj-1-3-1" data-skill="ru-storage-requirements">
+      <h3 id="o-1-3-1">1.3.1 Evaluate Throughput and Data Storage Requirements</h3>
+      <div class="concept">
+        <p>Throughput is measured in <strong>Request Units (RU/s)</strong>, a currency that normalizes CPU, memory, and IOPS. A 1-KB point read costs about <strong>1 RU</strong>; writes and queries cost more. The same operation on the same data always costs the same number of RUs, which makes capacity planning deterministic.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Estimate RU/s = operations/second × RU-per-operation, with headroom; storage is billed per GB.</li>
+          <li>RU cost rises with item size, number of indexed properties, query complexity, and stronger consistency (strong/bounded reads ≈ 2× the RU of weaker levels).</li>
+          <li>The capacity planner converts a workload profile into RU/s and storage estimates.</li>
+        </ul>
+      </div>
+      <figure class="diagram" data-svg="request-units">
+        <figcaption>Reads, writes, and queries all draw from one provisioned RU/s budget; heavier operations consume more RUs.</figcaption>
+      </figure>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>1 KB point read ≈ 1 RU is the anchor number; writes cost several times more.</li>
+          <li>Stronger consistency roughly doubles read RU cost — a planning factor.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Roughly how many RUs does a 1-KB point read consume, and what raises that number?</summary>
+          <div class="answer"><b>Answer:</b> About 1 RU; larger items, more indexed paths, complex queries, and stronger consistency increase it. <em>Why:</em> RUs normalize the total resource cost of an operation.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/request-units">Request Units in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/estimate-ru-with-capacity-planner">Estimate RU/s with the capacity planner</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.3.2 -->
+    <section class="objective" id="obj-1-3-2" data-skill="serverless-provisioned-free">
+      <h3 id="o-1-3-2">1.3.2 Choose Between Serverless, Provisioned, and Free Tier</h3>
+      <div class="concept">
+        <p>Cosmos DB offers three capacity models. <strong>Provisioned</strong> throughput reserves RU/s (manual or autoscale) and suits sustained, predictable traffic and global distribution. <strong>Serverless</strong> bills per consumed RU with nothing to provision — ideal for spiky, intermittent, or dev/test workloads. <strong>Free tier</strong> waives the first 1000 RU/s and 25 GB per account.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Provisioned:</strong> reserve RU/s; container minimum 400 RU/s; billed hourly; supports geo-distribution and SLA-backed latency. Autoscale scales 10%–100% of a max (10× range).</li>
+          <li><strong>Serverless:</strong> pay only for RUs consumed; <strong>single region</strong> only; best for low average / bursty traffic.</li>
+          <li><strong>Free tier:</strong> first <strong>1000 RU/s + 25 GB free</strong> per account; one free-tier account per subscription.</li>
+        </ul>
+      </div>
+      <figure class="diagram" data-svg="throughput-modes">
+        <figcaption>Provisioned (manual/autoscale) for sustained traffic and global distribution; serverless for spiky single-region workloads; free tier for the first 1000 RU/s + 25 GB.</figcaption>
+      </figure>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Serverless = single region, pay-per-use → spiky/dev workloads. Provisioned = geo-distribution + SLA → production.</li>
+          <li>Free tier is per <em>account</em> (one per subscription): 1000 RU/s + 25 GB.</li>
+          <li>Autoscale's floor is fixed at 10% of the configured max.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A dev/test workload has bursty, unpredictable traffic in a single region and you don't want to manage RU/s. Which capacity mode fits?</summary>
+          <div class="answer"><b>Answer:</b> Serverless. <em>Why:</em> Pay-per-RU with no provisioning, ideal for intermittent single-region workloads.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A production app needs multi-region distribution and predictable latency SLAs. Serverless or provisioned?</summary>
+          <div class="answer"><b>Answer:</b> Provisioned. <em>Why:</em> Serverless is single-region with no throughput SLA; provisioned supports geo-distribution and SLA-backed latency.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/throughput-serverless">Choose between provisioned throughput and serverless</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/provision-throughput-autoscale">Autoscale provisioned throughput</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/free-tier">Azure Cosmos DB free tier</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.3.3 -->
+    <section class="objective" id="obj-1-3-3" data-skill="database-throughput">
+      <h3 id="o-1-3-3">1.3.3 Choose When to Use Database-Level Provisioned Throughput (Shared)</h3>
+      <div class="concept">
+        <p>Throughput can be provisioned on a <strong>database</strong> and <strong>shared</strong> across its containers, instead of on each container. Sharing is economical for many small, low-traffic containers, but there's no per-container guarantee — a busy container can starve its neighbors.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Shared database throughput is split across up to <strong>25 containers</strong>; manual minimum 400 RU/s, autoscale minimum 1000 RU/s.</li>
+          <li>No per-container isolation — noisy-neighbor risk; a container can also be given its own dedicated throughput within a shared database.</li>
+          <li>Container-level (dedicated) throughput is the recommended default for predictable performance.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Shared DB throughput = cost savings for many tiny containers; dedicated = guaranteed performance.</li>
+          <li>Watch the "up to 25 containers" and minimum-RU numbers.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You have 20 rarely-used containers and want to minimize cost without a strict per-container SLA. Which throughput model?</summary>
+          <div class="answer"><b>Answer:</b> Database-level (shared) provisioned throughput. <em>Why:</em> It spreads one RU/s pool across many small containers economically, accepting noisy-neighbor risk.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/set-throughput">Provision throughput on containers and databases</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/distribute-throughput-across-partitions">Redistribute throughput across partitions</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.3.4 -->
+    <section class="objective" id="obj-1-3-4" data-skill="scale-units-governance">
+      <h3 id="o-1-3-4">1.3.4 Design for Granular Scale Units and Resource Governance</h3>
+      <div class="concept">
+        <p>The unit of scale is the container (or a shared database). Provisioned RU/s is reserved in <strong>every region</strong> of the account and divided evenly across a container's physical partitions. Autoscale and per-partition throughput redistribution are the levers for governing hot partitions and bursty demand.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Total provisioned cost ≈ configured RU/s × number of regions (each region gets the same RU/s).</li>
+          <li>Autoscale instantly scales 10%–100% of the max; use per-container throughput for workload isolation.</li>
+          <li>More physical partitions = more parallelism but a smaller per-partition RU budget.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Adding regions multiplies RU/s cost — each region is provisioned independently.</li>
+          <li>Autoscale handles unpredictable spikes without manual intervention (10× range).</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A container has unpredictable daily spikes and you want to avoid over-provisioning yet never throttle at peak. What throughput setting fits?</summary>
+          <div class="answer"><b>Answer:</b> Autoscale. <em>Why:</em> It scales between 10% and 100% of a configured max automatically, absorbing spikes while lowering cost during quiet periods.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview">Partitioning and horizontal scaling</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/distribute-throughput-across-partitions">Redistribute throughput across partitions</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.3.5 -->
+    <section class="objective" id="obj-1-3-5" data-skill="global-distribution-cost">
+      <h3 id="o-1-3-5">1.3.5 Evaluate the Cost of Global Distribution of Data</h3>
+      <div class="concept">
+        <p>Global distribution has a clear cost model: each region you add provisions the <strong>same RU/s again</strong> and stores a full copy of the data. Enabling <strong>multi-region writes</strong> adds further cost. This makes the region count and write topology the biggest levers on a global deployment's bill.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Provisioned cost ≈ RU/s × number of regions; storage is billed per region.</li>
+          <li>Multi-region writes increase RU cost versus single-write-region; cross-region replication traffic applies.</li>
+          <li>Removing a region lowers both cost and redundancy.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>"N regions ⇒ N× throughput cost" is the number to remember for global-distribution cost questions.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A container provisioned at 10,000 RU/s is replicated to three regions. Roughly what is the throughput cost relative to a single region?</summary>
+          <div class="answer"><b>Answer:</b> About 3× (each region provisions 10,000 RU/s). <em>Why:</em> Throughput is provisioned per region; enabling multi-region writes would add still more.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/optimize-cost-regions">Optimize cost of multi-region deployments</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/distribute-data-globally">Distribute data globally</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.3.6 -->
+    <section class="objective" id="obj-1-3-6" data-skill="configure-throughput-portal">
+      <h3 id="o-1-3-6">1.3.6 Configure Throughput for Azure Cosmos DB by Using the Azure Portal</h3>
+      <div class="concept">
+        <p>In the portal, throughput is set on a container or database through <strong>Data Explorer</strong> (Scale &amp; Settings) or the Scale blade. You pick <strong>Manual</strong> (fixed RU/s) or <strong>Autoscale</strong> (a max RU/s the service scales beneath) and can switch modes later.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Set RU/s at container or database scope; choose Manual or Autoscale.</li>
+          <li>Data Explorer shows current throughput and lets you edit or switch modes.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>You can switch between manual and autoscale (there's a cooldown), so the choice isn't permanent.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Where in the Azure portal do you change a container's RU/s and pick manual vs. autoscale?</summary>
+          <div class="answer"><b>Answer:</b> In Data Explorer under the container's Scale &amp; Settings (or the Scale blade). <em>Why:</em> That's where provisioned throughput mode and RU/s are configured.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/set-throughput">Provision throughput on containers and databases</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-provision-container-throughput">Provision throughput on a container</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 1.4 Client connectivity ===== -->
+  <section class="skillgroup" id="sg-1-4">
+    <h2 id="g-1-4">1.4 Implement Client Connectivity Options in the SDK</h2>
+
+    <!-- 1.4.1 -->
+    <section class="objective" id="obj-1-4-1" data-skill="connection-mode-choice">
+      <h3 id="o-1-4-1">1.4.1 Choose a Connectivity Mode (Gateway vs. Direct)</h3>
+      <div class="concept">
+        <p>The SDK reaches Cosmos DB in one of two modes. <strong>Gateway mode</strong> sends every request through a gateway over HTTPS (port 443) — simplest for restrictive firewalls and socket-limited environments, at the cost of an extra hop. <strong>Direct mode</strong> (.NET and Java only) opens TCP connections straight to the replicas for the lowest latency and highest throughput.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Gateway:</strong> HTTPS 443, single endpoint, extra hop, all SDKs; best behind strict firewalls or with limited sockets.</li>
+          <li><strong>Direct:</strong> TCP (TLS), fewer hops, best performance, .NET + Java only; needs TCP ports 10000–20000 (or a wide range with private endpoints) open.</li>
+          <li>Direct mode is the default and recommended for performance in .NET v3.</li>
+        </ul>
+      </div>
+      <figure class="diagram" data-svg="connectivity-modes">
+        <figcaption>Gateway routes all requests through one HTTPS endpoint; Direct mode connects over TCP straight to replicas for lower latency.</figcaption>
+      </figure>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Direct = best performance but needs a TCP port range open; Gateway = firewall-friendly on 443 only.</li>
+          <li>Direct mode is unavailable outside .NET and Java — those SDKs must use Gateway.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A corporate firewall allows only outbound 443. Which connection mode must the app use?</summary>
+          <div class="answer"><b>Answer:</b> Gateway mode. <em>Why:</em> It uses HTTPS on port 443 only; Direct mode requires a range of TCP ports that the firewall blocks.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A .NET service needs the lowest possible read latency and can open the required TCP ports. Which mode?</summary>
+          <div class="answer"><b>Answer:</b> Direct mode. <em>Why:</em> It connects straight to replicas over TCP, minimizing hops and latency.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/sdk-connection-modes">SDK connectivity modes</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.4.2 -->
+    <section class="objective" id="obj-1-4-2" data-skill="implement-connection-mode">
+      <h3 id="o-1-4-2">1.4.2 Implement a Connectivity Mode</h3>
+      <div class="concept">
+        <p>Connection mode is set on <code>CosmosClientOptions.ConnectionMode</code> when you construct the client. Choose <code>ConnectionMode.Direct</code> or <code>ConnectionMode.Gateway</code> to match your network constraints.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Set the mode in <code>CosmosClientOptions</code> at client creation.</li>
+          <li>.NET v3 defaults to Direct; switch to Gateway for firewall-limited environments.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">var options = new CosmosClientOptions { ConnectionMode = ConnectionMode.Gateway };
+var client = new CosmosClient(endpoint, credential, options);</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Mode is a client-construction option — you can't change it per request.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Which property configures Gateway vs. Direct, and where is it set?</summary>
+          <div class="answer"><b>Answer:</b> <code>CosmosClientOptions.ConnectionMode</code>, set when constructing the <code>CosmosClient</code>. <em>Why:</em> Connection mode is a client-wide setting.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/sdk-connection-modes">SDK connectivity modes</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/best-practice-dotnet">Best practices for the .NET SDK</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.4.3 -->
+    <section class="objective" id="obj-1-4-3" data-skill="create-connection">
+      <h3 id="o-1-4-3">1.4.3 Create a Connection to a Database</h3>
+      <div class="concept">
+        <p>You connect by constructing a <code>CosmosClient</code> with an endpoint + key, a connection string, or (preferred) a Microsoft Entra ID <code>TokenCredential</code>. From the client you obtain lightweight <code>Database</code> and <code>Container</code> proxies with <code>GetContainer</code> — obtaining a proxy makes <strong>no network call</strong>.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Construct with <code>new CosmosClient(endpoint, key)</code>, a connection string, or <code>DefaultAzureCredential</code> (Entra ID — recommended over keys).</li>
+          <li><code>client.GetDatabase(id)</code> / <code>GetContainer(db, id)</code> return proxies without contacting the service.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">// Preferred: Microsoft Entra ID credential (no keys in config)
+var client = new CosmosClient(endpoint, new DefaultAzureCredential());
+Container container = client.GetContainer("appdb", "orders"); // no network call</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Prefer Entra ID (RBAC) over account keys for data-plane access.</li>
+          <li>Getting a container proxy is free; the first real request is what hits the service.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> What is the recommended, key-free way to authenticate a <code>CosmosClient</code> to the data plane?</summary>
+          <div class="answer"><b>Answer:</b> A Microsoft Entra ID credential (e.g., <code>DefaultAzureCredential</code>) with Cosmos DB data-plane RBAC. <em>Why:</em> Entra ID avoids storing account keys and enables least-privilege access.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-get-started">Get started with the Azure Cosmos DB .NET SDK</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/security/how-to-grant-data-plane-role-based-access">Grant data-plane RBAC access</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.4.4 -->
+    <section class="objective" id="obj-1-4-4" data-skill="emulator">
+      <h3 id="o-1-4-4">1.4.4 Enable Offline Development with the Azure Cosmos DB Emulator</h3>
+      <div class="concept">
+        <p>The <strong>emulator</strong> runs the NoSQL API locally for free, with no Azure account, so you can develop and run CI offline. It exposes a fixed endpoint and a well-known key, but has feature limits (single region, no global distribution).</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Local endpoint <code>https://localhost:8081/</code> with a well-known, published key.</li>
+          <li>Import its self-signed TLS certificate (or disable validation in Gateway mode for dev).</li>
+          <li>Available as a Windows install and Docker (Linux/Windows) images; preinstalled on some GitHub-hosted runners.</li>
+          <li>Limited parity: single region, no global distribution/multi-write.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>The emulator key and endpoint are the same on every machine (well-known) — never use them in production.</li>
+          <li>The self-signed cert must be trusted or you'll get TLS errors.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A team wants to run integration tests with no Azure resources or cost. What tool enables this, and what's a key limitation?</summary>
+          <div class="answer"><b>Answer:</b> The Azure Cosmos DB emulator; it's single-region with no global distribution and uses a fixed local key/endpoint. <em>Why:</em> It reproduces the NoSQL API locally for offline dev/test.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-develop-emulator">Develop locally with the emulator</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/emulator">Azure Cosmos DB emulator overview</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.4.5 -->
+    <section class="objective" id="obj-1-4-5" data-skill="handle-connection-errors">
+      <h3 id="o-1-4-5">1.4.5 Handle Connection Errors</h3>
+      <div class="concept">
+        <p>Handle failures by <strong>status code</strong> via <code>CosmosException</code>. Transient conditions — 429 (throttle), 449 (retry-with), 503 (service unavailable), 408 (timeout) — are retriable and largely handled by the SDK. In Direct mode a blocked TCP port range shows up as connectivity/503 errors, so ensure the ports are open.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Retriable: 429, 449, 503, 408. Non-retriable client errors: 400, 401, 403, 404, 409, 412.</li>
+          <li>The SDK auto-retries throttling and can retry writes across regions; add your own policy for other transients.</li>
+          <li>Direct-mode 503s often mean the required TCP ports aren't open — switch to Gateway or open the ports.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Persistent 503 in Direct mode → check firewall/port range, or fall back to Gateway.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> After switching to Direct mode, the app gets repeated 503 errors from a locked-down network. What are the two fixes?</summary>
+          <div class="answer"><b>Answer:</b> Open the required TCP port range for Direct mode, or switch to Gateway mode (443 only). <em>Why:</em> Direct mode needs a TCP range that the network is blocking.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/troubleshoot-dotnet-sdk">Troubleshoot the .NET SDK</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/conceptual-resilient-sdk-applications">Design resilient applications</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.4.6 -->
+    <section class="objective" id="obj-1-4-6" data-skill="singleton-client">
+      <h3 id="o-1-4-6">1.4.6 Implement a Singleton for the Client</h3>
+      <div class="concept">
+        <p><code>CosmosClient</code> is <strong>thread-safe</strong> and expensive to create (it warms up connections and caches routing metadata). Create exactly <strong>one</strong> instance for the application's lifetime and reuse it (typically registered as a DI singleton). Creating a client per request causes socket exhaustion and high latency.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>One long-lived <code>CosmosClient</code> per app; it caches connections and the partition-routing map.</li>
+          <li>New instances per request → connection/socket exhaustion and cold caches on every call.</li>
+          <li>Register as a singleton in dependency injection.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">// ASP.NET Core: register one client for the app lifetime
+builder.Services.AddSingleton(sp =>
+    new CosmosClient(endpoint, new DefaultAzureCredential(),
+        new CosmosClientOptions { ConnectionMode = ConnectionMode.Direct }));</code></pre>
+      </div>
+      <div class="callout key">
+        <b>Key:</b> One <code>CosmosClient</code> per process, reused everywhere. This is the single most common SDK-performance question.
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Symptoms of the anti-pattern: rising latency, SNAT/socket exhaustion — caused by many short-lived clients.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An app creates a new <code>CosmosClient</code> on every request and suffers latency spikes and socket exhaustion. What's the fix?</summary>
+          <div class="answer"><b>Answer:</b> Use a single, long-lived <code>CosmosClient</code> (DI singleton) reused for all requests. <em>Why:</em> The client is thread-safe and caches connections/routing; recreating it is wasteful and exhausts sockets.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/best-practice-dotnet">Best practices for the .NET SDK</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-get-started">Get started with the .NET SDK</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.4.7 -->
+    <section class="objective" id="obj-1-4-7" data-skill="specify-region">
+      <h3 id="o-1-4-7">1.4.7 Specify a Region for Global Distribution</h3>
+      <div class="concept">
+        <p>Tell the SDK which region to prefer so it routes reads (and writes, where applicable) to the nearest replica and knows the failover order. Set <code>ApplicationRegion</code> (a single preferred region) or <code>ApplicationPreferredRegions</code> (an ordered list for resilience).</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>ApplicationRegion</code> / <code>ApplicationPreferredRegions</code> set the preferred read region and failover order.</li>
+          <li>A preferred-regions list keeps the app working if the top region is unavailable.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">var options = new CosmosClientOptions
+{
+    ApplicationPreferredRegions = new List&lt;string&gt; { Regions.WestUS2, Regions.EastUS }
+};</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Prefer <code>ApplicationPreferredRegions</code> (ordered list) over a single region for automatic failover.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> How do you make the SDK read from the closest region and fail over automatically if it's down?</summary>
+          <div class="answer"><b>Answer:</b> Set <code>ApplicationPreferredRegions</code> to an ordered list of regions. <em>Why:</em> The SDK routes to the first available preferred region and moves down the list on failure.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/best-practice-dotnet">Best practices for the .NET SDK</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/distribute-data-globally">Distribute data globally</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.4.8 -->
+    <section class="objective" id="obj-1-4-8" data-skill="threading-parallelism">
+      <h3 id="o-1-4-8">1.4.8 Configure Client-Side Threading and Parallelism Options</h3>
+      <div class="concept">
+        <p>For cross-partition queries and bulk loads, the SDK offers knobs to trade throughput against resource use. Query fan-out parallelism is controlled by <code>MaxConcurrency</code> and buffering by <code>MaxBufferedItemCount</code>; page size by <code>MaxItemCount</code>. High-throughput ingest uses <code>AllowBulkExecution</code>.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>QueryRequestOptions.MaxConcurrency</code> (MaxDegreeOfParallelism) controls parallel partition fan-out; <code>MaxBufferedItemCount</code> controls prefetch.</li>
+          <li><code>MaxItemCount</code> sets items per page.</li>
+          <li><code>CosmosClientOptions.AllowBulkExecution = true</code> enables batched high-throughput writes.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">var qopts = new QueryRequestOptions { MaxConcurrency = -1, MaxItemCount = 100 };
+// MaxConcurrency = -1 lets the SDK choose the parallelism level</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><code>MaxConcurrency = -1</code> lets the SDK auto-tune fan-out parallelism.</li>
+          <li>Bulk (<code>AllowBulkExecution</code>) and query parallelism are separate knobs for separate scenarios.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A cross-partition analytics query is slow because it queries partitions one at a time. Which option speeds it up?</summary>
+          <div class="answer"><b>Answer:</b> Increase <code>QueryRequestOptions.MaxConcurrency</code> (e.g., to -1) to parallelize the partition fan-out. <em>Why:</em> It controls how many partitions are queried concurrently.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/best-practice-dotnet">Best practices for the .NET SDK</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-bulk-import">Bulk import with the .NET SDK</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.4.9 -->
+    <section class="objective" id="obj-1-4-9" data-skill="sdk-logging">
+      <h3 id="o-1-4-9">1.4.9 Enable SDK Logging</h3>
+      <div class="concept">
+        <p>The .NET SDK emits telemetry and diagnostics you can capture to find slow or failing requests. Every response carries a <code>Diagnostics</code> object (timing, retries, contacted regions), and the SDK integrates with distributed tracing/OpenTelemetry for end-to-end observability.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Read <code>response.Diagnostics</code> to see latency breakdown, retries, and endpoints contacted.</li>
+          <li>Configure <code>CosmosClientOptions.CosmosClientTelemetryOptions</code> and hook distributed tracing.</li>
+          <li>Log slow/failed operations to diagnose RU and latency issues.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><code>response.Diagnostics</code> is the first thing to capture when a request is slow or throttled.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A specific request is intermittently slow. What SDK object gives you a per-request latency and retry breakdown?</summary>
+          <div class="answer"><b>Answer:</b> The response's <code>Diagnostics</code> object. <em>Why:</em> It captures timings, retries, and contacted regions for that operation.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/best-practice-dotnet">Best practices for the .NET SDK</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/troubleshoot-dotnet-sdk">Troubleshoot the .NET SDK</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 1.5 SQL query language ===== -->
+  <section class="skillgroup" id="sg-1-5">
+    <h2 id="g-1-5">1.5 Implement Data Access by Using the SQL Query Language for Azure Cosmos DB</h2>
+
+    <!-- 1.5.1 -->
+    <section class="objective" id="obj-1-5-1" data-skill="arrays-nested-agg-order">
+      <h3 id="o-1-5-1">1.5.1 Write Queries with Arrays, Nested Objects, Aggregation, and Ordering</h3>
+      <div class="concept">
+        <p>The NoSQL query language operates over JSON. You navigate nested properties with dot/bracket notation, unwind arrays with an <strong>intra-item JOIN</strong> (<code>JOIN t IN c.tags</code>), aggregate with <code>COUNT/SUM/AVG/MIN/MAX</code> (optionally with <code>GROUP BY</code>), and sort with <code>ORDER BY</code>.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>JOIN</code> in Cosmos DB is a <strong>self-join within a single item</strong> to unwind arrays — not a cross-document join.</li>
+          <li>Aggregates: <code>COUNT</code>, <code>SUM</code>, <code>AVG</code>, <code>MIN</code>, <code>MAX</code>; grouping via <code>GROUP BY</code>.</li>
+          <li><code>ORDER BY</code> defaults to ascending; multi-property or mixed-direction ordering needs a <strong>composite index</strong>.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-sql">SELECT c.id, COUNT(1) AS tagCount
+FROM c
+JOIN t IN c.tags
+WHERE t = "sale"
+GROUP BY c.id
+-- ORDER BY on multiple fields requires a composite index</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><code>JOIN</code> unwinds an array inside one item; it never joins two different documents.</li>
+          <li>Multi-field or mixed asc/desc <code>ORDER BY</code> fails without a matching composite index.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> In Cosmos DB NoSQL, what does <code>JOIN t IN c.tags</code> actually do?</summary>
+          <div class="answer"><b>Answer:</b> It unwinds the <code>tags</code> array within each item (an intra-item self-join). <em>Why:</em> There are no cross-document joins; JOIN flattens arrays inside a single document.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> An <code>ORDER BY status ASC, price DESC</code> query fails. What's missing?</summary>
+          <div class="answer"><b>Answer:</b> A composite index covering (<code>status</code> ASC, <code>price</code> DESC). <em>Why:</em> Multi-property/mixed-direction ordering requires a composite index.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/working-with-json">Work with JSON in NoSQL queries</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/order-by">ORDER BY clause</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.5.2 -->
+    <section class="objective" id="obj-1-5-2" data-skill="correlated-subquery">
+      <h3 id="o-1-5-2">1.5.2 Implement a Correlated Subquery</h3>
+      <div class="concept">
+        <p>A <strong>correlated subquery</strong> is nested inside the outer query and references outer values; it's evaluated per outer item. It's the idiomatic way to filter or aggregate over an array once and reuse the result, and it can dramatically cut the cost of array <code>JOIN</code>s by reducing the cross-product.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Used to filter arrays, run scalar aggregate subqueries, and back <code>EXISTS</code>/<code>ARRAY</code> expressions.</li>
+          <li>Optimizes multi-value JOINs by filtering array elements before the join, reducing RU cost.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-sql">-- Only items that have at least one tag over threshold, computed once
+SELECT c.id
+FROM c
+WHERE EXISTS (SELECT VALUE t FROM t IN c.tags WHERE t.weight &gt; 10)</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><code>EXISTS</code> / <code>ARRAY</code> over a subquery avoids expanding the full JOIN cross-product — cheaper on large arrays.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You need items having any tag with weight &gt; 10, without exploding the array via JOIN. What construct is best?</summary>
+          <div class="answer"><b>Answer:</b> A correlated subquery with <code>EXISTS</code> over <code>c.tags</code>. <em>Why:</em> It evaluates the array condition per item without producing the full JOIN cross-product, lowering RU cost.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/subquery">Subqueries in Azure Cosmos DB for NoSQL</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.5.3 -->
+    <section class="objective" id="obj-1-5-3" data-skill="array-type-functions">
+      <h3 id="o-1-5-3">1.5.3 Write Queries with Array and Type-Checking Functions</h3>
+      <div class="concept">
+        <p>Because items are schema-flexible, properties may be missing or of unexpected types. <strong>Type-checking functions</strong> (<code>IS_DEFINED</code>, <code>IS_NULL</code>, <code>IS_STRING</code>, etc.) let you write defensively, and <strong>array functions</strong> (<code>ARRAY_CONTAINS</code>, <code>ARRAY_LENGTH</code>, …) query array contents.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Array: <code>ARRAY_CONTAINS</code>, <code>ARRAY_LENGTH</code>, <code>ARRAY_SLICE</code>, <code>ARRAY_CONCAT</code>.</li>
+          <li>Type-checking: <code>IS_DEFINED</code>, <code>IS_NULL</code>, <code>IS_STRING</code>, <code>IS_NUMBER</code>, <code>IS_ARRAY</code>, <code>IS_OBJECT</code>.</li>
+          <li><code>IS_DEFINED</code> is key for optional properties that only some items have.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-sql">SELECT c.id
+FROM c
+WHERE IS_DEFINED(c.discount) AND ARRAY_CONTAINS(c.tags, "clearance")</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Use <code>IS_DEFINED</code> to distinguish "property missing" from "property is null".</li>
+          <li><code>ARRAY_CONTAINS</code> can match whole objects or a partial object with a boolean flag.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Only some items have a <code>discount</code> property. How do you select just those that have it set at all?</summary>
+          <div class="answer"><b>Answer:</b> Filter with <code>IS_DEFINED(c.discount)</code>. <em>Why:</em> It returns true only when the property exists, handling the schema-flexible data.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/array-functions">Array functions</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/type-checking-functions">Type-checking functions</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.5.4 -->
+    <section class="objective" id="obj-1-5-4" data-skill="math-string-date-functions">
+      <h3 id="o-1-5-4">1.5.4 Write Queries with Mathematical, String, and Date Functions</h3>
+      <div class="concept">
+        <p>The query language ships built-in scalar functions for numbers, strings, and dates. A crucial performance caveat: wrapping a property in a function inside a <code>WHERE</code> clause (e.g., <code>UPPER(c.name)</code>) usually <strong>defeats the index</strong> and forces a scan.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Math: <code>ABS</code>, <code>CEILING</code>, <code>FLOOR</code>, <code>ROUND</code>. String: <code>CONCAT</code>, <code>CONTAINS</code>, <code>STARTSWITH</code>, <code>ENDSWITH</code>, <code>UPPER</code>, <code>LOWER</code>, <code>SUBSTRING</code>, <code>LENGTH</code>.</li>
+          <li>Date/time (ISO 8601 UTC strings): <code>GetCurrentDateTime</code>, <code>DateTimeAdd</code>, <code>DateTimeDiff</code>.</li>
+          <li><code>UPPER</code>/<code>LOWER</code> in a filter can't use the index → full scan; store a normalized copy instead.</li>
+        </ul>
+      </div>
+      <div class="callout warn">
+        <b>Gotcha:</b> <code>WHERE LOWER(c.name) = "alice"</code> scans every item. Store a lowercase field and filter on it to keep the query index-served.
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Function on the filtered property = no index = scan; precompute normalized values instead.</li>
+          <li>Dates are stored/compared as ISO 8601 strings for correct range behavior.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A case-insensitive name search using <code>WHERE LOWER(c.name) = @n</code> is expensive. What design keeps it index-served?</summary>
+          <div class="answer"><b>Answer:</b> Store a precomputed lowercase property (e.g., <code>nameLower</code>) and filter on it directly. <em>Why:</em> Applying <code>LOWER()</code> to the filtered property prevents index usage, forcing a scan.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/string-functions">String functions</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/date-time-functions">Date and time functions</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.5.5 -->
+    <section class="objective" id="obj-1-5-5" data-skill="parameterized-queries">
+      <h3 id="o-1-5-5">1.5.5 Implement Queries Based on Variable Data (Parameterized)</h3>
+      <div class="concept">
+        <p><strong>Parameterized queries</strong> bind runtime values to named placeholders (<code>@param</code>) via <code>QueryDefinition.WithParameter</code>. They prevent injection and improve query-plan reuse — the recommended way to run any query with user-supplied values.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Build with <code>new QueryDefinition("... WHERE c.category = @cat").WithParameter("@cat", value)</code>.</li>
+          <li>Safer (no string concatenation) and enables plan reuse.</li>
+          <li>Combine with <code>IS_DEFINED</code> for optional properties in schema-flexible data.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">var query = new QueryDefinition(
+        "SELECT * FROM c WHERE c.category = @cat AND c.price &lt; @max")
+    .WithParameter("@cat", category)
+    .WithParameter("@max", maxPrice);
+using var it = container.GetItemQueryIterator&lt;Product&gt;(query);</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Never concatenate user input into query text — always parameterize.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Why should user-supplied filter values be passed via <code>WithParameter</code> rather than string-concatenated into the query?</summary>
+          <div class="answer"><b>Answer:</b> To prevent query injection and enable query-plan reuse. <em>Why:</em> Parameterized queries bind values safely instead of interpolating raw input.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/parameterized-queries">Parameterized queries</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-query-items">Query items with the .NET SDK</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 1.6 Data access with the SDKs ===== -->
+  <section class="skillgroup" id="sg-1-6">
+    <h2 id="g-1-6">1.6 Implement Data Access by Using Azure Cosmos DB for NoSQL SDKs</h2>
+
+    <!-- 1.6.1 -->
+    <section class="objective" id="obj-1-6-1" data-skill="point-vs-query">
+      <h3 id="o-1-6-1">1.6.1 Choose Between a Point Operation and a Query Operation</h3>
+      <div class="concept">
+        <p>A <strong>point read</strong> fetches a single item by <code>id</code> + partition key. It is the cheapest and lowest-latency operation available (≈ 1 RU for 1 KB) and bypasses the query engine. Use a query only when you don't know the item's <code>id</code> or need to filter across items.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Point read (<code>ReadItemAsync</code> with id + partition key) ≈ 1 RU for ~1 KB; lowest latency.</li>
+          <li>Query cost varies with fan-out, filters, and result size — always ≥ a point read.</li>
+          <li>Prefer a point read whenever the id and partition key are known.</li>
+        </ul>
+      </div>
+      <figure class="diagram" data-svg="point-vs-query">
+        <figcaption>A point read (id + partition key) is the cheapest access path; a query runs the engine over indexed data and costs more.</figcaption>
+      </figure>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>"Know the id? → point read." Even a single-item query is more expensive than a point read.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You have an item's <code>id</code> and partition key. Should you use <code>ReadItemAsync</code> or a <code>SELECT * WHERE c.id = @id</code> query? Why?</summary>
+          <div class="answer"><b>Answer:</b> <code>ReadItemAsync</code> (point read). <em>Why:</em> It's ~1 RU and lower latency; a query invokes the engine and costs more even for one item.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/point-operations-vs-queries">Point operations vs. queries</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/optimize-cost-reads-writes">Optimize the cost of reads and writes</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.6.2 -->
+    <section class="objective" id="obj-1-6-2" data-skill="crud-point-ops">
+      <h3 id="o-1-6-2">1.6.2 Implement Point Operations That Create, Update, and Delete Items</h3>
+      <div class="concept">
+        <p>The SDK exposes point operations for full-item CRUD, each taking the item's partition key for efficient routing. Know the semantic differences: <code>Create</code> fails if the id exists, <code>Replace</code> overwrites an existing item, and <code>Upsert</code> does whichever applies.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>CreateItemAsync</code> — insert; fails with 409 if the <code>id</code> already exists in the partition.</li>
+          <li><code>ReplaceItemAsync</code> — full overwrite; the <code>id</code> must already exist.</li>
+          <li><code>UpsertItemAsync</code> — create or replace.</li>
+          <li><code>ReadItemAsync</code> / <code>DeleteItemAsync</code> — read/delete by id + partition key.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">await container.CreateItemAsync(order, new PartitionKey(order.CustomerId));   // 409 if exists
+await container.ReplaceItemAsync(order, order.Id, new PartitionKey(order.CustomerId));
+await container.UpsertItemAsync(order, new PartitionKey(order.CustomerId));   // create or replace</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li><code>Create</code> on an existing id → 409 Conflict; use <code>Upsert</code> if you don't care whether it exists.</li>
+          <li>Always pass the partition key for efficient, correctly-routed operations.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You want "insert or update" semantics in a single call. Which method?</summary>
+          <div class="answer"><b>Answer:</b> <code>UpsertItemAsync</code>. <em>Why:</em> It creates the item if absent or replaces it if present, unlike <code>Create</code> (409 on conflict) or <code>Replace</code> (requires existing).</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-create-item">Create an item with the .NET SDK</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-read-item">Read an item with the .NET SDK</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.6.3 -->
+    <section class="objective" id="obj-1-6-3" data-skill="patch">
+      <h3 id="o-1-6-3">1.6.3 Update an Item by Using a Patch Operation (Partial Document Update)</h3>
+      <div class="concept">
+        <p><strong>Patch</strong> sends only the changed paths to the server rather than the whole document. It's cheaper and lower-bandwidth than a full replace and avoids read-modify-write races because you never round-trip the full item.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>PatchItemAsync</code> operations: <strong>Add, Set, Replace, Remove, Increment, Move</strong>.</li>
+          <li>Up to <strong>10 operations</strong> per single-item patch; supports a conditional filter predicate.</li>
+          <li>A multi-item patch scoped to one partition key is transactional.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">await container.PatchItemAsync&lt;Order&gt;(
+    id: "order-42",
+    partitionKey: new PartitionKey("C-1001"),
+    patchOperations: new[]
+    {
+        PatchOperation.Set("/status", "shipped"),
+        PatchOperation.Increment("/version", 1)
+    });</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Patch avoids the read-then-replace round trip — cheaper and race-free for targeted field updates.</li>
+          <li>Max 10 ops per patch; use a filter predicate for conditional patches.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You need to flip one field on a large document without transferring the whole item back and forth. What operation is ideal?</summary>
+          <div class="answer"><b>Answer:</b> A patch (partial document update) with a <code>Set</code> operation. <em>Why:</em> It sends only the changed path, avoiding a full read-modify-write and reducing RU/bandwidth.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/partial-document-update">Partial document update (patch)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-patch-item">Patch an item with the .NET SDK</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.6.4 -->
+    <section class="objective" id="obj-1-6-4" data-skill="transactional-batch">
+      <h3 id="o-1-6-4">1.6.4 Perform Multi-Item Transactions Using the SDK Transactional Batch</h3>
+      <div class="concept">
+        <p><strong>TransactionalBatch</strong> groups several point operations into a single <strong>all-or-nothing</strong> transaction — but only across items sharing <strong>one logical partition key</strong>. If any operation fails, the whole batch rolls back.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>All operations must target the <strong>same partition key value</strong>.</li>
+          <li>Bounded by <strong>100 operations</strong> or <strong>2 MB</strong> payload per batch.</li>
+          <li>Atomic: one failure rolls back all; per-operation status codes are returned (424 = a skipped/dependent op).</li>
+        </ul>
+      </div>
+      <figure class="diagram" data-svg="transactional-batch">
+        <figcaption>A transactional batch commits multiple operations atomically, but only within a single logical partition (up to 100 ops / 2 MB).</figcaption>
+      </figure>
+      <div class="code">
+        <pre><code class="lang-csharp">var pk = new PartitionKey("C-1001");
+var batch = container.CreateTransactionalBatch(pk)
+    .CreateItem(orderHeader)
+    .CreateItem(orderLine1)
+    .CreateItem(orderLine2);
+using var resp = await batch.ExecuteAsync();
+if (!resp.IsSuccessStatusCode) { /* whole batch rolled back */ }</code></pre>
+      </div>
+      <div class="callout warn">
+        <b>Gotcha:</b> Every item in a batch must share the same partition key value. There is no cross-partition transactional batch.
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Limits to memorize: same partition key, ≤ 100 ops, ≤ 2 MB.</li>
+          <li>Batch = atomic; bulk = high-throughput but <em>not</em> atomic (see 1.6.5).</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You must insert an order header and its three line items atomically. What SDK feature fits, and what partitioning is required?</summary>
+          <div class="answer"><b>Answer:</b> <code>TransactionalBatch</code>, with all four items sharing the same partition key value. <em>Why:</em> Batches are atomic but single-logical-partition only.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> What are the size/count limits of a transactional batch?</summary>
+          <div class="answer"><b>Answer:</b> Up to 100 operations or 2 MB total. <em>Why:</em> These are the documented batch bounds.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/transactional-batch">Transactional batch operations</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.6.5 -->
+    <section class="objective" id="obj-1-6-5" data-skill="bulk">
+      <h3 id="o-1-6-5">1.6.5 Perform a Multi-Item Load Using Bulk Support in the SDK</h3>
+      <div class="concept">
+        <p><strong>Bulk execution</strong> is for high-throughput ingest, not atomicity. You set <code>AllowBulkExecution = true</code>, fire many concurrent operations, and the SDK groups them by physical partition into batched service calls. It's <strong>not transactional</strong> — provision generous RU/s during a load.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Enable with <code>CosmosClientOptions.AllowBulkExecution = true</code>.</li>
+          <li>Issue many concurrent point operations and <code>await Task.WhenAll</code>; the SDK batches per partition.</li>
+          <li>Not atomic; best for large imports; temporarily raise RU/s to avoid 429s.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">var client = new CosmosClient(endpoint, credential,
+    new CosmosClientOptions { AllowBulkExecution = true });
+var tasks = items.Select(i =&gt;
+    container.CreateItemAsync(i, new PartitionKey(i.CustomerId)));
+await Task.WhenAll(tasks); // SDK groups into batched backend requests</code></pre>
+      </div>
+      <div class="callout key">
+        <b>Key:</b> Bulk = throughput, not atomicity. If you need all-or-nothing, use a transactional batch instead.
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Contrast with batch: bulk is many concurrent ops (not atomic); batch is one atomic unit within a partition.</li>
+          <li>Raise RU/s before a bulk import to avoid heavy throttling.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> You need to import millions of documents as fast as possible; atomicity across them isn't required. Which SDK feature?</summary>
+          <div class="answer"><b>Answer:</b> Bulk execution (<code>AllowBulkExecution = true</code>) with many concurrent operations. <em>Why:</em> It maximizes write throughput by batching per partition; it is not transactional.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/tutorial-dotnet-bulk-import">Bulk import tutorial (.NET)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-bulk-import">Bulk import with the .NET SDK</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.6.6 -->
+    <section class="objective" id="obj-1-6-6" data-skill="optimistic-concurrency">
+      <h3 id="o-1-6-6">1.6.6 Implement Optimistic Concurrency Control Using ETags</h3>
+      <div class="concept">
+        <p>Every item carries an <strong><code>_etag</code></strong> that changes on each write. To avoid lost updates without locking, pass the etag you read via <code>IfMatchEtag</code>; if the stored item changed in the meantime, the write fails with <strong>HTTP 412 (Precondition Failed)</strong>, letting you re-read and retry.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Set <code>ItemRequestOptions.IfMatchEtag</code> to the item's <code>_etag</code> on update/delete.</li>
+          <li>Mismatch → <strong>412</strong>; the caller re-reads (getting the fresh etag) and retries.</li>
+          <li>Lock-free — good for read-modify-write without blocking.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">var opts = new ItemRequestOptions { IfMatchEtag = current.ETag };
+try {
+    await container.ReplaceItemAsync(current, current.Id,
+        new PartitionKey(current.CustomerId), opts);
+} catch (CosmosException e) when (e.StatusCode == HttpStatusCode.PreconditionFailed) {
+    // 412: someone else changed it — re-read and retry
+}</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>412 is the "someone beat you to it" code for optimistic concurrency — handle by re-reading.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Two clients read the same item and both try to update it. How do you ensure the second update doesn't silently overwrite the first, without locking?</summary>
+          <div class="answer"><b>Answer:</b> Pass the read <code>_etag</code> in <code>IfMatchEtag</code>; the stale writer gets HTTP 412 and must re-read and retry. <em>Why:</em> ETag-based optimistic concurrency prevents lost updates lock-free.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/database-transactions-optimistic-concurrency">Transactions and optimistic concurrency control</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/optimistic-concurrency-control">Optimistic concurrency control</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.6.7 -->
+    <section class="objective" id="obj-1-6-7" data-skill="override-consistency">
+      <h3 id="o-1-6-7">1.6.7 Override the Default Consistency Level Using Query Request Options</h3>
+      <div class="concept">
+        <p>A request can be read at a consistency level <strong>weaker</strong> than the account default (never stronger) by setting <code>ConsistencyLevel</code> on the request options. Weaker consistency lowers RU cost and latency, which is useful for reads that tolerate slightly stale data.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Per-request override can only <strong>relax</strong> the account default, not tighten it.</li>
+          <li>Strong/bounded-staleness reads cost roughly <strong>2×</strong> the RU of session/eventual reads.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">var opts = new ItemRequestOptions { ConsistencyLevel = ConsistencyLevel.Eventual };
+var resp = await container.ReadItemAsync&lt;Product&gt;(id, pk, opts); // cheaper, may be stale</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>You can weaken but never strengthen consistency at the request level.</li>
+          <li>Relaxing to eventual/session cuts RU cost and latency for tolerant reads.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> The account default is Strong, but a dashboard read tolerates stale data and you want it cheaper. Can you set it to Eventual per request?</summary>
+          <div class="answer"><b>Answer:</b> Yes — request options can weaken to Eventual. <em>Why:</em> Per-request overrides may relax (not strengthen) the account default, reducing RU and latency.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels">Consistency levels in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-manage-consistency">Manage consistency levels</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.6.8 -->
+    <section class="objective" id="obj-1-6-8" data-skill="session-tokens">
+      <h3 id="o-1-6-8">1.6.8 Implement Session Consistency by Using Session Tokens</h3>
+      <div class="concept">
+        <p><strong>Session consistency</strong> (the default account level) guarantees read-your-writes within a session, tracked by a <strong>session token</strong> returned on responses. To preserve that guarantee across multiple client instances (e.g., different app servers), capture the token and pass it on subsequent requests.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Each write returns a session token; pass it via <code>RequestOptions.SessionToken</code> to guarantee read-your-writes.</li>
+          <li>Tokens are partition-bound; without the token, reads behave as eventual.</li>
+          <li>Sharing the token across instances keeps a logical session consistent.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Read-your-writes across servers requires forwarding the session token; a single client handles it automatically.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A user's write on server A must be immediately visible when they read from server B, under session consistency. What must you propagate?</summary>
+          <div class="answer"><b>Answer:</b> The session token from the write, passed on server B's read via <code>SessionToken</code>. <em>Why:</em> The token carries the session's read-your-writes guarantee across client instances.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-manage-consistency">Manage consistency levels</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels">Consistency levels in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.6.9 -->
+    <section class="objective" id="obj-1-6-9" data-skill="pagination">
+      <h3 id="o-1-6-9">1.6.9 Implement a Query Operation That Includes Pagination</h3>
+      <div class="concept">
+        <p>Queries return results in pages. You cap page size with <code>QueryRequestOptions.MaxItemCount</code> and iterate the <code>FeedIterator</code> while <code>HasMoreResults</code>. For explicit skip/take, <code>OFFSET … LIMIT</code> works but re-reads the skipped items, so RU cost grows with the offset.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>MaxItemCount</code> is a page-size <strong>hint</strong>, not a hard cap; iterate <code>FeedIterator.ReadNextAsync()</code> while <code>HasMoreResults</code>.</li>
+          <li><code>OFFSET/LIMIT</code> supports skip/take but re-scans skipped items — expensive for large offsets.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">var opts = new QueryRequestOptions { MaxItemCount = 100 };
+using var it = container.GetItemQueryIterator&lt;Product&gt;(query, requestOptions: opts);
+while (it.HasMoreResults)
+{
+    FeedResponse&lt;Product&gt; page = await it.ReadNextAsync();
+    foreach (var p in page) { /* ... */ }
+}</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Prefer continuation-token paging over large <code>OFFSET</code> values, whose RU cost grows with the skip.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Which option limits how many items a query returns per page, and how do you iterate all pages?</summary>
+          <div class="answer"><b>Answer:</b> <code>MaxItemCount</code> for page size; loop <code>FeedIterator.ReadNextAsync()</code> while <code>HasMoreResults</code>. <em>Why:</em> That's the SDK's paging model.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/pagination">Pagination in Azure Cosmos DB for NoSQL</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/offset-limit">OFFSET LIMIT clause</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.6.10 -->
+    <section class="objective" id="obj-1-6-10" data-skill="continuation-token">
+      <h3 id="o-1-6-10">1.6.10 Implement a Query Operation Using a Continuation Token</h3>
+      <div class="concept">
+        <p>A <strong>continuation token</strong> bookmarks server-side query progress so a query can be resumed later or on a different node (the server is stateless between pages). Persist the token from one page's <code>FeedResponse</code> and feed it back to fetch the next page — ideal for stateless web APIs.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>FeedResponse.ContinuationToken</code> resumes the same query text later/elsewhere.</li>
+          <li>Not valid across <strong>different query text</strong>; don't hand-edit tokens.</li>
+          <li>Doesn't work with <code>GROUP BY</code> or (unordered) <code>DISTINCT</code>; <code>DISTINCT</code> + <code>ORDER BY</code> is supported.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">string? token = savedToken; // from a previous page (may be null on first call)
+using var it = container.GetItemQueryIterator&lt;Product&gt;(query, continuationToken: token);
+var page = await it.ReadNextAsync();
+string? next = page.ContinuationToken; // persist for the next request</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Continuation tokens power stateless "next page" APIs; they're tied to the exact query text.</li>
+          <li>GROUP BY / unordered DISTINCT can't be resumed with a continuation token.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A stateless REST API needs a "next page" that survives across requests and servers. What does the client store and resend?</summary>
+          <div class="answer"><b>Answer:</b> The continuation token from the previous <code>FeedResponse</code>. <em>Why:</em> It bookmarks server-side progress so the query resumes on any node.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/pagination">Pagination and continuation tokens</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.6.11 -->
+    <section class="objective" id="obj-1-6-11" data-skill="handle-429">
+      <h3 id="o-1-6-11">1.6.11 Handle Transient Errors and Request Rate Limiting (429)</h3>
+      <div class="concept">
+        <p><strong>HTTP 429 — "Request rate too large"</strong> — means the operation exceeded the provisioned RU/s. The response includes an <code>x-ms-retry-after-ms</code> hint, and the SDK automatically retries within configurable limits. The real fix is to remove the root cause: raise RU/s, or eliminate hot-partition skew.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>429 carries <code>x-ms-retry-after-ms</code>; the SDK retries up to <code>MaxRetryAttemptsOnRateLimitedRequests</code> / <code>MaxRetryWaitTimeOnRateLimitedRequests</code>.</li>
+          <li>Persistent 429s → increase RU/s (or autoscale), reduce per-partition skew, or back off.</li>
+        </ul>
+      </div>
+      <div class="callout key">
+        <b>Key:</b> 429 = throttled (out of RU/s), not a bug. The SDK honors the retry-after hint; you fix it by adding RU/s or spreading load.
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Distinguish 429 (throttling, retriable) from 503 (unavailable) and 449 (retry-with).</li>
+          <li>If only one partition throttles while total RU/s is fine, it's a hot partition — repartition.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An app gets frequent 429s during peak load though CPU is idle. What does 429 mean and what are two fixes?</summary>
+          <div class="answer"><b>Answer:</b> It's RU/s throttling ("request rate too large"). Fix by increasing provisioned RU/s (or autoscale) and by reducing hot-partition skew. <em>Why:</em> 429 signals the workload exceeded the RU budget on a partition.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/troubleshoot-request-rate-too-large">Troubleshoot request rate too large (429)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/conceptual-resilient-sdk-applications">Design resilient applications</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.6.12 -->
+    <section class="objective" id="obj-1-6-12" data-skill="item-ttl">
+      <h3 id="o-1-6-12">1.6.12 Specify a Time to Live (TTL) for a Specific Item</h3>
+      <div class="concept">
+        <p>An individual item can expire on its own schedule by setting its <code>ttl</code> property (seconds). This overrides the container's default — but only works if the container's <code>DefaultTimeToLive</code> is enabled (non-null). Setting item <code>ttl = -1</code> means "never expire" even if the container has a positive default.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Item <code>ttl</code>: positive seconds = expire after that; <code>-1</code> = never expire.</li>
+          <li>Only effective when the container's <code>DefaultTimeToLive</code> is not null.</li>
+          <li>Item <code>ttl</code> overrides the container default value.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-csharp">// This item self-expires in 1 hour (requires container TTL enabled)
+public class Session { public string id { get; set; } public int ttl { get; set; } = 3600; }</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Item TTL is inert unless the container TTL switch (<code>DefaultTimeToLive</code>) is enabled.</li>
+          <li>Item <code>ttl = -1</code> exempts that item from a positive container default.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> The container has a 90-day default TTL, but one item must never expire. How do you exempt it?</summary>
+          <div class="answer"><b>Answer:</b> Set that item's <code>ttl</code> to <code>-1</code>. <em>Why:</em> Item TTL overrides the container default; <code>-1</code> means never expire.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/time-to-live">Time to Live (TTL) in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-time-to-live">Configure time to live</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.6.13 -->
+    <section class="objective" id="obj-1-6-13" data-skill="query-metrics">
+      <h3 id="o-1-6-13">1.6.13 Retrieve and Use Query Metrics</h3>
+      <div class="concept">
+        <p>To tune queries, read the <strong>request charge</strong> and <strong>query metrics</strong> the SDK returns. <code>response.RequestCharge</code> gives the RU cost; the diagnostics/query metrics expose retrieved-vs-output document counts and index utilization, revealing when a query is scanning instead of seeking.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><code>FeedResponse.RequestCharge</code> = RU cost of the page.</li>
+          <li>Query metrics (via <code>Diagnostics</code> / <code>ServerSideCumulativeMetrics</code>) show <strong>RetrievedDocumentCount</strong> vs <strong>OutputDocumentCount</strong> and index utilization.</li>
+          <li>A big gap (retrieved ≫ output) or low index-hit ratio signals a scan — add an index or rewrite the filter.</li>
+          <li>Enable <code>PopulateIndexMetrics</code> to see which indexes were used/missing (debug only — adds overhead).</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>RetrievedDocumentCount ≫ OutputDocumentCount = scanning; that's the metric to watch.</li>
+          <li><code>PopulateIndexMetrics</code> is for tuning, not production hot paths.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A query is expensive; metrics show it retrieved 50,000 documents but output 12. What does this indicate and how do you fix it?</summary>
+          <div class="answer"><b>Answer:</b> The query is scanning (low index utilization). Add an index on the filtered path or rewrite the filter to be index-served. <em>Why:</em> A large retrieved-vs-output gap means the index isn't narrowing results.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics-performance">Query performance and metrics</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics">Get query metrics</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 1.7 Server-side programming (JavaScript) ===== -->
+  <section class="skillgroup" id="sg-1-7">
+    <h2 id="g-1-7">1.7 Implement Server-Side Programming in Azure Cosmos DB for NoSQL by Using JavaScript</h2>
+
+    <!-- 1.7.1 -->
+    <section class="objective" id="obj-1-7-1" data-skill="stored-procedures">
+      <h3 id="o-1-7-1">1.7.1 Write, Deploy, and Call a Stored Procedure</h3>
+      <div class="concept">
+        <p><strong>Stored procedures</strong> are JavaScript functions that run on the server against a container, registered under <code>container.Scripts</code> and invoked with a <strong>partition key value</strong>. They access data through the context/collection object and run inside an implicit transaction.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Registered per container; use <code>getContext()</code>, <code>getCollection()</code>, and <code>getResponse()</code>.</li>
+          <li>Executed with a required partition key value; the RU charge is estimated up front (averaged from prior runs).</li>
+          <li>All operations run in one implicit, partition-scoped transaction.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-javascript">function createItem(doc) {
+    var context = getContext();
+    var container = context.getCollection();
+    var accepted = container.createDocument(container.getSelfLink(), doc,
+        function (err, created) {
+            if (err) throw err;
+            context.getResponse().setBody(created.id);
+        });
+    if (!accepted) throw new Error("Not enough time/RUs; retry.");
+}</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>A stored proc always runs against a single partition key value you supply at execution.</li>
+          <li>Collection methods return a boolean; <code>false</code> means the operation was queued out of budget — stop and let the client retry.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> When you execute a stored procedure, what must you always provide, and why?</summary>
+          <div class="answer"><b>Answer:</b> A partition key value. <em>Why:</em> Stored procedures run against a single logical partition, so the runtime needs the key to scope execution.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-write-stored-procedures-triggers-udfs">Write stored procedures, triggers, and UDFs</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/stored-procedures-triggers-udfs">Server-side programming overview</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.7.2 -->
+    <section class="objective" id="obj-1-7-2" data-skill="transactional-sprocs">
+      <h3 id="o-1-7-2">1.7.2 Implement Transactional Stored Procedures Within a Partition</h3>
+      <div class="concept">
+        <p>A stored procedure runs in an <strong>ACID transaction scoped to one logical partition</strong>: if the JavaScript throws, all its writes roll back. Because execution has a bounded time/RU budget, long operations use the boolean return of collection methods plus a <strong>continuation pattern</strong> to resume where they left off.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Sprocs are atomic within a single partition key value; a thrown error rolls back the whole transaction.</li>
+          <li>Bounded execution: check the boolean returned by <code>createDocument</code>/<code>replaceDocument</code>; return progress so the client can re-invoke to continue.</li>
+        </ul>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Sproc transactionality is per-partition — same rule as transactional batch.</li>
+          <li>Design long-running sprocs to be resumable (continuation by count), since they can hit the time budget.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Inside a stored procedure, you call <code>throw new Error()</code> partway through several writes. What happens to the earlier writes?</summary>
+          <div class="answer"><b>Answer:</b> They are rolled back — the sproc runs as one atomic transaction. <em>Why:</em> Stored procedures are ACID within a single logical partition; any thrown error aborts the whole transaction.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-write-stored-procedures-triggers-udfs">Write stored procedures, triggers, and UDFs</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/stored-procedures-triggers-udfs">Server-side programming overview</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.7.3 -->
+    <section class="objective" id="obj-1-7-3" data-skill="triggers">
+      <h3 id="o-1-7-3">1.7.3 Implement and Call Triggers</h3>
+      <div class="concept">
+        <p><strong>Triggers</strong> are JavaScript that runs around an operation. <strong>Pre-triggers</strong> run <em>before</em> a write (validate or mutate the incoming item via <code>getRequest().getBody()</code>); <strong>post-triggers</strong> run <em>after</em>, in the same transaction. Triggers are <strong>not automatic</strong> — the caller must name them in request options.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Pre-triggers take no input parameters and manipulate the request body; post-triggers run after the operation, in the same transaction.</li>
+          <li>The caller must explicitly include the trigger (<code>PreTriggerInclude</code> / <code>PostTriggerInclude</code>) and it must match the operation type.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-javascript">// Pre-trigger: stamp a createdAt timestamp on the incoming item
+function addTimestamp() {
+    var req = getContext().getRequest();
+    var doc = req.getBody();
+    doc.createdAt = new Date().toISOString();
+    req.setBody(doc);
+}</code></pre>
+      </div>
+      <div class="callout warn">
+        <b>Gotcha:</b> Triggers never fire on their own. If a validation pre-trigger is skipped, it's because the request didn't include it via <code>PreTriggerInclude</code>.
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Pre vs. post: pre = validate/mutate input before write; post = react after write (same transaction).</li>
+          <li>Must be requested per operation — a common "why didn't my trigger run?" trap.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A validation pre-trigger exists on the container but never seems to execute. What's the most likely cause?</summary>
+          <div class="answer"><b>Answer:</b> The write requests didn't include the trigger via <code>PreTriggerInclude</code>. <em>Why:</em> Triggers are opt-in per operation, not automatic.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-write-stored-procedures-triggers-udfs">Write stored procedures, triggers, and UDFs</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/stored-procedures-triggers-udfs">Server-side programming overview</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 1.7.4 -->
+    <section class="objective" id="obj-1-7-4" data-skill="udf">
+      <h3 id="o-1-7-4">1.7.4 Implement a User-Defined Function (UDF)</h3>
+      <div class="concept">
+        <p>A <strong>UDF</strong> is a JavaScript scalar function callable <strong>only from within a query</strong> (<code>SELECT udf.calcTax(c.price)</code>). UDFs are great for reusable computed values, but note they are <strong>not served by the index</strong>, so filtering on a UDF causes a scan.</p>
+      </div>
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>UDFs are pure JS functions with no data access, invoked inside queries via the <code>udf.</code> prefix.</li>
+          <li>They extend query expressions (projections/filters) with custom logic.</li>
+          <li>A filter using a UDF cannot use the index → scan; prefer UDFs in projections, not <code>WHERE</code>, when performance matters.</li>
+        </ul>
+      </div>
+      <div class="code">
+        <pre><code class="lang-javascript">function calcTax(price) { return price * 0.2; }
+// Query: SELECT c.id, udf.calcTax(c.price) AS tax FROM c</code></pre>
+      </div>
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>UDF = query-only scalar helper; it can't read data and isn't index-backed.</li>
+          <li>Filtering on a UDF forces a scan — the same lesson as <code>LOWER()</code> in a WHERE clause.</li>
+        </ul>
+      </div>
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> How is a UDF invoked, and why is filtering a <code>WHERE</code> clause on a UDF a performance concern?</summary>
+          <div class="answer"><b>Answer:</b> It's called inside a query with the <code>udf.</code> prefix; filtering on it can't use the index, so the query scans. <em>Why:</em> UDFs run per item and aren't index-served.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-write-stored-procedures-triggers-udfs">Write stored procedures, triggers, and UDFs</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query/udfs">User-defined functions in queries</a></li>
+      </ul></div>
+    </section>
+  </section>
+</section>

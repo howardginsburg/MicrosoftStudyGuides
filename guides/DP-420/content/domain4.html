@@ -1,0 +1,1003 @@
+<section class="domain" id="domain4" data-domain="4">
+  <h1 id="d4">Domain 4 — Optimize an Azure Cosmos DB Solution <span class="weight">15–20%</span></h1>
+  <p class="domain-intro">Optimization is where a working Cosmos DB solution becomes an efficient one. This domain has three tightly linked themes: tuning <strong>query performance</strong> (indexing, RU cost, measuring request charge, and the <strong>integrated cache</strong>), building event-driven flows on the <strong>change feed</strong> (Azure Functions triggers, the change feed processor, the estimator, and the denormalization/referential/aggregation/archival patterns), and designing an <strong>indexing strategy</strong> that balances read and write cost. The recurring exam idea is the trade-off: every indexed path speeds reads but taxes writes, every cache hit costs 0 RU but needs the right consistency, and the change feed lets you react to writes without re-querying. At 15–20%, this is one of the heaviest-weighted domains.</p>
+
+  <!-- ===== 4.1 Optimize Query Performance ===== -->
+  <section class="skillgroup" id="sg-4-1">
+    <h2 id="g-4-1">4.1 Optimize Query Performance When Using the API for Azure Cosmos DB for NoSQL</h2>
+
+    <!-- 4.1.1 -->
+    <section class="objective" id="obj-4-1-1" data-skill="adjust-indexes">
+      <h3 id="o-4-1-1">4.1.1 Adjust Indexes on the Database</h3>
+
+      <div class="concept">
+        <p>Every container has an <strong>indexing policy</strong>. By default Cosmos DB automatically indexes <strong>every property</strong> of every item using range indexes for strings and numbers — great for correctness, but you pay write RUs for paths you never query. Tuning the policy means choosing an indexing <strong>mode</strong>, deciding which paths to <strong>include or exclude</strong>, and adding specialized index kinds where a query needs them.</p>
+        <p>Path notation matters: a scalar path ends in <code>/?</code>, array elements use <code>/[]</code>, and the wildcard <code>/*</code> matches everything below a node. The root <code>/*</code> must be either included or excluded, and the <strong>more precise (deeper) path wins</strong> when rules overlap.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Indexing modes: <strong>consistent</strong> (index updated synchronously with writes) and <strong>none</strong> (no secondary index — a pure key/value store that disables queries; used to speed bulk loads). New containers cannot use lazy indexing.</li>
+          <li>Include <code>/*</code> and <strong>exclude</strong> unqueried paths (recommended — new properties auto-index); or exclude <code>/*</code> and <strong>include</strong> only specific paths.</li>
+          <li>Changing the policy triggers an <strong>online, in-place index transformation</strong>: asynchronous, consumes RUs at lower priority, and has no write-availability impact.</li>
+          <li><strong>Adding</strong> an index takes time (transformation must finish before it's used); <strong>removing</strong> an index takes effect immediately.</li>
+          <li>System properties <code>id</code> and <code>_ts</code> are indexed in consistent mode; <code>_etag</code> is excluded by default.</li>
+          <li><strong>TTL requires indexing</strong> — you cannot set TTL on a <code>none</code>-mode container.</li>
+          <li>Track progress with the SDK's index transformation progress or the portal.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="indexing-policy">
+        <figcaption>An indexing policy defines the mode plus included/excluded paths and index kinds that the engine applies to each item.</figcaption>
+      </figure>
+
+      <div class="code">
+        <pre><code class="lang-json">{
+  "indexingMode": "consistent",
+  "automatic": true,
+  "includedPaths": [
+    { "path": "/*" }
+  ],
+  "excludedPaths": [
+    { "path": "/description/?" },
+    { "path": "/metadata/*" }
+  ]
+}</code></pre>
+      </div>
+
+      <div class="callout key">
+        <b>Key:</b> Default = index everything. To cut write cost, keep <code>/*</code> included and <em>exclude</em> the paths you never filter on — new properties still get indexed automatically.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Root <code>/*</code> must appear in exactly one of included or excluded paths.</li>
+          <li>Removing an index is instant; adding one requires the transformation to complete first — add before you remove when swapping.</li>
+          <li>Mode <code>none</code> disables all queries and blocks TTL; use it only for bulk ingest, then switch back to consistent.</li>
+          <li>If you exclude <code>/*</code>, remember to include the partition key path (unless it's <code>/id</code>) or PK-filter queries do full scans.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A write-heavy container indexes many large text fields that are never queried, and write RU charges are high. What is the least-effort fix that keeps future properties searchable?</summary>
+          <div class="answer"><b>Answer:</b> Keep the included path <code>/*</code> and add the unqueried fields to excluded paths. <em>Why:</em> Excluding specific paths stops indexing those properties (lowering write RUs) while <code>/*</code> continues to auto-index any new properties.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> An engineer removes a property path from the indexing policy and expects queries to slow down only after a long transformation. When does the removal take effect?</summary>
+          <div class="answer"><b>Answer:</b> Immediately. <em>Why:</em> Index removals take effect right away; only index additions require an asynchronous transformation to complete before they're used.</div>
+        </details>
+        <details class="q"><summary><b>Q3.</b> A team wants the fastest possible bulk load and will run no queries during load. Which indexing mode should they set temporarily?</summary>
+          <div class="answer"><b>Answer:</b> <code>none</code>. <em>Why:</em> Indexing mode <code>none</code> removes secondary-index write overhead for the fastest ingest; they switch back to <code>consistent</code> afterward (note TTL can't be used while in <code>none</code>).</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy">Indexing policies in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-indexing-policy">Manage indexing policies</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.1.2 -->
+    <section class="objective" id="obj-4-1-2" data-skill="query-cost">
+      <h3 id="o-4-1-2">4.1.2 Calculate the Cost of the Query</h3>
+
+      <div class="concept">
+        <p>Every operation in Cosmos DB is normalized to <strong>Request Units (RU)</strong> — a currency abstracting CPU, IOPS, and memory. A 1-KB point read is about 1 RU; a query's charge depends on how many documents it must load, whether it hits one partition or fans out, and how well the index serves the filter.</p>
+        <p>The big cost lever is the <strong>partition key filter</strong>. A query scoped to a single partition key is far cheaper than a cross-partition query, which executes on every physical partition and merges results client-side.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Read cost, cheapest to most expensive: <strong>point read</strong> (id + partition key) → query with a <strong>partition-key filter</strong> → query with an equality/range filter on any property → query with <strong>no filter</strong>.</li>
+          <li>Cross-partition (fan-out) queries have higher latency and RU cost; ORDER BY results are merge-sorted and COUNT is summed across partitions.</li>
+          <li>Query execution metrics expose where cost goes: <code>RetrievedDocumentCount</code>, <code>OutputDocumentCount</code>, <code>IndexLookupTime</code>, and <code>IndexHitRatio</code> (matched ÷ loaded — a low ratio signals a scan).</li>
+          <li><code>PopulateIndexMetrics</code> reveals which indexes were used and which are missing (adds overhead — debug only).</li>
+          <li>RU cost also grows with result size, projections, UDFs, and system functions like <code>LOWER()</code> that force scans.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="request-units">
+        <figcaption>Reads, writes, and queries all draw from the same provisioned RU/s budget; more work per operation means more RUs consumed.</figcaption>
+      </figure>
+
+      <div class="code">
+        <pre><code class="lang-sql">-- Single-partition: cheap, served from the index
+SELECT * FROM c WHERE c.customerId = "C-1001"
+
+-- Cross-partition scan: LOWER() defeats the index, retrieves many, returns few
+SELECT c.name FROM c WHERE LOWER(c.name) = "alice"</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> If <code>RetrievedDocumentCount</code> is far larger than <code>OutputDocumentCount</code> (low IndexHitRatio), the query is scanning — add an index or rewrite the filter to use one.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Always prefer a point read when you know the id and partition key — it's the cheapest operation.</li>
+          <li>Adding a partition-key predicate turns a fan-out query into a single-partition query and slashes RU cost.</li>
+          <li>Functions that transform a property (<code>LOWER</code>, <code>UPPER</code>) prevent index use and cause a full scan.</li>
+          <li>Higher provisioned RU/s doesn't lower a query's charge — it just lets you run more of them before rate limiting (429).</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A query <code>SELECT * FROM c WHERE c.status = 'active'</code> runs against a container partitioned by <code>/tenantId</code> and is expensive. What single change most reduces its RU cost?</summary>
+          <div class="answer"><b>Answer:</b> Add a <code>c.tenantId = @id</code> predicate so the query targets one partition. <em>Why:</em> Filtering on the partition key converts a cross-partition fan-out into a single-partition query, dramatically lowering RUs and latency.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Query metrics show RetrievedDocumentCount = 5000 and OutputDocumentCount = 12 with a very low IndexHitRatio. What does this indicate?</summary>
+          <div class="answer"><b>Answer:</b> The query is scanning documents rather than using an index. <em>Why:</em> A large retrieved-vs-output gap and low IndexHitRatio mean the filter isn't index-served; add the needed index or remove the scan-forcing function.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics">Tuning query performance</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/request-units">Request Units in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.1.3 -->
+    <section class="objective" id="obj-4-1-3" data-skill="ru-charge">
+      <h3 id="o-4-1-3">4.1.3 Retrieve the Request Unit Cost of a Point Operation or Query</h3>
+
+      <div class="concept">
+        <p>You measure RU cost by <strong>inspecting the response</strong> of an operation — Cosmos DB returns the exact <strong>request charge</strong> for every call. In the portal, Data Explorer's <strong>Query Stats</strong> shows it; in code, every SDK response exposes it, and the underlying HTTP header is <code>x-ms-request-charge</code>.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>.NET v3: <code>response.RequestCharge</code> (a <code>double</code>).</li>
+          <li>Java: <code>response.getRequestCharge()</code>; Go: <code>resp.RequestCharge</code>.</li>
+          <li>Node.js: <code>result.headers["x-ms-request-charge"]</code>.</li>
+          <li>Python: <code>container.client_connection.last_response_headers["x-ms-request-charge"]</code>.</li>
+          <li>Portal: Data Explorer → run query → <strong>Query Stats</strong> shows the request charge.</li>
+          <li>For paged queries, sum <code>RequestCharge</code> across every page to get the total.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-csharp">// .NET SDK v3 — point read
+ItemResponse&lt;Product&gt; read = await container.ReadItemAsync&lt;Product&gt;(
+    id: "P-1001",
+    partitionKey: new PartitionKey("electronics"));
+Console.WriteLine($"Point read cost: {read.RequestCharge} RU");
+
+// Query — accumulate charge across pages
+double total = 0;
+using FeedIterator&lt;Product&gt; it = container.GetItemQueryIterator&lt;Product&gt;(
+    "SELECT * FROM c WHERE c.category = 'electronics'");
+while (it.HasMoreResults)
+{
+    FeedResponse&lt;Product&gt; page = await it.ReadNextAsync();
+    total += page.RequestCharge;
+}
+Console.WriteLine($"Query total: {total} RU");</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>The HTTP header name to remember is <code>x-ms-request-charge</code>.</li>
+          <li>Node.js and Python read the charge from response <em>headers</em>; .NET/Java/Go expose a typed <code>RequestCharge</code> property/method.</li>
+          <li>A single query can span multiple pages — one page's charge is not the whole cost.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A developer using the .NET v3 SDK wants the RU cost of a point read. Which member gives it?</summary>
+          <div class="answer"><b>Answer:</b> <code>ItemResponse.RequestCharge</code>. <em>Why:</em> Every .NET v3 response object exposes <code>RequestCharge</code> as a double containing the RUs consumed by that operation.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> In the Node.js SDK, where is the request charge exposed?</summary>
+          <div class="answer"><b>Answer:</b> In the response <code>headers</code>, under <code>x-ms-request-charge</code>. <em>Why:</em> The Node.js and Python SDKs surface the raw HTTP headers; the RU charge is the <code>x-ms-request-charge</code> value.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/find-request-unit-charge">Find the request unit charge for operations</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.1.4 -->
+    <section class="objective" id="obj-4-1-4" data-skill="integrated-cache">
+      <h3 id="o-4-1-4">4.1.4 Implement Azure Cosmos DB Integrated Cache</h3>
+
+      <div class="concept">
+        <p>The <strong>integrated cache</strong> is an in-memory cache built into the <strong>dedicated gateway</strong>. It has an <strong>item cache</strong> (point reads) and a <strong>query cache</strong> (query result sets). The headline benefit: a cache <strong>hit costs 0 RU</strong>, making read-heavy workloads with repeated reads dramatically cheaper.</p>
+        <p>To use it you must connect through the dedicated gateway, use <strong>gateway</strong> connection mode, and use <strong>session or eventual</strong> consistency. Stronger consistencies (strong, bounded staleness, consistent prefix) bypass the cache and are served from the backend.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Requires a provisioned <strong>dedicated gateway</strong>, the dedicated-gateway connection string, <strong>gateway</strong> connection mode, and <strong>session or eventual</strong> consistency.</li>
+          <li>Cache hits return <strong>0 RU</strong>; read-through / write-through with <strong>LRU</strong> eviction.</li>
+          <li><code>MaxIntegratedCacheStaleness</code> sets the maximum acceptable staleness per request — default 5 minutes, min 0, max 10 years; higher = more hits.</li>
+          <li>Each dedicated gateway node has its own independent cache; multi-page queries aren't guaranteed the same node.</li>
+          <li>Best for read-heavy, repeated point reads/queries and hot read partitions; not for write-heavy or rarely repeated reads.</li>
+          <li>Transactional batch and bulk operations do <strong>not</strong> populate the item cache.</li>
+          <li>Metrics: <code>IntegratedCacheItemHitRate</code>, <code>IntegratedCacheQueryHitRate</code>, <code>DedicatedGatewayRequests</code>, <code>IntegratedCacheEvictedEntriesSize</code>.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="integrated-cache">
+        <figcaption>The integrated cache lives in the dedicated gateway; cached point reads and query results are returned to clients at 0 RU.</figcaption>
+      </figure>
+
+      <div class="code">
+        <pre><code class="lang-csharp">// Connect via the dedicated gateway in Gateway mode
+var options = new CosmosClientOptions { ConnectionMode = ConnectionMode.Gateway };
+var client = new CosmosClient(dedicatedGatewayConnectionString, options);
+
+// Opt into the cache per request and allow up to 30 min staleness
+var requestOptions = new ItemRequestOptions
+{
+    ConsistencyLevel = ConsistencyLevel.Eventual,
+    DedicatedGatewayRequestOptions = new DedicatedGatewayRequestOptions
+    {
+        MaxIntegratedCacheStaleness = TimeSpan.FromMinutes(30)
+    }
+};
+var read = await container.ReadItemAsync&lt;Product&gt;("P-1", new PartitionKey("electronics"), requestOptions);</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> If reads still cost RUs, check consistency. Strong, bounded staleness, and consistent prefix <em>bypass</em> the integrated cache — only session and eventual reads are cache-eligible.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>No dedicated gateway = no integrated cache. It doesn't run on the standard gateway or in direct mode.</li>
+          <li>A higher <code>MaxIntegratedCacheStaleness</code> yields more hits but staler data; lower it (even to 0) when a fresh read is needed.</li>
+          <li>Write-heavy or one-off-read workloads see little benefit — the cache targets repeated reads.</li>
+          <li>Cache is per gateway node, so hit rates depend on request routing across nodes.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A read-heavy app configured a dedicated gateway and gateway mode but still sees RU charges on repeated identical point reads. The account uses bounded staleness consistency. What's wrong?</summary>
+          <div class="answer"><b>Answer:</b> Bounded staleness bypasses the integrated cache. <em>Why:</em> The integrated cache only serves reads at session or eventual consistency; switch the request/account to session or eventual to get 0-RU cache hits.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> An app can tolerate data up to 10 minutes old and wants to maximize cache hits. What should it set?</summary>
+          <div class="answer"><b>Answer:</b> <code>MaxIntegratedCacheStaleness = 10 minutes</code>. <em>Why:</em> Raising the staleness window lets more repeated reads be served from cache before entries are considered stale, increasing the hit rate.</div>
+        </details>
+        <details class="q"><summary><b>Q3.</b> Which workload benefits least from the integrated cache?</summary>
+          <div class="answer"><b>Answer:</b> A write-heavy workload with rarely repeated reads. <em>Why:</em> The cache accelerates repeated reads at 0 RU; writes don't benefit and unique one-time reads never hit the cache.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/integrated-cache">Azure Cosmos DB integrated cache</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-configure-integrated-cache">Configure the integrated cache</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 4.2 Design and Implement Change Feeds ===== -->
+  <section class="skillgroup" id="sg-4-2">
+    <h2 id="g-4-2">4.2 Design and Implement Change Feeds for Azure Cosmos DB for NoSQL</h2>
+
+    <!-- 4.2.1 -->
+    <section class="objective" id="obj-4-2-1" data-skill="change-feed-functions">
+      <h3 id="o-4-2-1">4.2.1 Develop an Azure Functions Trigger to Process a Change Feed</h3>
+
+      <div class="concept">
+        <p>The <strong>Azure Functions trigger for Cosmos DB</strong> is the simplest way to consume the change feed. It runs on top of the change feed processor, so you get automatic scaling and reliable, at-least-once event detection without maintaining any worker infrastructure — you just write the function logic.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Needs a <strong>monitored container</strong> (source) and a <strong>lease container</strong> (state + dynamic scaling coordination).</li>
+          <li>Set <code>CreateLeaseContainerIfNotExists = true</code> to auto-create the lease container; partitioned lease containers must use a <code>/id</code> partition key.</li>
+          <li>Supports <strong>latest version mode</strong> (default, all languages) and <strong>all versions and deletes mode</strong> (.NET isolated worker; requires continuous backup + the feature enabled).</li>
+          <li>The function runs per batch of changes; add conditional logic to notify or call an API only when criteria are met.</li>
+          <li>Trigger supports the <strong>API for NoSQL only</strong>; you can run it locally against the Cosmos DB emulator.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="change-feed">
+        <figcaption>Writes to the monitored container flow through the change feed to the Functions trigger, which processes each batch of changed items.</figcaption>
+      </figure>
+
+      <div class="code">
+        <pre><code class="lang-csharp">[Function("ChangeFeedProcessor")]
+public void Run(
+    [CosmosDBTrigger(
+        databaseName: "store",
+        containerName: "orders",
+        Connection = "CosmosDbConnection",
+        LeaseContainerName = "leases",
+        CreateLeaseContainerIfNotExists = true)] IReadOnlyList&lt;Order&gt; changes,
+    FunctionContext context)
+{
+    foreach (Order order in changes)
+    {
+        // React only when a condition is met
+        if (order.Total &gt; 1000)
+        {
+            // send notification / call API
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div class="callout key">
+        <b>Key:</b> Use the Functions trigger when you want serverless, auto-scaling change-feed processing with no infrastructure. It <em>is</em> the change feed processor under the hood.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>The lease container is mandatory — it stores checkpoints and enables multiple function instances to share the load.</li>
+          <li>Partitioned lease containers require a <code>/id</code> partition key.</li>
+          <li>Delivery is at-least-once, so make processing idempotent.</li>
+          <li>All-versions-and-deletes mode needs continuous backup; latest version mode is the default and misses intermediate updates and deletes.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A team wants to run code on every insert/update to a container with zero worker infrastructure and automatic scaling. What should they use?</summary>
+          <div class="answer"><b>Answer:</b> An Azure Functions Cosmos DB trigger. <em>Why:</em> The trigger wraps the change feed processor to deliver serverless, auto-scaling change-feed processing without managing hosts.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> The trigger fails to start because no lease container exists. What's the simplest fix in the binding?</summary>
+          <div class="answer"><b>Answer:</b> Set <code>CreateLeaseContainerIfNotExists = true</code>. <em>Why:</em> This tells the trigger to create the lease container automatically (with a <code>/id</code> partition key) so processing can begin.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-functions">Serverless event-based architectures with Azure Functions</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed">Change feed in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.2.2 -->
+    <section class="objective" id="obj-4-2-2" data-skill="change-feed-processor">
+      <h3 id="o-4-2-2">4.2.2 Consume a Change Feed from Within an Application by Using the SDK</h3>
+
+      <div class="concept">
+        <p>For full control inside your own app, use the <strong>change feed processor</strong> in the .NET v3 or Java v4 SDK. It's fault-tolerant and delivers changes <strong>at least once</strong>, automatically distributing work across instances and checkpointing progress in the lease container. (Python and Node.js use the change feed <strong>pull model</strong> instead.)</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Four components: <strong>monitored container</strong> (source), <strong>lease container</strong> (state/coordination), <strong>compute instance</strong> (host with a unique instance name), and <strong>delegate</strong> (your handler).</li>
+          <li>Build with <code>GetChangeFeedProcessorBuilder(processorName, delegate)</code>, then <code>WithInstanceName</code>, <code>WithLeaseContainer</code>, <code>Build()</code>, and <code>StartAsync()</code>.</li>
+          <li>Life cycle: read the feed → sleep if empty (<code>WithPollInterval</code>) → invoke delegate → checkpoint the lease.</li>
+          <li>A <strong>deployment unit</strong> = instances sharing the same processor name + lease config but different instance names; leases are auto-distributed (one lease owned by one instance at a time).</li>
+          <li>Reading the change feed consumes RUs on the monitored and lease containers.</li>
+          <li>Start position: default is only new changes; use <code>WithStartTime</code> (or <code>DateTime.MinValue.ToUniversalTime()</code> to read from the beginning) — latest version mode only.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-csharp">ChangeFeedProcessor processor = monitoredContainer
+    .GetChangeFeedProcessorBuilder&lt;Order&gt;("orderProcessor", HandleChangesAsync)
+    .WithInstanceName("host-1")
+    .WithLeaseContainer(leaseContainer)
+    .Build();
+
+await processor.StartAsync();
+
+static async Task HandleChangesAsync(
+    IReadOnlyCollection&lt;Order&gt; changes, CancellationToken ct)
+{
+    foreach (Order o in changes)
+    {
+        // process each changed item (idempotently)
+    }
+}</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> Scale out by starting more instances with the <em>same</em> processor name and lease container but <em>different</em> instance names — the processor rebalances leases automatically.</div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>The change feed processor is a .NET v3 / Java v4 feature; Python and Node.js use the pull model with manual continuation tokens.</li>
+          <li>Delivery is at-least-once — make the delegate idempotent to tolerate reprocessing.</li>
+          <li>Latest version mode won't surface deletes or intermediate updates.</li>
+          <li>Instances in one deployment unit must share the processor name; unique instance names identify each host.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Which two containers must a change feed processor be given?</summary>
+          <div class="answer"><b>Answer:</b> The monitored container (source of changes) and the lease container (state and coordination). <em>Why:</em> The processor reads changes from the monitored container and stores checkpoints/lease ownership in the lease container.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A single processor instance can't keep up. How do you scale without code changes to the delegate?</summary>
+          <div class="answer"><b>Answer:</b> Start additional instances with the same processor name and lease container but different instance names. <em>Why:</em> Instances in the same deployment unit automatically share leases, distributing the partitions across hosts.</div>
+        </details>
+        <details class="q"><summary><b>Q3.</b> A Python developer wants to consume the change feed. Can they use the change feed processor?</summary>
+          <div class="answer"><b>Answer:</b> No — they use the change feed pull model. <em>Why:</em> The change feed processor is available in the .NET v3 and Java v4 SDKs; Python and Node.js read the change feed via the pull model.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-processor">Change feed processor in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed">Change feed in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.2.3 -->
+    <section class="objective" id="obj-4-2-3" data-skill="change-feed-estimator">
+      <h3 id="o-4-2-3">4.2.3 Manage the Number of Change Feed Instances by Using the Change Feed Estimator</h3>
+
+      <div class="concept">
+        <p>The <strong>change feed estimator</strong> measures <strong>lag</strong> — the gap between the last item your processor has handled (from the lease state) and the latest change in the container. Rising lag means your processing rate is below your change rate, signaling that you should <strong>scale out</strong> the processor.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Push model:</strong> <code>GetChangeFeedEstimatorBuilder(name, delegate, interval)</code> pushes the count of pending changes to your delegate (default interval 5 seconds).</li>
+          <li><strong>On-demand model:</strong> <code>GetChangeFeedEstimator(name, leaseContainer).GetCurrentStateIterator()</code> returns per-lease <code>EstimatedLag</code> plus the owning <code>InstanceName</code>.</li>
+          <li>The estimator must share the <strong>same lease container and processor name</strong> as the processor it monitors.</li>
+          <li>Deploy it on an <strong>independent instance</strong>; each estimation consumes RUs (a ~1-minute frequency is a good starting point).</li>
+          <li>Works in both change feed modes; the estimate is approximate, not an exact count.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-csharp">// On-demand: detailed lag per lease and owning instance
+ChangeFeedEstimator estimator = monitoredContainer
+    .GetChangeFeedEstimator("orderProcessor", leaseContainer);
+
+using FeedIterator&lt;ChangeFeedProcessorState&gt; it = estimator.GetCurrentStateIterator();
+while (it.HasMoreResults)
+{
+    foreach (ChangeFeedProcessorState s in await it.ReadNextAsync())
+    {
+        Console.WriteLine($"Lease {s.LeaseToken} owned by {s.InstanceName}: lag {s.EstimatedLag}");
+    }
+}</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>The estimator and processor must match on processor name + lease container, or the lag reading is meaningless.</li>
+          <li>Consistently high or growing lag → add processor instances; near-zero lag → you may be over-provisioned.</li>
+          <li>The estimator itself consumes RUs; don't poll it too aggressively.</li>
+          <li>Use the on-demand iterator when you need per-lease detail and which host owns each lease.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A change feed processor's estimator reports steadily increasing lag. What action does this suggest?</summary>
+          <div class="answer"><b>Answer:</b> Scale out by adding more processor instances. <em>Why:</em> Growing lag means changes arrive faster than they're processed; adding instances distributes leases and increases throughput.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> What must the estimator share with the processor it monitors?</summary>
+          <div class="answer"><b>Answer:</b> The same lease container and the same processor name. <em>Why:</em> The estimator derives lag from the processor's lease state, so both identifiers must match.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-use-change-feed-estimator">Use the change feed estimator</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.2.4 -->
+    <section class="objective" id="obj-4-2-4" data-skill="cf-denormalization">
+      <h3 id="o-4-2-4">4.2.4 Implement Denormalization by Using a Change Feed</h3>
+
+      <div class="concept">
+        <p>Cosmos DB favors denormalized, read-optimized data. The change feed is the engine that keeps those denormalized copies in sync: as items change in a source container, a processor propagates the relevant fields into other containers or partitions shaped for specific read patterns. This is a <strong>data-movement</strong> pattern with <strong>eventual consistency</strong>.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Use the change feed to replicate/copy data into a container with a <strong>different partition key</strong> optimized for a query.</li>
+          <li>Denormalization trades write amplification (maintaining copies) for cheaper, single-partition reads.</li>
+          <li>Replication through the change feed is <strong>eventually consistent</strong> — copies lag the source briefly.</li>
+          <li>Order is guaranteed only <strong>within a partition key value</strong>, so choose a key that keeps related updates ordered.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="change-feed-patterns">
+        <figcaption>The change feed drives denormalization, aggregation, referential, and archival patterns by reacting to each write.</figcaption>
+      </figure>
+
+      <div class="code">
+        <pre><code class="lang-csharp">// Denormalize product name into an orders-by-customer view
+static async Task HandleChangesAsync(IReadOnlyCollection&lt;Product&gt; changes, CancellationToken ct)
+{
+    foreach (Product p in changes)
+    {
+        var patch = new[] { PatchOperation.Set("/productName", p.Name) };
+        // update every order copy that embeds this product
+        await ordersView.PatchItemAsync&lt;dynamic&gt;(p.Id, new PartitionKey(p.Id), patch);
+    }
+}</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Denormalization via change feed is eventually consistent — don't rely on instant propagation.</li>
+          <li>Pick the destination partition key for the target query, not the source.</li>
+          <li>Order guarantees exist only within a single partition key value.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Product names are embedded in millions of order documents. When a product is renamed, how do you keep the embedded copies current?</summary>
+          <div class="answer"><b>Answer:</b> Use the products container's change feed to propagate the new name into the order copies. <em>Why:</em> The change feed reacts to each product update and lets a processor patch the denormalized copies, keeping read-optimized data in sync (eventually).</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> What consistency should you expect for data replicated through the change feed?</summary>
+          <div class="answer"><b>Answer:</b> Eventual consistency. <em>Why:</em> Change-feed-based replication propagates changes asynchronously, so destination copies briefly lag the source.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns">Change feed design patterns</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.2.5 -->
+    <section class="objective" id="obj-4-2-5" data-skill="cf-referential">
+      <h3 id="o-4-2-5">4.2.5 Implement Referential Enforcement by Using a Change Feed</h3>
+
+      <div class="concept">
+        <p>Cosmos DB has no foreign-key constraints, so referential integrity is enforced in application logic. An <strong>event-computing</strong> pattern on the change feed watches for changes and cascades related updates or deletes across containers — for example, removing or flagging child items when a parent is deleted.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>There are no server-side FK constraints; referential rules run in a change-feed consumer or Function.</li>
+          <li>On each change, validate references and cascade updates/deletes to dependent items in other containers.</li>
+          <li>Latest version mode doesn't emit deletes — model deletes as a <strong>soft-delete</strong> flag so the consumer can act on them.</li>
+          <li>Order is guaranteed only within a partition key value; choose a key that groups related events for correct sequencing.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-csharp">// Cascade a soft-deleted customer to their orders
+static async Task HandleChangesAsync(IReadOnlyCollection&lt;Customer&gt; changes, CancellationToken ct)
+{
+    foreach (Customer c in changes)
+    {
+        if (c.Deleted)
+        {
+            // mark or remove dependent order documents
+            await ArchiveOrdersForCustomerAsync(c.Id);
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Because latest version mode drops deletes, use a <code>deleted:true</code> marker to trigger cascades.</li>
+          <li>Enforcement is eventually consistent — a brief window exists where references are stale.</li>
+          <li>Keep parent and related events under a partition key that preserves their order when sequence matters.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> When a customer is deleted, all their orders must be archived, but the change feed in latest version mode never delivers deletes. How do you trigger the cascade?</summary>
+          <div class="answer"><b>Answer:</b> Soft-delete the customer with a <code>deleted:true</code> flag so the update appears in the change feed. <em>Why:</em> Latest version mode captures the update (not a hard delete), letting the consumer detect the flag and cascade the archival.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Why can't you rely on database foreign keys for this in Cosmos DB?</summary>
+          <div class="answer"><b>Answer:</b> Cosmos DB has no foreign-key constraints. <em>Why:</em> Referential integrity is an application concern; the change feed is the mechanism to enforce it across containers.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns">Change feed design patterns</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-modes">Change feed modes</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.2.6 -->
+    <section class="objective" id="obj-4-2-6" data-skill="cf-aggregation">
+      <h3 id="o-4-2-6">4.2.6 Implement Aggregation Persistence by Using a Change Feed</h3>
+
+      <div class="concept">
+        <p>Rather than recomputing aggregates on every read, use the change feed to maintain a <strong>materialized view</strong>: as source items change, a processor updates running totals, counts, or rankings and <strong>persists them back</strong> to Cosmos DB. Classic example — a real-time leaderboard built from completed-game scores.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Process change-feed events, compute an aggregate, and write the result back to a summary container/item.</li>
+          <li>Reads then hit a small, precomputed document instead of scanning and aggregating raw data — far fewer RUs.</li>
+          <li>Well suited to leaderboards, counters, and rolling totals updated in near real-time.</li>
+          <li>Make updates idempotent (at-least-once delivery) and keep related events under one partition key for correct ordering.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-csharp">// Maintain a per-player running score in a summary container
+static async Task HandleChangesAsync(IReadOnlyCollection&lt;GameResult&gt; changes, CancellationToken ct)
+{
+    foreach (GameResult g in changes)
+    {
+        var patch = new[] { PatchOperation.Increment("/totalScore", g.Points) };
+        await leaderboard.PatchItemAsync&lt;dynamic&gt;(g.PlayerId, new PartitionKey(g.PlayerId), patch);
+    }
+}</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Persisting aggregates converts expensive read-time aggregation into cheap point reads of a summary doc.</li>
+          <li>At-least-once delivery means a naïve increment could double-count on reprocessing — design for idempotency.</li>
+          <li>The materialized view lives in Cosmos DB, so it inherits high availability and low-latency reads.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A gaming app needs a real-time leaderboard without scanning millions of game records per request. What pattern fits?</summary>
+          <div class="answer"><b>Answer:</b> Use the change feed to aggregate scores and persist per-player totals back to a summary container. <em>Why:</em> Maintaining a materialized view via the change feed lets reads fetch a precomputed leaderboard document cheaply instead of aggregating raw data.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Why must the aggregation logic be idempotent?</summary>
+          <div class="answer"><b>Answer:</b> The change feed delivers at least once, so an event may be processed more than once. <em>Why:</em> Without idempotency, reprocessing could double-count and corrupt the persisted aggregate.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns">Change feed design patterns</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.2.7 -->
+    <section class="objective" id="obj-4-2-7" data-skill="cf-archival">
+      <h3 id="o-4-2-7">4.2.7 Implement Data Archiving by Using a Change Feed</h3>
+
+      <div class="concept">
+        <p>Use the change feed for <strong>data tiering</strong>: keep hot, frequently accessed data in Cosmos DB and age cold data out to cheaper storage such as <strong>Azure Blob Storage</strong>. A processor reads changes and copies aged records to the archive tier, optionally combined with TTL to remove them from the live container.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Change feed feeds a processor/Function that writes cold records to Blob Storage (or a data warehouse/cold store).</li>
+          <li>Combine with <strong>TTL</strong> to auto-expire archived items from the operational container after they're safely copied.</li>
+          <li>Latest version mode doesn't capture deletes — use a soft-delete marker + TTL if the archival flow must observe removals.</li>
+          <li>Keeps the hot container small (lower RU/storage cost) while retaining history cheaply.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-csharp">// Archive aged orders to Blob Storage, then let TTL expire them
+static async Task HandleChangesAsync(IReadOnlyCollection&lt;Order&gt; changes, CancellationToken ct)
+{
+    foreach (Order o in changes)
+    {
+        if (o.IsAged)
+        {
+            await blobContainer
+                .GetBlobClient($"orders/{o.Id}.json")
+                .UploadAsync(BinaryData.FromObjectAsJson(o), overwrite: true, ct);
+            // container TTL removes the item from Cosmos DB later
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> Pairing change-feed archival with TTL keeps the operational container lean — history lives cheaply in Blob Storage while hot data stays in Cosmos DB.</div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>TTL deletes are the common way to purge the live copy after archival; ensure the copy succeeds first.</li>
+          <li>Cold storage (Blob) is far cheaper than Cosmos DB storage/throughput for rarely read history.</li>
+          <li>If archival must react to deletions, use soft-delete + TTL because latest version mode omits hard deletes.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A container grows without bound but only the last 90 days are queried. How do you keep it lean while retaining history cheaply?</summary>
+          <div class="answer"><b>Answer:</b> Use the change feed to copy aged items to Azure Blob Storage and set TTL to expire them from Cosmos DB. <em>Why:</em> This tiers hot data in Cosmos DB and cold data in cheap Blob Storage, shrinking RU/storage cost on the live container.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Why combine archival with TTL rather than hard-deleting in code?</summary>
+          <div class="answer"><b>Answer:</b> TTL automatically removes the live copy after archival without extra delete operations or RU-costly cleanup jobs. <em>Why:</em> Setting TTL lets Cosmos DB expire archived items on its own once they've been copied to cold storage.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/change-feed-design-patterns">Change feed design patterns</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/change-feed-modes">Change feed modes</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 4.3 Define and Implement an Indexing Strategy ===== -->
+  <section class="skillgroup" id="sg-4-3">
+    <h2 id="g-4-3">4.3 Define and Implement an Indexing Strategy for Azure Cosmos DB for NoSQL</h2>
+
+    <!-- 4.3.1 -->
+    <section class="objective" id="obj-4-3-1" data-skill="read-vs-write">
+      <h3 id="o-4-3-1">4.3.1 Choose When to Use a Read-Heavy Versus Write-Heavy Index Strategy</h3>
+
+      <div class="concept">
+        <p>Indexing is a trade-off. Every indexed path <strong>speeds reads</strong> but <strong>adds RU cost to writes</strong>. The right strategy depends on your workload's read/write mix: index generously for read-heavy workloads, and trim indexed paths for write-heavy ones.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Write-heavy:</strong> exclude paths you never query so each write updates fewer index entries — lower write RUs and latency.</li>
+          <li><strong>Read-heavy:</strong> index the paths you filter and order on, and add composite indexes to make queries cheaper and faster.</li>
+          <li>The default (index everything) favors reads at the expense of write cost — tune it toward your actual pattern.</li>
+          <li>Measure with query metrics (read cost) and observe write RU charges to validate the trade-off.</li>
+        </ul>
+      </div>
+
+      <div class="callout key">
+        <b>Key:</b> More indexes = cheaper reads, pricier writes. Match the number of indexed paths to whether the container is read-heavy or write-heavy.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>An ingestion/logging container that's rarely queried is a prime candidate for aggressive path exclusion.</li>
+          <li>A reporting/lookup container benefits from more (including composite) indexes.</li>
+          <li>Don't blindly disable all indexing — you still need indexes for the queries you do run, and for TTL.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A telemetry container ingests millions of writes per hour and is queried only occasionally on two fields. What indexing strategy minimizes write cost?</summary>
+          <div class="answer"><b>Answer:</b> Exclude <code>/*</code> and include only the two queried paths (a write-heavy strategy). <em>Why:</em> Indexing only the paths you actually query minimizes per-write index maintenance, cutting write RUs on the high-ingest workload.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A read-heavy catalog runs many multi-field filters and sorts. What should you add?</summary>
+          <div class="answer"><b>Answer:</b> More indexes, including composite indexes for the multi-field queries. <em>Why:</em> Read-heavy workloads benefit from richer indexing that serves filters and ORDER BY efficiently, lowering query RUs.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/index-overview">Indexing in Azure Cosmos DB overview</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy">Indexing policies</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.3.2 -->
+    <section class="objective" id="obj-4-3-2" data-skill="index-types">
+      <h3 id="o-4-3-2">4.3.2 Choose an Appropriate Index Type</h3>
+
+      <div class="concept">
+        <p>Cosmos DB offers several index <strong>kinds</strong>, each suited to a class of query. Picking the right kind — and adding the ones that aren't created by default — is central to an effective indexing strategy.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Range:</strong> equality and range comparisons, ORDER BY on a single property, and string prefixes — the default for strings and numbers.</li>
+          <li><strong>Spatial:</strong> geospatial queries over Point, Polygon, MultiPolygon, and LineString — <em>not</em> created by default, so add it explicitly.</li>
+          <li><strong>Composite:</strong> required for ORDER BY on two or more properties and efficient for multi-property filters.</li>
+          <li>Specialized kinds also exist (vector, full-text, tuple) for AI/search scenarios.</li>
+        </ul>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Range indexes cover most everyday queries; you rarely add them manually since they're default.</li>
+          <li>Spatial and composite indexes must be defined explicitly — they're not in the default policy.</li>
+          <li>If a scenario mentions sorting by more than one field, the answer is a composite index.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An app runs proximity searches over GPS coordinates but the queries are slow and unindexed. Which index kind is needed?</summary>
+          <div class="answer"><b>Answer:</b> A spatial index. <em>Why:</em> Geospatial queries (Point/Polygon/LineString) require a spatial index, which is not created by default and must be added explicitly.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> Which index kind serves single-property equality, range, and ORDER BY by default?</summary>
+          <div class="answer"><b>Answer:</b> A range index. <em>Why:</em> Range indexes are the default for strings and numbers and handle equality, range, prefix, and single-property ORDER BY.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/index-overview">Indexing overview (index kinds)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/sql-query-geospatial-index">Geospatial and spatial indexing</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.3.3 -->
+    <section class="objective" id="obj-4-3-3" data-skill="portal-policy">
+      <h3 id="o-4-3-3">4.3.3 Configure a Custom Indexing Policy by Using the Azure Portal</h3>
+
+      <div class="concept">
+        <p>You can edit a container's indexing policy directly in the <strong>Azure portal</strong>. In Data Explorer, open the container's settings, edit the policy JSON, and save — Cosmos DB applies the change through an online index transformation.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Data Explorer → container → <strong>Settings / Scale &amp; Settings → Indexing Policy</strong> → edit JSON → <strong>Save</strong>.</li>
+          <li>Saving triggers an asynchronous index transformation; the container stays available for reads and writes.</li>
+          <li>Edit included/excluded paths, indexing mode, and composite/spatial indexes in the same JSON document.</li>
+          <li>The same policy can also be set via SDK, ARM/Bicep, or CLI — the portal is the interactive option.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-json">{
+  "indexingMode": "consistent",
+  "includedPaths": [ { "path": "/*" } ],
+  "excludedPaths": [ { "path": "/_etag/?" } ],
+  "compositeIndexes": [
+    [
+      { "path": "/lastName", "order": "ascending" },
+      { "path": "/firstName", "order": "ascending" }
+    ]
+  ]
+}</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Changes are online — the container isn't taken offline while the transformation runs.</li>
+          <li>The portal validates the JSON; the root <code>/*</code> must still be included or excluded.</li>
+          <li>Large containers take time to fully re-index after a policy change; new indexes aren't used until the transformation completes.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Where in the Azure portal do you change a container's indexing policy?</summary>
+          <div class="answer"><b>Answer:</b> Data Explorer → the container's Settings/Scale &amp; Settings → Indexing Policy, then edit the JSON and Save. <em>Why:</em> The portal exposes the policy JSON per container in its settings pane and applies edits via an online transformation.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> After saving a policy that adds a composite index, why don't queries immediately use it?</summary>
+          <div class="answer"><b>Answer:</b> The index transformation must finish first. <em>Why:</em> Adding an index requires an asynchronous re-index; existing indexes are used until the transformation completes.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-indexing-policy">Manage indexing policies</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy">Indexing policies reference</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.3.4 -->
+    <section class="objective" id="obj-4-3-4" data-skill="composite-index">
+      <h3 id="o-4-3-4">4.3.4 Implement a Composite Index</h3>
+
+      <div class="concept">
+        <p>A <strong>composite index</strong> spans two or more properties and is <strong>required</strong> for ORDER BY on multiple properties. It also makes multi-property filters efficient. Each composite index is an ordered set of path + sort-order entries, and the <strong>sequence and order must match the query</strong>.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Defined under <code>compositeIndexes</code> as arrays of <code>{ path, order }</code>; each path has an implicit <code>/?</code> and <strong>no <code>/*</code> wildcard</strong> is allowed.</li>
+          <li><strong>Multi-property ORDER BY:</strong> the composite path sequence and ASC/DESC must match the ORDER BY; the fully reversed order also works.</li>
+          <li><strong>Multi-property filters:</strong> equality filters come first; at most <strong>one range filter</strong> (&gt;, &lt;, &gt;=, &lt;=, !=) and it must be <strong>last</strong>. Multiple range filters need multiple composite indexes.</li>
+          <li><strong>Filter + ORDER BY:</strong> list filtered properties first in the ORDER BY definition.</li>
+          <li>By default no composite indexes exist; after you add one, existing range indexes serve queries until the transformation completes.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="composite-index">
+        <figcaption>A composite index lists ordered path/direction pairs that must line up with a query's multi-property ORDER BY or filter.</figcaption>
+      </figure>
+
+      <div class="code">
+        <pre><code class="lang-json">{
+  "compositeIndexes": [
+    [
+      { "path": "/category", "order": "ascending" },
+      { "path": "/price", "order": "descending" }
+    ]
+  ]
+}
+/* Serves: SELECT * FROM c
+           WHERE c.category = 'books'
+           ORDER BY c.category ASC, c.price DESC */</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> A composite index for <code>(category ASC, price DESC)</code> serves that exact ORDER BY and its full reverse <code>(category DESC, price ASC)</code> — but not a different mix like <code>(category ASC, price ASC)</code>.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>ORDER BY on 2+ properties fails or is inefficient without a matching composite index.</li>
+          <li>Only one range filter per composite index, and it must be the last path.</li>
+          <li>Wildcards (<code>/*</code>) aren't allowed in composite index paths.</li>
+          <li>Path order matters: equality props first, range prop last; for filter + sort, filtered props lead the ORDER BY.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A query <code>ORDER BY c.lastName ASC, c.firstName ASC</code> returns an error about needing an index. What must you add?</summary>
+          <div class="answer"><b>Answer:</b> A composite index on <code>(lastName ASC, firstName ASC)</code>. <em>Why:</em> ORDER BY across two or more properties requires a composite index whose path sequence and sort orders match the query.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A query filters on equality of <code>status</code> and a range on <code>createdDate</code>. How should the composite index be ordered?</summary>
+          <div class="answer"><b>Answer:</b> <code>status</code> first (equality), <code>createdDate</code> last (the single range filter). <em>Why:</em> Composite indexes place equality filters first and allow one range filter, which must be the last path.</div>
+        </details>
+        <details class="q"><summary><b>Q3.</b> Does a composite index on <code>(a ASC, b ASC)</code> serve <code>ORDER BY a DESC, b DESC</code>?</summary>
+          <div class="answer"><b>Answer:</b> Yes. <em>Why:</em> A composite index serves the defined order and its complete reverse, so <code>(a ASC, b ASC)</code> also covers <code>(a DESC, b DESC)</code>.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/index-policy">Composite indexes in indexing policies</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-indexing-policy">Manage indexing policies</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 4.3.5 -->
+    <section class="objective" id="obj-4-3-5" data-skill="optimize-index">
+      <h3 id="o-4-3-5">4.3.5 Optimize Index Performance</h3>
+
+      <div class="concept">
+        <p>Optimizing indexing means getting the most query benefit for the least write overhead, and using metrics to find what's missing or wasted. The core moves: exclude unqueried paths, add composite indexes for real query shapes, index the partition key path when needed, and batch policy changes.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Keep <code>/*</code> included and <strong>exclude large unqueried subtrees</strong> to lower write RUs while auto-indexing new fields.</li>
+          <li>Add <strong>composite indexes</strong> for multi-property ORDER BY and multi-filter queries.</li>
+          <li>If you exclude <code>/*</code>, <strong>index the partition key path</strong> (unless it's <code>/id</code>) to avoid full scans on partition-hierarchy filters.</li>
+          <li>Group multiple policy edits into <strong>one transformation</strong>, and <strong>add before removing</strong> when swapping indexes.</li>
+          <li>Use <strong>index metrics</strong> and <code>IndexHitRatio</code> to spot missing indexes (scans) and unused ones (wasted write cost).</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-csharp">// Surface index recommendations while tuning a slow query
+var options = new QueryRequestOptions { PopulateIndexMetrics = true };
+using FeedIterator&lt;dynamic&gt; it = container.GetItemQueryIterator&lt;dynamic&gt;(
+    "SELECT * FROM c WHERE c.category = 'books' ORDER BY c.price DESC", requestOptions: options);
+FeedResponse&lt;dynamic&gt; page = await it.ReadNextAsync();
+Console.WriteLine(page.IndexMetrics); // shows used and potential indexes</code></pre>
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>A low IndexHitRatio (many retrieved, few output) points to a missing index or a scan-forcing query.</li>
+          <li>Unused indexes cost write RUs for no read benefit — remove them.</li>
+          <li>Add-before-remove keeps queries served during an index swap; removals are instant, additions aren't.</li>
+          <li><code>PopulateIndexMetrics</code> has overhead — enable it only while debugging.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A slow query is suspected of missing an index. Which SDK option surfaces used and recommended indexes?</summary>
+          <div class="answer"><b>Answer:</b> <code>PopulateIndexMetrics</code> on the query request options. <em>Why:</em> Enabling index metrics returns which indexes the query used and which potential indexes would help — ideal for debugging, though it adds overhead.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> You need to replace one composite index with another without slowing queries during the change. What's the safe sequence?</summary>
+          <div class="answer"><b>Answer:</b> Add the new composite index, wait for the transformation to finish, then remove the old one. <em>Why:</em> Index additions require a transformation before use while removals are instant; add-before-remove avoids a gap in index coverage.</div>
+        </details>
+      </div>
+
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/index-metrics">Index metrics in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/query-metrics">Tuning query performance</a></li>
+      </ul></div>
+    </section>
+  </section>
+</section>

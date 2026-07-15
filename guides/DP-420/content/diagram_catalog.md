@@ -1,0 +1,29 @@
+# Diagram catalog (id — concept). Reference in HTML via <figure class="diagram" data-svg="ID">.
+
+- cosmos-hierarchy
+- request-units
+- throughput-modes
+- logical-physical-partitions
+- partition-key-quality
+- synthetic-partition-key
+- hierarchical-partition-key
+- embed-vs-reference
+- consistency-levels
+- global-distribution
+- multi-region-writes
+- connectivity-modes
+- point-vs-query
+- transactional-batch
+- change-feed
+- change-feed-patterns
+- analytical-store-htap
+- indexing-policy
+- composite-index
+- integrated-cache
+- backup-modes
+- security-layers
+- rbac-planes
+- data-movement
+- devops-arm
+- ttl
+- monitor-metrics

@@ -1,0 +1,580 @@
+<section class="domain" id="domain2" data-domain="2">
+  <h1 id="d2">Domain 2 — Design and Implement Data Distribution <span class="weight">5–10%</span></h1>
+  <p class="domain-intro">Azure Cosmos DB is a globally distributed database, and this domain covers how you spread data across Azure regions, choose the right consistency guarantee, plan for regional failures, and enable active-active writes. Although only 5–10% of the exam, these topics generate some of the most nuanced questions: the five consistency levels and their trade-offs in latency, RU cost, and availability; the difference between service-managed and manual failover; and how conflict resolution works when every region can accept writes. Master the consistency table and the failover behaviours and you will bank these points quickly.</p>
+
+  <!-- ===== 2.1 Design and implement a replication strategy ===== -->
+  <section class="skillgroup" id="sg-2-1">
+    <h2 id="g-2-1">2.1 Design and implement a replication strategy</h2>
+
+    <!-- 2.1.1 -->
+    <section class="objective" id="obj-2-1-1" data-skill="choose-distribution">
+      <h3 id="o-2-1-1">2.1.1 Choose when to distribute data</h3>
+
+      <div class="concept">
+        <p>An Azure Cosmos DB account can transparently replicate its data across any number of Azure regions. You associate regions with the account to place data near your users, and Azure Cosmos DB keeps every region synchronised according to the account's consistency level. Because distribution is a configuration setting rather than an application concern, you can <strong>add or remove regions at any time with no application redeploy and no downtime</strong>.</p>
+        <p>Distributing data is not free: each region carries its own provisioned throughput (RU/s) and storage charge, so you distribute deliberately — to cut user latency, survive regional outages, or satisfy data-residency requirements.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Reasons to distribute:</strong> lower read/write latency (data near users), business continuity during a regional outage, global read/write scale, and data-residency compliance.</li>
+          <li>Regions can be <strong>added or removed dynamically</strong> without redeploying or pausing the application; the account stays highly available during the change.</li>
+          <li>Throughput (RU/s) is billed <strong>per region</strong>, so each added region multiplies cost — distribute intentionally.</li>
+          <li><strong>Serverless accounts are single-region only.</strong> Global distribution requires provisioned (manual or autoscale) throughput.</li>
+          <li>A single-region account can still enable <strong>availability zones (zone redundancy)</strong> for intra-region resiliency without adding a second region.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="global-distribution"><figcaption>An Azure Cosmos DB account replicating a container across multiple Azure regions to place data near users.</figcaption></figure>
+
+      <div class="callout key">
+        <b>Key:</b> Serverless cannot be globally distributed. If a scenario needs multiple regions, the account must use provisioned throughput.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Adding/removing a region requires <em>no</em> code change and <em>no</em> downtime — watch for distractors claiming redeployment is needed.</li>
+          <li>Serverless = one region. Global distribution ⇒ provisioned throughput.</li>
+          <li>Every extra region multiplies RU/s cost; distribution improves latency/availability but raises the bill.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An architect wants a single Cosmos DB account to serve low-latency reads from three continents and survive a regional outage. The current account is serverless. What must change first?</summary>
+          <div class="answer"><b>Answer:</b> Convert the account to provisioned (or autoscale) throughput. <em>Why:</em> Serverless accounts are single-region only, so global distribution is impossible until the account uses provisioned throughput; only then can additional regions be associated.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A team is told that adding a fourth region to their Cosmos DB account will require an application redeployment and a maintenance window. Is this correct?</summary>
+          <div class="answer"><b>Answer:</b> No — regions can be added at any time with no redeploy and no downtime. <em>Why:</em> Azure Cosmos DB begins replicating to the new region while the account stays available; the only planning needed is for the added RU/s and storage cost.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/distribute-data-globally">Distribute your data globally with Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/serverless">Azure Cosmos DB serverless</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.1.2 -->
+    <section class="objective" id="obj-2-1-2" data-skill="automatic-failover">
+      <h3 id="o-2-1-2">2.1.2 Define automatic (service-managed) failover policies for regional failure</h3>
+
+      <div class="concept">
+        <p>For a single-write-region (single-master) account, <strong>service-managed failover</strong> lets Azure Cosmos DB automatically promote a read region to the write region if the write region suffers an outage. You configure it in two steps: enable service-managed failover on the account, then define a <strong>failover priority order</strong> that ranks each region. During a write-region outage, the highest-priority available region is promoted to write.</p>
+        <p>Service-managed failover trades control for automation. Because Microsoft must first declare the outage, promotion can take <strong>an hour or more</strong>, so it is a safety net rather than a fast-recovery tool.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Configure by (1) enabling <strong>service-managed failover</strong> and (2) setting a <strong>failover priority</strong> for each region; the top available priority becomes the new write region.</li>
+          <li>Triggering can take <strong>~1 hour or more</strong> because Microsoft must declare the outage first — for faster recovery, perform a manual (forced) failover instead.</li>
+          <li>Unless the account uses <strong>strong</strong> consistency (RPO 0), any writes not yet replicated when the region failed can be lost.</li>
+          <li>The recovered region is <strong>not</strong> promoted back to write automatically — you must change the write region back manually when it is safe.</li>
+          <li><strong>Per-partition automatic failover (PPAF)</strong> is a separate, faster (public preview) option that fails over individual partitions automatically, typically within ~3 minutes.</li>
+          <li>Configure via the Azure portal, PowerShell, Azure CLI, or ARM/Bicep.</li>
+        </ul>
+      </div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> Service-managed failover is <em>not</em> instantaneous. If a scenario demands the fastest possible write recovery during an outage, the answer is a manual forced failover, not service-managed failover.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Two steps: enable service-managed failover <em>and</em> set failover priorities. Missing either means no automatic promotion.</li>
+          <li>Promotion may take an hour+; use forced failover for speed.</li>
+          <li>Recovered region does not auto-return to write — you flip it back manually.</li>
+          <li>Only strong consistency guarantees zero data loss on write-region failover.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A single-write-region account has service-managed failover enabled but no failover priority order configured. The write region goes down. What happens?</summary>
+          <div class="answer"><b>Answer:</b> Nothing is promoted automatically — you must set a failover priority order in advance. <em>Why:</em> Automatic promotion needs both the feature enabled and a ranked priority list; with no ranked target, the reliable fix during the outage is a manual forced failover to a healthy region.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> After a service-managed failover, the original write region comes back online. Operations assume it will automatically resume as the write region. Are they right?</summary>
+          <div class="answer"><b>Answer:</b> No — a recovered region rejoins as a read region and is not auto-promoted back to write. <em>Why:</em> An operator must explicitly change the write region back once it is safe; doing so on healthy regions causes no data or availability loss.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/reliability/reliability-cosmos-db">Reliability in Azure Cosmos DB (failover behavior)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-database-account">Manage an Azure Cosmos DB account (enable service-managed failover, set priorities)</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.1.3 -->
+    <section class="objective" id="obj-2-1-3" data-skill="manual-failover">
+      <h3 id="o-2-1-3">2.1.3 Perform manual failovers to move single-master write regions</h3>
+
+      <div class="concept">
+        <p>A <strong>manual (forced) failover</strong> — also called a customer-managed failover or offline-region operation — lets you take a region offline on demand. It is the recommended way to <strong>quickly restore write availability during an outage</strong>, because you do not wait for Microsoft to declare the outage. Taking the write region offline promotes the next-highest-priority read region to write.</p>
+        <p>When all regions are healthy, a related operation — <strong>change write region (planned failover)</strong> — deliberately moves writes to another region with <strong>zero data loss</strong>, because replication catches up before the switch. Planned failover requires healthy regions, so it cannot be used during an actual outage.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Forced failover</strong> = you trigger it; recommended for fast recovery during an outage. A forced failover of the write region can lose unreplicated writes.</li>
+          <li><strong>Change write region (planned failover)</strong> = deliberate move when regions are healthy; <strong>no data loss</strong> (replication catches up first); requires healthy regions so it cannot run during an outage.</li>
+          <li>Manual failover is the standard way to run <strong>disaster-recovery drills</strong>: temporarily disable service-managed failover, force a failover, observe the app, then fail back.</li>
+          <li>During an outage, do <strong>not</strong> run control-plane operations (change write region, change consistency, modify networking) on the affected region — they delay recovery.</li>
+          <li>Trigger via Azure portal, PowerShell, or Azure CLI.</li>
+        </ul>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> Distinguish the two operations by health state — <em>forced</em> failover is for an outage (may lose data), <em>change write region</em> (planned) is for healthy regions (no data loss).
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Forced failover = outage recovery, possible data loss. Planned change write region = healthy regions, zero data loss.</li>
+          <li>Planned failover cannot be used <em>during</em> an outage (it needs region-to-region connectivity for a consistency check).</li>
+          <li>Use forced failover to simulate a region-down scenario in DR testing.</li>
+          <li>Avoid control-plane changes on an affected region mid-outage.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A regional outage has taken down the write region and the team needs writes restored as fast as possible. Service-managed failover is enabled but hasn't triggered yet. What should they do?</summary>
+          <div class="answer"><b>Answer:</b> Perform a manual forced failover to a healthy region. <em>Why:</em> Service-managed failover can take an hour or more to trigger, whereas a forced failover restores write availability quickly; any unreplicated writes may be lost unless the account uses strong consistency.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> An operations team wants to move the write region from East US to West Europe with no data loss during a normal maintenance window. Which operation fits?</summary>
+          <div class="answer"><b>Answer:</b> Use change write region (planned failover). <em>Why:</em> With all regions healthy, Azure Cosmos DB lets replication catch up before promoting West Europe, so there is no data loss and only a brief, retry-safe interruption; a forced failover would risk losing unreplicated writes.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-database-account">Manage an Azure Cosmos DB account (forced failover, change write region)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/reliability/reliability-cosmos-db">Reliability in Azure Cosmos DB (region-wide failure recovery)</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.1.4 -->
+    <section class="objective" id="obj-2-1-4" data-skill="choose-consistency">
+      <h3 id="o-2-1-4">2.1.4 Choose a consistency model</h3>
+
+      <div class="concept">
+        <p>Azure Cosmos DB offers <strong>five well-defined consistency levels</strong>, from strongest to weakest: <strong>Strong, Bounded staleness, Session, Consistent prefix, Eventual</strong>. Each is a precise contract about how current and how ordered your reads are. The account has a <strong>default consistency level of Session</strong>, set at the account scope and applied to every database and container.</p>
+        <p>You can override the account default per request, but only to a <strong>weaker</strong> level — never stronger than the account setting. This lets a single account serve strict reads by default while relaxing to eventual for cheap, high-throughput reads where staleness is acceptable.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Strong</strong> — linearizability: a read always returns the latest committed write; never a partial or uncommitted value.</li>
+          <li><strong>Bounded staleness</strong> — reads lag by at most <strong>K versions</strong> (updates) or <strong>T time</strong>, whichever comes first. Ideal for single-write-region accounts spanning multiple regions; an anti-pattern for multi-region writes.</li>
+          <li><strong>Session</strong> (default) — within a client session, guarantees read-your-writes and write-follows-reads via a partition-bound <strong>session token</strong>.</li>
+          <li><strong>Consistent prefix</strong> — reads never see writes out of order; a transactional batch becomes visible together.</li>
+          <li><strong>Eventual</strong> — weakest; no ordering guarantee; replicas eventually converge.</li>
+          <li>Set the default at the <strong>account level</strong>; override per request only to a <strong>weaker</strong> level.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="consistency-levels"><figcaption>The five consistency levels ordered from strongest (Strong) to weakest (Eventual), trading consistency against latency, availability, and throughput.</figcaption></figure>
+
+      <div class="callout key">
+        <b>Key:</b> Session is the default. A per-request override can only <em>weaken</em> consistency relative to the account default, never strengthen it.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Memorise the order: Strong → Bounded staleness → Session → Consistent prefix → Eventual.</li>
+          <li>Bounded staleness is bounded by <em>both</em> K (versions) and T (time) — whichever is hit first.</li>
+          <li>Session consistency is client/session-scoped and relies on the session token.</li>
+          <li>You cannot request a <em>stronger</em> level than the account default at request time.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> Which consistency level guarantees that a read never returns a write that is out of order, yet still allows some replication lag?</summary>
+          <div class="answer"><b>Answer:</b> Consistent prefix. <em>Why:</em> It guarantees reads never observe writes out of sequence (and a transactional batch appears together) while still permitting the replica to lag; Strong would eliminate lag entirely and Eventual gives no ordering guarantee.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> An account's default consistency is Session. A developer wants a specific read to return the absolute latest committed value by requesting Strong on that one call. Will it work?</summary>
+          <div class="answer"><b>Answer:</b> No. <em>Why:</em> Per-request overrides can only relax consistency to a weaker level than the account default, never strengthen it; to get Strong reads the account default itself must be raised to Strong (which also requires a single write region).</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels">Consistency levels in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-consistency">Manage consistency in Azure Cosmos DB (configure/override default)</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.1.5 -->
+    <section class="objective" id="obj-2-1-5" data-skill="consistency-use-cases">
+      <h3 id="o-2-1-5">2.1.5 Identify use cases for different consistency models</h3>
+
+      <div class="concept">
+        <p>Choosing a consistency level is a business decision as much as a technical one. The stronger the level, the more current and ordered your data — but at higher latency, more RU cost for reads, and lower availability during failures. Map each level to the correctness the scenario actually needs rather than defaulting to the strongest.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Strong</strong> — financial ledgers, inventory counts, or ordering where a stale read is unacceptable. Single write region only.</li>
+          <li><strong>Bounded staleness</strong> — globally distributed reads that must be near-current within a known bound, e.g. leaderboards or near-real-time dashboards, on a single-write-region account.</li>
+          <li><strong>Session</strong> (default) — user-centric apps needing read-your-writes: profiles, shopping carts, social timelines. Best overall balance.</li>
+          <li><strong>Consistent prefix</strong> — status transitions or comment threads where order matters but some lag is fine.</li>
+          <li><strong>Eventual</strong> — like counts, retweet counts, non-threaded reactions: maximum throughput/availability, ordering irrelevant.</li>
+        </ul>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> When a question stresses "the user must immediately see their own change," the answer is almost always <strong>Session</strong> — the default and the read-your-writes guarantee.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>"Read your own writes" ⇒ Session. "Absolutely latest, no staleness" ⇒ Strong.</li>
+          <li>"Near-current within a defined lag, globally" ⇒ Bounded staleness.</li>
+          <li>"Order matters but lag is OK" ⇒ Consistent prefix. "Counts/likes, order irrelevant" ⇒ Eventual.</li>
+          <li>Don't over-provision consistency — Strong costs more RUs and lowers availability.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A social app must ensure a user always sees their own most recent post immediately, while other users can tolerate slight delays. Which level is the best fit and why?</summary>
+          <div class="answer"><b>Answer:</b> Session consistency. <em>Why:</em> It guarantees read-your-writes within the user's own session via the session token, so the author always sees their new post, while keeping low latency and high throughput for everyone else; it is also the account default.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A "likes" counter on a media site needs the highest possible read throughput and availability; being off by a few for a second or two is acceptable. Which level fits?</summary>
+          <div class="answer"><b>Answer:</b> Eventual consistency. <em>Why:</em> Exact ordering and immediate currency are unnecessary for a like count, and Eventual gives the lowest latency, lowest read RU cost, and highest availability; stronger levels would waste RUs and reduce availability for no benefit.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels">Consistency levels and use cases in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.1.6 -->
+    <section class="objective" id="obj-2-1-6" data-skill="consistency-availability-ru">
+      <h3 id="o-2-1-6">2.1.6 Evaluate the impact of consistency on availability and request unit cost</h3>
+
+      <div class="concept">
+        <p>Consistency affects both your bill and your uptime. Stronger read consistency requires the service to consult more replicas, which <strong>doubles the read RU cost</strong> for the two strongest levels. Stronger consistency also reduces availability during failures, because more replicas/regions must agree before a read or write succeeds.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Read RU cost:</strong> Strong and Bounded staleness reads use a local minority quorum of <strong>two replicas</strong>, costing roughly <strong>2×</strong> the RUs of Session, Consistent prefix, and Eventual reads (single replica).</li>
+          <li><strong>Write RU cost is identical</strong> across all consistency levels for a given operation.</li>
+          <li><strong>Strong is not supported with multi-region writes;</strong> it needs a single write region and 2+ regions for dynamic quorum, and can lose write availability if the account drops below quorum.</li>
+          <li>Weaker levels (Session/Consistent prefix/Eventual) offer <strong>higher availability and throughput</strong>.</li>
+          <li><strong>RPO on region outage:</strong> Strong = 0; Bounded staleness = K &amp; T; Session/Consistent prefix/Eventual = &lt; 15 minutes (multi-region accounts).</li>
+        </ul>
+      </div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> Only <em>read</em> RU charges change with consistency. Write RU charges are the same at every level — a common exam trap.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Strong &amp; Bounded staleness reads ≈ 2× read RUs (two-replica quorum).</li>
+          <li>Write RU cost does not vary by consistency level.</li>
+          <li>Strong ⇒ single write region, lower availability, RPO 0.</li>
+          <li>Weaker levels ⇒ cheaper reads, higher availability/throughput, small RPO.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A team switches their read-heavy account from Session to Strong consistency and is surprised the RU consumption on reads roughly doubles. Why?</summary>
+          <div class="answer"><b>Answer:</b> Strong (and Bounded staleness) reads consult a two-replica local quorum, so they cost about 2× the RUs of single-replica reads. <em>Why:</em> That extra replica read is required to guarantee the latest committed value; write RU charges, by contrast, are unchanged by consistency level.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> An architect proposes Strong consistency on an account that uses multi-region writes for maximum correctness. What's the problem?</summary>
+          <div class="answer"><b>Answer:</b> Strong consistency is not supported with multi-region writes. <em>Why:</em> Strong requires a single write region and cross-region synchronous commits; to keep multi-region writes the team must choose Session, Consistent prefix, or Eventual (Bounded staleness is also an anti-pattern here) and handle write conflicts.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels">Consistency, availability, and performance tradeoffs</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/reliability/reliability-cosmos-db">Reliability in Azure Cosmos DB (availability and RPO)</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.1.7 -->
+    <section class="objective" id="obj-2-1-7" data-skill="consistency-performance">
+      <h3 id="o-2-1-7">2.1.7 Evaluate the impact of consistency on performance and latency</h3>
+
+      <div class="concept">
+        <p>All consistency levels deliver single-digit-millisecond latency at the 99th percentile — <strong>except Strong across multiple regions</strong>. Because a strong write must commit in every region before it is acknowledged, its latency scales with the distance between regions, which is why Azure Cosmos DB blocks strong consistency for very widely separated regions by default.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Reads:</strong> &lt; 10 ms at P99 (≈ 4 ms average) for all levels.</li>
+          <li><strong>Writes:</strong> &lt; 10 ms at P99 (≈ 5 ms average) for all levels <strong>except strong across multiple regions</strong>.</li>
+          <li><strong>Strong multi-region write latency ≈ 2× the round-trip time (RTT)</strong> between the two farthest regions <strong>+ 10 ms</strong> at P99.</li>
+          <li>Strong consistency for regions more than <strong>5,000 miles (8,000 km)</strong> apart is <strong>blocked by default</strong> (contact support to enable) because write latency becomes too high.</li>
+          <li>Stronger consistency ⇒ higher latency and higher read RU; weaker consistency ⇒ lower latency and higher throughput.</li>
+        </ul>
+      </div>
+
+      <div class="callout key">
+        <b>Key:</b> The performance penalty of Strong shows up on <em>writes across regions</em>. Within a single region, Strong writes are still single-digit-ms.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Only Strong multi-region writes break the &lt; 10 ms P99 guarantee.</li>
+          <li>Strong write latency ≈ 2× RTT + 10 ms between the farthest regions.</li>
+          <li>Strong is disabled by default for regions &gt; 5,000 mi / 8,000 km apart.</li>
+          <li>Reads stay &lt; 10 ms P99 at every level.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A global account with regions in Australia and Brazil cannot enable Strong consistency in the portal. Why, and what determines the latency if it were enabled?</summary>
+          <div class="answer"><b>Answer:</b> The regions are more than 5,000 miles (8,000 km) apart, so Strong is blocked by default. <em>Why:</em> If enabled via support, Strong write latency at P99 would be roughly 2× the round-trip time between the farthest regions plus ~10 ms — far above the usual single-digit-ms target.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A single-region account uses Strong consistency and the team worries writes will be slow. Are they right?</summary>
+          <div class="answer"><b>Answer:</b> No. <em>Why:</em> The latency penalty of Strong applies only to writes that must commit across multiple regions; in a single region there is no cross-region synchronous commit, so Strong writes still meet the &lt; 10 ms P99 target.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels">Consistency levels and latency in Azure Cosmos DB</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.1.8 -->
+    <section class="objective" id="obj-2-1-8" data-skill="connect-replicated-data">
+      <h3 id="o-2-1-8">2.1.8 Specify application connections to replicated data</h3>
+
+      <div class="concept">
+        <p>The SDK, not the service, decides which region a client talks to. You give the client an ordered list of <strong>preferred (application) regions</strong>; it reads from the first healthy region in the list and automatically reroutes to the next one if a region becomes unavailable — with no code change. This "multi-homing" is how an application stays responsive and available during a regional failure.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Configure a prioritised region list in the SDK: .NET v3 <code>ApplicationRegion</code> (single) or <code>ApplicationPreferredRegions</code> (ordered list); Java v4 <code>preferredRegions</code>; Python <code>preferred_locations</code>.</li>
+          <li>If a preferred read region is down, the SDK detects it via backend response codes and <strong>reroutes to the next region automatically</strong> — no application change required.</li>
+          <li>For multi-region-write accounts, point each client at the region it is hosted in for low-latency local writes.</li>
+          <li>Front globally distributed apps with a <strong>global load balancer (Azure Front Door / Traffic Manager)</strong> to route users to a healthy region.</li>
+          <li>Setting preferred regions correctly means most read-region outages are handled entirely client-side, with no service-side failover.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-json">// Configure an ordered preferred-region list (.NET v3 CosmosClientOptions)
+{
+  "ApplicationPreferredRegions": [
+    "West US 2",
+    "East US",
+    "North Europe"
+  ]
+}
+// The client reads from West US 2; if it is unavailable it
+// automatically falls back to East US, then North Europe.</code></pre>
+      </div>
+
+      <div class="callout tip">
+        <b>Tip:</b> A correctly ordered preferred-region list lets the SDK absorb most read-region outages transparently — no forced failover and no code change.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Region routing is an SDK client setting (<code>ApplicationPreferredRegions</code>), not a server setting.</li>
+          <li>SDK reroutes reads to the next preferred region automatically on outage.</li>
+          <li>Order the list by proximity/priority; the first healthy region wins.</li>
+          <li>Pair with Azure Front Door / Traffic Manager for end-to-end regional routing.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> During a read-region outage, an application keeps trying to read from the failed region and errors out, even though other regions are healthy. What is the most likely cause?</summary>
+          <div class="answer"><b>Answer:</b> The SDK's preferred-regions list is misconfigured or empty. <em>Why:</em> With <code>ApplicationPreferredRegions</code> set correctly, the client detects the outage from backend response codes and reroutes reads automatically; fixing the preferred-region configuration resolves the errors without any service-side failover.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A multi-region-write app hosted in East US and West Europe should minimise write latency for users on each continent. How should the clients be configured?</summary>
+          <div class="answer"><b>Answer:</b> Set each client's application/preferred region to its local hosting region (East US clients → East US, West Europe clients → West Europe). <em>Why:</em> With multi-region writes enabled, each client then commits locally with low latency while Azure Cosmos DB replicates asynchronously between the regions.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/troubleshoot-sdk-availability">Diagnose and troubleshoot SDK availability (preferred regions)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-multi-master">Configure multi-region writes in your applications</a></li>
+      </ul></div>
+    </section>
+  </section>
+
+  <!-- ===== 2.2 Design and implement multi-region writes ===== -->
+  <section class="skillgroup" id="sg-2-2">
+    <h2 id="g-2-2">2.2 Design and implement multi-region writes</h2>
+
+    <!-- 2.2.1 -->
+    <section class="objective" id="obj-2-2-1" data-skill="choose-multi-region-writes">
+      <h3 id="o-2-2-1">2.2.1 Choose when to use multi-region writes</h3>
+
+      <div class="concept">
+        <p><strong>Multi-region writes</strong> (formerly "multi-master") make every associated region both readable and writable — an active-active topology. This delivers low-latency local writes for globally distributed users and the highest availability tier: <strong>99.999% for reads and writes</strong>. The cost is complexity: strong consistency is unavailable, and concurrent writes to the same item in different regions can conflict.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Every region accepts writes (active-active), giving <strong>local low-latency writes</strong> and <strong>99.999% read+write availability</strong>.</li>
+          <li>Choose it when writes must be fast for users worldwide, or when writes must stay available even if a region fails.</li>
+          <li><strong>Strong consistency is not supported</strong> with multi-region writes; <strong>Bounded staleness is an anti-pattern</strong>.</li>
+          <li>Concurrent same-item writes across regions can <strong>conflict</strong>, so you must define a conflict-resolution strategy.</li>
+          <li>Each additional write region adds cost.</li>
+        </ul>
+      </div>
+
+      <figure class="diagram" data-svg="multi-region-writes"><figcaption>An active-active account where every region accepts writes; Azure Cosmos DB replicates asynchronously and resolves cross-region write conflicts.</figcaption></figure>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> Turning on multi-region writes rules out Strong consistency. If a scenario needs both global writes and Strong, it is not achievable — one requirement must give.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Multi-region writes = active-active, 99.999% RW availability, local write latency.</li>
+          <li>Strong is unsupported and Bounded staleness is an anti-pattern with multi-region writes.</li>
+          <li>Cross-region write conflicts are possible ⇒ a conflict-resolution policy is mandatory.</li>
+          <li>"Multi-master" is the old name for the same feature.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A global app needs users on every continent to experience fast local writes and to keep writing even if one region fails. Which capability delivers this, and what constraint comes with it?</summary>
+          <div class="answer"><b>Answer:</b> Multi-region writes (active-active), which give local low-latency writes and 99.999% read+write availability. <em>Why:</em> The trade-off is that Strong consistency cannot be used and concurrent same-item writes across regions may conflict, so the design must include a conflict-resolution policy.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A requirement states "global low-latency writes AND strong consistency." Can a single Cosmos DB account satisfy both?</summary>
+          <div class="answer"><b>Answer:</b> No. <em>Why:</em> Strong consistency requires a single write region, which is incompatible with multi-region (active-active) writes; the team must relax one requirement — keep a single write region for Strong, or accept a weaker level (e.g., Session) to keep multi-region writes.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/distribute-data-globally">Distribute data globally (multi-region writes)</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/reliability/reliability-cosmos-db">Reliability in Azure Cosmos DB (99.999% availability)</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.2.2 -->
+    <section class="objective" id="obj-2-2-2" data-skill="implement-multi-region-writes">
+      <h3 id="o-2-2-2">2.2.2 Implement multi-region writes</h3>
+
+      <div class="concept">
+        <p>Enabling multi-region writes is a two-part job: turn on multiple write regions at the <strong>account</strong> level, then configure the <strong>application</strong> so each client writes to its local region. Behind the scenes a <strong>hub region</strong> arbitrates write conflicts, and replication between write regions is <strong>asynchronous</strong>, with lag governed by the account's consistency level.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li>Enable multiple write regions on the account (portal, PowerShell, CLI, ARM) — at creation or later.</li>
+          <li>Configure the app's region in the SDK so each client writes locally (.NET v3 <code>ApplicationRegion</code> / <code>ApplicationPreferredRegions</code>).</li>
+          <li>A <strong>hub region</strong> acts as the arbiter for write conflicts.</li>
+          <li>Cross-region replication is <strong>asynchronous</strong>; lag depends on the consistency level.</li>
+          <li>Avoid repeatedly updating or recreating the <strong>same document ID</strong> (e.g., right after a TTL expiry) — it multiplies conflicts and degrades replication.</li>
+        </ul>
+      </div>
+
+      <div class="callout key">
+        <b>Key:</b> Enabling multi-region writes on the account is only half the job — the application/SDK must also be pointed at the local write region to actually get local write latency.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>Two steps: enable multiple write regions on the account <em>and</em> set the client's application region.</li>
+          <li>Replication between write regions is asynchronous — expect some lag.</li>
+          <li>The hub region arbitrates conflicts.</li>
+          <li>Hot document IDs (frequent re-create/update, TTL churn) worsen conflicts and replication.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> An account has multiple write regions enabled, but clients in Europe still see the same write latency as before. What was likely missed?</summary>
+          <div class="answer"><b>Answer:</b> The application/SDK was not configured with the local region. <em>Why:</em> Enabling multiple write regions on the account is necessary but not sufficient — each client must set its application/preferred region (e.g., <code>ApplicationRegion</code>) to its local region so writes commit locally; until then clients keep routing to the original region.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A multi-region-write workload repeatedly deletes and recreates documents with the same IDs after their TTL expires, and replication performance is degrading. Why?</summary>
+          <div class="answer"><b>Answer:</b> Reusing hot document IDs (recreating the same ID right after TTL expiry) generates many cross-region write conflicts. <em>Why:</em> The system must resolve each conflict, and that extra load degrades replication performance; redesigning to avoid reusing hot IDs relieves the pressure.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-multi-master">Configure multi-region writes in your applications</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-manage-database-account">Configure multiple write regions on an account</a></li>
+      </ul></div>
+    </section>
+
+    <!-- 2.2.3 -->
+    <section class="objective" id="obj-2-2-3" data-skill="conflict-resolution-policy">
+      <h3 id="o-2-2-3">2.2.3 Implement a custom conflict resolution policy for Azure Cosmos DB for NoSQL</h3>
+
+      <div class="concept">
+        <p>When two regions write the same item concurrently, Azure Cosmos DB resolves the clash using the container's <strong>conflict-resolution policy</strong>. There are two policy modes — <strong>Last Write Wins (LWW)</strong> and <strong>Custom</strong> — and the choice can only be made <strong>at container creation time</strong>; it cannot be changed afterward. Conflicts come in three flavours: <strong>insert, replace, and delete</strong>.</p>
+      </div>
+
+      <div class="facts">
+        <h4>Key facts</h4>
+        <ul>
+          <li><strong>Last Write Wins (LWW)</strong> — the default. Uses the system timestamp <code>_ts</code> by default; for API for NoSQL you can name a <strong>custom numeric property</strong> (the conflict-resolution path) whose <strong>highest value wins</strong>. A <strong>delete always wins</strong> over insert/replace. LWW conflicts do <strong>not</strong> appear in the conflict feed.</li>
+          <li><strong>Custom</strong> — register a <strong>merge stored procedure</strong> invoked automatically (exactly-once) on conflict. API-for-NoSQL only.</li>
+          <li>If no merge procedure is registered, or it throws, conflicts are written to the <strong>conflict feed</strong> for manual resolution in application code.</li>
+          <li>Policy is <strong>set only at container creation</strong> and cannot be modified later.</li>
+          <li>The <strong>conflict feed</strong> also surfaces unreplicated writes recovered after a region outage, which you reconcile with app-specific logic.</li>
+        </ul>
+      </div>
+
+      <div class="code">
+        <pre><code class="lang-json">// Container with a custom numeric LWW path (API for NoSQL)
+{
+  "id": "orders",
+  "partitionKey": { "paths": ["/customerId"], "kind": "Hash" },
+  "conflictResolutionPolicy": {
+    "mode": "LastWriterWins",
+    "conflictResolutionPath": "/version"   // highest /version wins
+  }
+}
+// Custom mode instead registers a merge stored procedure:
+// { "mode": "Custom", "conflictResolutionProcedure": ".../sprocs/resolver" }</code></pre>
+      </div>
+
+      <div class="callout warn">
+        <b>Gotcha:</b> The conflict-resolution policy is fixed at container creation. If a question asks how to change an existing container's policy, the answer is to create a new container with the desired policy and migrate data — you cannot alter it in place.
+      </div>
+
+      <div class="tips">
+        <h4>Exam tips &amp; gotchas</h4>
+        <ul>
+          <li>LWW is the default and uses <code>_ts</code>; NoSQL can override with a custom numeric path where the highest value wins.</li>
+          <li>Delete always beats insert/replace in LWW.</li>
+          <li>Custom policy = merge stored procedure; NoSQL only; if it fails or is absent, conflicts land in the conflict feed.</li>
+          <li>Policy is set at container creation and is immutable afterward.</li>
+        </ul>
+      </div>
+
+      <div class="practice">
+        <h4>Practice</h4>
+        <details class="q"><summary><b>Q1.</b> A NoSQL container must resolve concurrent updates by keeping the record with the highest application-supplied version number, with no server-side code. Which policy configuration fits?</summary>
+          <div class="answer"><b>Answer:</b> Last Write Wins with a custom numeric conflict-resolution path pointing at the version property (e.g., <code>/version</code>). <em>Why:</em> In LWW the item with the highest value at that path wins with no stored procedure; it must be set at container creation because the policy cannot be changed later.</div>
+        </details>
+        <details class="q"><summary><b>Q2.</b> A team set a Custom conflict-resolution policy but forgot to register the merge stored procedure. Two regions update the same item. What happens to the conflict?</summary>
+          <div class="answer"><b>Answer:</b> The conflict is written to the conflict feed rather than auto-resolved. <em>Why:</em> With no merge procedure registered (or if it throws), Custom mode surfaces the conflict for the application to resolve in code; automating resolution requires registering a valid merge stored procedure, but the policy mode itself can't be changed on the existing container.</div>
+        </details>
+      </div>
+      <div class="learn-more"><b>Learn more</b><ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/conflict-resolution-policies">Conflict types and resolution policies</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-manage-conflicts">Manage conflict resolution policies (LWW, custom, conflict feed)</a></li>
+      </ul></div>
+    </section>
+      </div>
+    </section>
+  </section>
+</section>

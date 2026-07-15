@@ -1,0 +1,189 @@
+<section class="domain appendices" id="appendix" data-domain="9">
+  <h1 id="d9">Appendices — Quick Reference &amp; Cheat Sheets</h1>
+  <p class="domain-intro">Fast-recall material for the final days before the exam. Skim these until the distinctions are automatic.</p>
+
+  <section class="skillgroup" id="apx-consistency">
+    <h2 id="g-9-1">A. The five consistency levels</h2>
+    <table class="cmp">
+      <thead><tr><th>Level</th><th>Guarantee</th><th>Relative RU (reads)</th><th>Typical use</th></tr></thead>
+      <tbody>
+        <tr><td><b>Strong</b></td><td>Linearizable — a read always sees the latest committed write</td><td>Highest (2&times; a normal read)</td><td>Financial ledgers, inventory where stale reads are unacceptable</td></tr>
+        <tr><td><b>Bounded staleness</b></td><td>Reads lag the write by at most <i>K</i> versions or <i>t</i> time</td><td>High (2&times;)</td><td>Global apps needing near-strong with defined lag</td></tr>
+        <tr><td><b>Session</b> (default)</td><td>Read-your-own-writes within a client session (via session token)</td><td>Normal (1&times;)</td><td>Most web/mobile apps — great balance</td></tr>
+        <tr><td><b>Consistent prefix</b></td><td>Reads never see out-of-order writes (no gaps), but may be stale</td><td>Normal (1&times;)</td><td>Timelines/feeds where order matters, freshness less so</td></tr>
+        <tr><td><b>Eventual</b></td><td>No ordering guarantee; converges eventually</td><td>Lowest (1&times;)</td><td>Likes/counts, non-critical telemetry — lowest latency &amp; cost</td></tr>
+      </tbody>
+    </table>
+    <div class="callout key"><b>Decider:</b> The account has a <b>default</b> level; a request can only relax it (weaker), never strengthen it beyond the account default via request options. <b>Strong</b> and <b>Bounded staleness</b> constrain your region topology; <b>Session</b> is the default and the usual right answer.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-throughput">
+    <h2 id="g-9-2">B. Throughput / capacity modes</h2>
+    <table class="cmp">
+      <thead><tr><th></th><th>Provisioned — manual</th><th>Provisioned — autoscale</th><th>Serverless</th></tr></thead>
+      <tbody>
+        <tr><td><b>Best for</b></td><td>Steady, predictable traffic</td><td>Variable / spiky traffic</td><td>Bursty, dev/test, low or intermittent traffic</td></tr>
+        <tr><td><b>You set</b></td><td>Fixed RU/s</td><td>Max RU/s (scales 10%&ndash;100% of max)</td><td>Nothing — pay per request</td></tr>
+        <tr><td><b>Billing</b></td><td>Provisioned RU/s per hour</td><td>Highest RU/s used each hour</td><td>Per RU consumed</td></tr>
+        <tr><td><b>Global distribution</b></td><td>Yes</td><td>Yes</td><td><b>No</b> — single region only</td></tr>
+        <tr><td><b>Scope</b></td><td>Database- or container-level</td><td>Database- or container-level</td><td>Container-level</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><b>Tip:</b> <b>Free tier</b> gives the first 1000 RU/s + 25 GB free per subscription (one account). <b>Database-level</b> shared throughput spreads RU/s across up to 25 containers to save cost on many small containers; a container needing guaranteed throughput should use <b>dedicated</b> throughput.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-partition">
+    <h2 id="g-9-3">C. Partition-key decision quick-reference</h2>
+    <table class="cmp">
+      <thead><tr><th>Goal</th><th>Rule of thumb</th></tr></thead>
+      <tbody>
+        <tr><td><b>Spread load evenly</b></td><td>Pick a key with <b>high cardinality</b> (many distinct values) so requests and storage distribute across physical partitions.</td></tr>
+        <tr><td><b>Avoid a hot partition</b></td><td>Avoid low-cardinality or monotonically increasing keys (e.g., a single status or the current date) that concentrate traffic.</td></tr>
+        <tr><td><b>Enable transactions</b></td><td>Items that must participate in a transactional batch or a transactional stored procedure must share the <b>same logical partition</b> (same partition-key value).</td></tr>
+        <tr><td><b>Low-cardinality field</b></td><td>Build a <b>synthetic key</b> — concatenate fields or add a random/hashed suffix to raise cardinality.</td></tr>
+        <tr><td><b>Multi-tenant / &gt; 20 GB per prefix</b></td><td>Use a <b>hierarchical (sub)partition key</b> (up to 3 levels) so a prefix like TenantId can exceed the 20 GB logical-partition limit and prefix queries stay targeted.</td></tr>
+        <tr><td><b>Multiple access patterns</b></td><td>Consider separate containers/materialized views (via change feed) keyed differently, since a container has one partition key.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><b>Gotcha:</b> A single <b>logical partition</b> is capped at <b>20 GB</b> and its own RU ceiling. The partition key is <b>immutable</b> once items are written — choosing it wrong means re-creating the container and migrating data.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-ru">
+    <h2 id="g-9-4">D. Request Units &amp; the 429 playbook</h2>
+    <div class="facts"><h4>RU essentials</h4>
+      <ul>
+        <li>A <b>1 KB point read</b> costs ~<b>1 RU</b>; writes, larger items, more indexed paths, and cross-partition queries cost more.</li>
+        <li>Read the actual charge from the <code>x-ms-request-charge</code> response header (SDK: <code>RequestCharge</code>).</li>
+        <li>Exceeding provisioned RU/s returns HTTP <b>429 (Request rate too large)</b> with a <code>x-ms-retry-after-ms</code> hint; the SDK retries automatically up to a configurable limit.</li>
+      </ul>
+    </div>
+    <div class="facts"><h4>When you see 429s</h4>
+      <ul>
+        <li>Check the <b>Normalized RU Consumption</b> metric — if one partition sits at 100% while others idle, you have a <b>hot partition</b> (fix the partition key).</li>
+        <li>If <i>all</i> partitions are saturated, <b>raise RU/s</b> (or switch to autoscale).</li>
+        <li>Trim <b>indexing</b> on write-heavy containers; use <b>bulk</b> mode for large imports; increase SDK <code>MaxRetryAttemptsOnRateLimitedRequests</code> / <code>MaxRetryWaitTimeInSeconds</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="skillgroup" id="apx-indexing">
+    <h2 id="g-9-5">E. Indexing cheat sheet</h2>
+    <table class="cmp">
+      <thead><tr><th>Situation</th><th>Do this</th></tr></thead>
+      <tbody>
+        <tr><td><b>Default</b></td><td>Every property is indexed (<code>includedPaths: /*</code>) — great for reads, costs RU on every write.</td></tr>
+        <tr><td><b>Write-heavy</b></td><td>Exclude paths you never filter on to cut write RU; keep only what queries need.</td></tr>
+        <tr><td><b>Read-heavy</b></td><td>Keep broad indexing; add <b>composite indexes</b> for multi-property <code>ORDER BY</code> and multi-filter queries.</td></tr>
+        <tr><td><b>Multi-property sort</b></td><td>A <b>composite index</b> is required; its property order and ASC/DESC directions must match the query.</td></tr>
+        <tr><td><b>Geospatial</b></td><td>Add a <b>spatial</b> index for <code>ST_DISTANCE</code> / <code>ST_WITHIN</code> queries.</td></tr>
+      </tbody>
+    </table>
+    <div class="code"><pre><code class="lang-json">{
+  "indexingMode": "consistent",
+  "includedPaths": [ { "path": "/category/?" }, { "path": "/price/?" } ],
+  "excludedPaths": [ { "path": "/*" }, { "path": "/_etag/?" } ],
+  "compositeIndexes": [
+    [ { "path": "/category", "order": "ascending" },
+      { "path": "/price", "order": "descending" } ]
+  ]
+}</code></pre></div>
+  </section>
+
+  <section class="skillgroup" id="apx-backup">
+    <h2 id="g-9-6">F. Backup &amp; restore modes</h2>
+    <table class="cmp">
+      <thead><tr><th></th><th>Periodic backup</th><th>Continuous backup</th></tr></thead>
+      <tbody>
+        <tr><td><b>Restore style</b></td><td>Snapshots on an interval; restore via a <b>support request</b></td><td><b>Self-service</b> point-in-time restore (PITR) to any second</td></tr>
+        <tr><td><b>Retention</b></td><td>Configurable interval &amp; retained copies</td><td><b>7-day</b> (lower cost) or <b>30-day</b> tier</td></tr>
+        <tr><td><b>Restore target</b></td><td>New account</td><td><b>New account</b> (choose a timestamp before the bad event)</td></tr>
+        <tr><td><b>Granularity</b></td><td>Whole account</td><td>Account, database, or container</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip"><b>Tip:</b> Restores always go to a <b>new</b> account — you never overwrite the live account. For continuous backup, find the latest restorable timestamp before restoring.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-security">
+    <h2 id="g-9-7">G. Security — control plane vs data plane</h2>
+    <table class="cmp">
+      <thead><tr><th></th><th>Control plane</th><th>Data plane</th></tr></thead>
+      <tbody>
+        <tr><td><b>Controls</b></td><td>Manage the account: regions, throughput, firewall, keys, backup</td><td>Read/write items inside containers</td></tr>
+        <tr><td><b>Mechanism</b></td><td><b>Azure RBAC</b> roles (e.g., Cosmos DB Operator)</td><td><b>Cosmos DB data-plane RBAC</b> via Microsoft Entra ID (Data Reader/Contributor role definitions + assignments)</td></tr>
+        <tr><td><b>Keys?</b></td><td>Can disable key-based metadata write access</td><td>Prefer Entra ID tokens over primary keys; keys grant full data access</td></tr>
+      </tbody>
+    </table>
+    <div class="facts"><h4>Other security layers</h4>
+      <ul>
+        <li><b>Network:</b> IP firewall, VNet service endpoints, and Private Link / private endpoints.</li>
+        <li><b>Encryption at rest:</b> on by default with service-managed keys; use <b>customer-managed keys</b> (CMK) in Key Vault for control over the key lifecycle.</li>
+        <li><b>Always Encrypted:</b> field-level encryption so sensitive properties are protected even from the database engine.</li>
+        <li><b>Key management:</b> store connection strings/keys in <b>Azure Key Vault</b>; rotate regularly.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="skillgroup" id="apx-sql">
+    <h2 id="g-9-8">H. NoSQL SQL query quick reference</h2>
+    <div class="code"><pre><code class="lang-sql">-- Project nested fields, filter, aggregate, order
+SELECT c.category, COUNT(1) AS items, AVG(c.price) AS avgPrice
+FROM c
+WHERE c.inStock = true AND ARRAY_LENGTH(c.tags) &gt; 0
+GROUP BY c.category
+
+-- Work with an array using a self-join + correlated subquery
+SELECT c.id,
+       (SELECT VALUE COUNT(1) FROM t IN c.tags WHERE t.type = "promo") AS promoTags
+FROM c
+WHERE EXISTS (SELECT VALUE t FROM t IN c.tags WHERE t.name = "sale")
+
+-- Type-checking & functions
+SELECT c.id
+FROM c
+WHERE IS_DEFINED(c.discount) AND IS_NUMBER(c.discount)
+  AND STARTSWITH(c.sku, "NA-") AND c.updated &gt;= "2026-01-01T00:00:00Z"</code></pre></div>
+    <div class="callout key"><b>Key:</b> A cross-partition query fans out to every physical partition. Add the partition key to the <code>WHERE</code> clause (or set the SDK partition-key option) to keep it single-partition and cheap.</div>
+  </section>
+
+  <section class="skillgroup" id="apx-movement">
+    <h2 id="g-9-9">I. Data movement — which one when?</h2>
+    <table class="cmp">
+      <thead><tr><th>Need</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>Fast one-time import from app code</td><td><b>SDK bulk</b> (<code>AllowBulkExecution</code>)</td></tr>
+        <tr><td>Scheduled/orchestrated ETL, many sources</td><td><b>Azure Data Factory / Synapse pipelines</b></td></tr>
+        <tr><td>Stream from an event platform</td><td><b>Kafka connector</b></td></tr>
+        <tr><td>Real-time stream processing output</td><td><b>Azure Stream Analytics</b> (Cosmos DB as sink)</td></tr>
+        <tr><td>Big-data batch/stream in Spark</td><td><b>Azure Cosmos DB Spark connector</b></td></tr>
+        <tr><td>Device telemetry landing</td><td><b>IoT Hub</b> custom endpoint / message routing</td></tr>
+        <tr><td>Analytics without ETL</td><td><b>Fabric mirroring</b> or <b>analytical store</b> + Synapse Link</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="skillgroup" id="apx-glossary">
+    <h2 id="g-9-10">J. Glossary</h2>
+    <div class="facts"><h4>Terms to know cold</h4>
+      <ul>
+        <li><b>RU/s (Request Unit per second):</b> the normalized currency of throughput; a 1 KB point read ≈ 1 RU.</li>
+        <li><b>Logical partition:</b> all items sharing one partition-key value; capped at 20 GB.</li>
+        <li><b>Physical partition:</b> the backend host that stores one or more logical partitions; split automatically as data/RU grow.</li>
+        <li><b>Synthetic partition key:</b> a composed key (concatenation or suffix) that raises cardinality.</li>
+        <li><b>Hierarchical partition key:</b> up to three key levels for sub-partitioning and &gt; 20 GB prefixes.</li>
+        <li><b>ETag / optimistic concurrency:</b> conditional write using <code>If-Match</code> to prevent lost updates.</li>
+        <li><b>Session token:</b> the marker that provides read-your-own-writes under session consistency.</li>
+        <li><b>Change feed:</b> a persistent, ordered log of inserts/updates per partition, consumed by the processor or Azure Functions.</li>
+        <li><b>Analytical store:</b> an auto-synced column store for HTAP analytics that doesn't consume transactional RU/s.</li>
+        <li><b>PITR:</b> point-in-time restore, enabled by continuous backup.</li>
+        <li><b>PPAF:</b> per-partition automatic failover.</li>
+      </ul>
+    </div>
+    <div class="learn-more"><b>Learn more</b>
+      <ul>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/request-units">Request Units in Azure Cosmos DB</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview">Partitioning and horizontal scaling</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels">Consistency levels in Azure Cosmos DB</a></li>
+      </ul>
+    </div>
+  </section>
+</section>
