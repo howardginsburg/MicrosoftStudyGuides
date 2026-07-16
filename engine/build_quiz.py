@@ -33,7 +33,9 @@ cfg = json.load(open(CFG_PATH, encoding="utf-8"))
 EXAM      = cfg.get("exam", "EXAM")
 TITLE     = cfg.get("title", EXAM)
 WEIGHTS   = cfg.get("weights", {})
+guide_html = cfg.get("output_html", f"{EXAM}.html")
 QDIR      = os.path.join(GUIDE, "questions")
+CONTENT   = os.path.join(GUIDE, "content")
 os.makedirs(QUIZ, exist_ok=True)
 
 VALID_TYPES = {"single", "multi", "tf"}
@@ -76,11 +78,21 @@ if os.path.exists(scen_path):
     for s in sdata.get("scenarios", []):
         scenarios[s["id"]] = s["text"]
 
+# ---------------- Load authored objective anchors ----------------
+objective_anchors = None
+if os.path.isdir(CONTENT):
+    objective_anchors = set()
+    for cpath in glob.glob(os.path.join(CONTENT, "*.html")):
+        with open(cpath, encoding="utf-8") as f:
+            objective_anchors.update(re.findall(r'id="(obj-[0-9a-z-]+)"', f.read()))
+
 # ---------------- Load + validate per-domain banks ----------------
 problems = []
 seen_ids = set()
 all_questions = []
 domain_meta = []
+objective_links = 0
+unmatched_objectives = 0
 
 domain_files = sorted(glob.glob(os.path.join(QDIR, "domain*.json")))
 if not domain_files:
@@ -146,6 +158,20 @@ for path in domain_files:
         for r in q.get("refs", []):
             clean_room_ref(loc + " ref", r, problems)
 
+        q.pop("objective_anchor", None)
+        q.pop("objective_href", None)
+        objective = q.get("objective")
+        if isinstance(objective, str) and objective.strip():
+            code = objective.strip()
+            anchor = "obj-" + code.replace(".", "-")
+            if objective_anchors is not None and anchor not in objective_anchors:
+                print(f"!! {loc}: objective '{code}' -> #{anchor} has no matching guide section")
+                unmatched_objectives += 1
+            else:
+                q["objective_anchor"] = anchor
+                q["objective_href"] = f"{guide_html}#{anchor}"
+                objective_links += 1
+
         q["domain"] = dnum
         q["domain_title"] = dtitle
         all_questions.append(q)
@@ -207,6 +233,7 @@ print(f"Exam: {EXAM}")
 print("Bank    ->", bank_path)
 print("Catalog ->", os.path.join(QUIZ, "exams.json"))
 print(f"questions={len(all_questions)}  scenarios={len(scenarios)}")
+print(f"objective_links={objective_links}  unmatched={unmatched_objectives}")
 print("by domain:", "  ".join(f"D{d['domain']}={d['count']}" for d in domain_meta))
 print("by type:  ", "  ".join(f"{k}={v}" for k, v in sorted(by_type.items())))
 print("CLEAN-ROOM:", "PASS - links -> learn.microsoft.com, no raster/deck refs" if not problems

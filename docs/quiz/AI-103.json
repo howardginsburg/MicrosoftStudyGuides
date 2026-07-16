@@ -1,7 +1,7 @@
 {
   "exam": "AI-103",
   "title": "Developing AI Apps and Agents on Azure",
-  "generated": "2026-07-15",
+  "generated": "2026-07-16",
   "weights": {
     "Plan and manage an Azure AI solution": "25–30%",
     "Implement generative AI and agentic solutions": "30–35%",
@@ -90,6 +90,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview"
       ],
+      "objective_anchor": "obj-1-1-1",
+      "objective_href": "AI-103.html#obj-1-1-1",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -122,6 +124,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"
       ],
+      "objective_anchor": "obj-1-1-1",
+      "objective_href": "AI-103.html#obj-1-1-1",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -157,6 +161,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/foundry-models/concepts/models-sold-directly-by-azure"
       ],
+      "objective_anchor": "obj-1-1-1",
+      "objective_href": "AI-103.html#obj-1-1-1",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -189,6 +195,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture"
       ],
+      "objective_anchor": "obj-1-1-2",
+      "objective_href": "AI-103.html#obj-1-1-2",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -221,6 +229,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"
       ],
+      "objective_anchor": "obj-1-1-2",
+      "objective_href": "AI-103.html#obj-1-1-2",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -245,6 +255,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-1-1-2",
+      "objective_href": "AI-103.html#obj-1-1-2",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -277,6 +289,8 @@
         "https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization",
         "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search"
       ],
+      "objective_anchor": "obj-1-1-3",
+      "objective_href": "AI-103.html#obj-1-1-3",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -309,6 +323,8 @@
         "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search",
         "https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization"
       ],
+      "objective_anchor": "obj-1-1-3",
+      "objective_href": "AI-103.html#obj-1-1-3",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -345,6 +361,8 @@
         "https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization",
         "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search"
       ],
+      "objective_anchor": "obj-1-1-3",
+      "objective_href": "AI-103.html#obj-1-1-3",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -377,6 +395,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture"
       ],
+      "objective_anchor": "obj-1-1-4",
+      "objective_href": "AI-103.html#obj-1-1-4",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -409,6 +429,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"
       ],
+      "objective_anchor": "obj-1-1-4",
+      "objective_href": "AI-103.html#obj-1-1-4",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -442,6 +464,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"
       ],
+      "objective_anchor": "obj-1-1-4",
+      "objective_href": "AI-103.html#obj-1-1-4",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -474,6 +498,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"
       ],
+      "objective_anchor": "obj-1-2-1",
+      "objective_href": "AI-103.html#obj-1-2-1",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -506,6 +532,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"
       ],
+      "objective_anchor": "obj-1-2-1",
+      "objective_href": "AI-103.html#obj-1-2-1",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -538,6 +566,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview",
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput"
       ],
+      "objective_anchor": "obj-1-2-2",
+      "objective_href": "AI-103.html#obj-1-2-2",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -570,6 +600,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview",
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput"
       ],
+      "objective_anchor": "obj-1-2-2",
+      "objective_href": "AI-103.html#obj-1-2-2",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -606,6 +638,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview",
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput"
       ],
+      "objective_anchor": "obj-1-2-2",
+      "objective_href": "AI-103.html#obj-1-2-2",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -638,6 +672,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/deployments-overview",
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/reference"
       ],
+      "objective_anchor": "obj-1-2-3",
+      "objective_href": "AI-103.html#obj-1-2-3",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -662,6 +698,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-1-2-3",
+      "objective_href": "AI-103.html#obj-1-2-3",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -694,6 +732,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-ai-foundry"
       ],
+      "objective_anchor": "obj-1-2-4",
+      "objective_href": "AI-103.html#obj-1-2-4",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -726,6 +766,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-foundry"
       ],
+      "objective_anchor": "obj-1-2-4",
+      "objective_href": "AI-103.html#obj-1-2-4",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -758,6 +800,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/provisioned-throughput",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/quota"
       ],
+      "objective_anchor": "obj-1-3-1",
+      "objective_href": "AI-103.html#obj-1-3-1",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -782,6 +826,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-1-3-1",
+      "objective_href": "AI-103.html#obj-1-3-1",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -814,6 +860,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard"
       ],
+      "objective_anchor": "obj-1-3-2",
+      "objective_href": "AI-103.html#obj-1-3-2",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -846,6 +894,8 @@
         "https://learn.microsoft.com/en-us/azure/search/vector-search-integrated-vectorization",
         "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search"
       ],
+      "objective_anchor": "obj-1-3-3",
+      "objective_href": "AI-103.html#obj-1-3-3",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -878,6 +928,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/architecture",
         "https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential"
       ],
+      "objective_anchor": "obj-1-3-4",
+      "objective_href": "AI-103.html#obj-1-3-4",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -911,6 +963,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators"
       ],
+      "objective_anchor": "obj-1-4-1",
+      "objective_href": "AI-103.html#obj-1-4-1",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -946,6 +1000,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators"
       ],
+      "objective_anchor": "obj-1-4-1",
+      "objective_href": "AI-103.html#obj-1-4-1",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -981,6 +1037,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/built-in-evaluators",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"
       ],
+      "objective_anchor": "obj-1-4-2",
+      "objective_href": "AI-103.html#obj-1-4-2",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -1013,6 +1071,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/trace-agent-concept",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/trace-agents"
       ],
+      "objective_anchor": "obj-1-4-3",
+      "objective_href": "AI-103.html#obj-1-4-3",
       "domain": 1,
       "domain_title": "Plan and manage an Azure AI solution"
     },
@@ -1045,6 +1105,8 @@
         "https://learn.microsoft.com/en-us/azure/foundry-classic/how-to/deploy-models-managed",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview"
       ],
+      "objective_anchor": "obj-2-1-1",
+      "objective_href": "AI-103.html#obj-2-1-1",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1081,6 +1143,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/model-inference/reference/reference-model-inference-chat-completions"
       ],
+      "objective_anchor": "obj-2-1-1",
+      "objective_href": "AI-103.html#obj-2-1-1",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1113,6 +1177,8 @@
         "https://learn.microsoft.com/en-us/azure/foundry/concepts/retrieval-augmented-generation",
         "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview"
       ],
+      "objective_anchor": "obj-2-1-2",
+      "objective_href": "AI-103.html#obj-2-1-2",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1146,6 +1212,8 @@
         "https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview",
         "https://learn.microsoft.com/en-us/azure/foundry/concepts/retrieval-augmented-generation"
       ],
+      "objective_anchor": "obj-2-1-2",
+      "objective_href": "AI-103.html#obj-2-1-2",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1178,6 +1246,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/quickstarts/responses-api"
       ],
+      "objective_anchor": "obj-2-1-3",
+      "objective_href": "AI-103.html#obj-2-1-3",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1202,6 +1272,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-2-1-3",
+      "objective_href": "AI-103.html#obj-2-1-3",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1234,6 +1306,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/evaluate-generative-ai-app",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/evaluation-metrics-built-in"
       ],
+      "objective_anchor": "obj-2-1-4",
+      "objective_href": "AI-103.html#obj-2-1-4",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1270,6 +1344,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/evaluation-metrics-built-in",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/cloud-evaluation"
       ],
+      "objective_anchor": "obj-2-1-4",
+      "objective_href": "AI-103.html#obj-2-1-4",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1302,6 +1378,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview",
         "https://learn.microsoft.com/en-us/python/api/overview/azure/ai-projects-readme"
       ],
+      "objective_anchor": "obj-2-1-5",
+      "objective_href": "AI-103.html#obj-2-1-5",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1334,6 +1412,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/connections-add",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview"
       ],
+      "objective_anchor": "obj-2-1-5",
+      "objective_href": "AI-103.html#obj-2-1-5",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1370,6 +1450,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-foundry",
         "https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential"
       ],
+      "objective_anchor": "obj-2-1-6",
+      "objective_href": "AI-103.html#obj-2-1-6",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1402,6 +1484,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-foundry",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/develop/sdk-overview"
       ],
+      "objective_anchor": "obj-2-1-6",
+      "objective_href": "AI-103.html#obj-2-1-6",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1438,6 +1522,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/development-lifecycle"
       ],
+      "objective_anchor": "obj-2-2-1",
+      "objective_href": "AI-103.html#obj-2-2-1",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1470,6 +1556,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/overview",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/agent-applications"
       ],
+      "objective_anchor": "obj-2-2-1",
+      "objective_href": "AI-103.html#obj-2-2-1",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1502,6 +1590,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/function-calling",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/file-search"
       ],
+      "objective_anchor": "obj-2-2-2",
+      "objective_href": "AI-103.html#obj-2-2-2",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1534,6 +1624,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/file-search",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/function-calling"
       ],
+      "objective_anchor": "obj-2-2-2",
+      "objective_href": "AI-103.html#obj-2-2-2",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1566,6 +1658,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/azure-ai-search",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/openapi-spec"
       ],
+      "objective_anchor": "obj-2-2-3",
+      "objective_href": "AI-103.html#obj-2-2-3",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1598,6 +1692,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/openapi-spec",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/code-interpreter"
       ],
+      "objective_anchor": "obj-2-2-3",
+      "objective_href": "AI-103.html#obj-2-2-3",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1634,6 +1730,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/azure-ai-search",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/connected-agents"
       ],
+      "objective_anchor": "obj-2-2-3",
+      "objective_href": "AI-103.html#obj-2-2-3",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1666,6 +1764,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/connected-agents",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/workflow"
       ],
+      "objective_anchor": "obj-2-2-4",
+      "objective_href": "AI-103.html#obj-2-2-4",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1699,6 +1799,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/connected-agents",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/agent-applications"
       ],
+      "objective_anchor": "obj-2-2-4",
+      "objective_href": "AI-103.html#obj-2-2-4",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1723,6 +1825,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-2-2-4",
+      "objective_href": "AI-103.html#obj-2-2-4",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1756,6 +1860,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/human-in-the-loop-agui",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"
       ],
+      "objective_anchor": "obj-2-2-5",
+      "objective_href": "AI-103.html#obj-2-2-5",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1788,6 +1894,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/agentic-workflows-task-adherence",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"
       ],
+      "objective_anchor": "obj-2-2-5",
+      "objective_href": "AI-103.html#obj-2-2-5",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1824,6 +1932,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/human-in-the-loop-agui",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/guardrails/guardrails-overview"
       ],
+      "objective_anchor": "obj-2-2-5",
+      "objective_href": "AI-103.html#obj-2-2-5",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1848,6 +1958,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-2-2-6",
+      "objective_href": "AI-103.html#obj-2-2-6",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1880,6 +1992,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/evaluate-agents",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/how-to-monitor-agents-dashboard"
       ],
+      "objective_anchor": "obj-2-2-6",
+      "objective_href": "AI-103.html#obj-2-2-6",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1912,6 +2026,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/reference",
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering"
       ],
+      "objective_anchor": "obj-2-3-1",
+      "objective_href": "AI-103.html#obj-2-3-1",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1944,6 +2060,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/json-mode",
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/reference"
       ],
+      "objective_anchor": "obj-2-3-1",
+      "objective_href": "AI-103.html#obj-2-3-1",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -1980,6 +2098,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering",
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/reference"
       ],
+      "objective_anchor": "obj-2-3-1",
+      "objective_href": "AI-103.html#obj-2-3-1",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -2012,6 +2132,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/concepts/agent-optimizer-overview"
       ],
+      "objective_anchor": "obj-2-3-2",
+      "objective_href": "AI-103.html#obj-2-3-2",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -2044,6 +2166,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/o1-o3-chain-of-thought",
         "https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/prompt-engineering"
       ],
+      "objective_anchor": "obj-2-3-2",
+      "objective_href": "AI-103.html#obj-2-3-2",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -2076,6 +2200,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/how-to/trace-agents",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/observability/concepts/observability-overview"
       ],
+      "objective_anchor": "obj-2-3-3",
+      "objective_href": "AI-103.html#obj-2-3-3",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -2108,6 +2234,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/model-router",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/model-router"
       ],
+      "objective_anchor": "obj-2-3-4",
+      "objective_href": "AI-103.html#obj-2-3-4",
       "domain": 2,
       "domain_title": "Implement generative AI and agentic solutions"
     },
@@ -2140,6 +2268,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/dall-e",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/dall-e-quickstart"
       ],
+      "objective_anchor": "obj-3-1-1",
+      "objective_href": "AI-103.html#obj-3-1-1",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2171,6 +2301,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/video-generation"
       ],
+      "objective_anchor": "obj-3-1-2",
+      "objective_href": "AI-103.html#obj-3-1-2",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2202,6 +2334,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/dall-e"
       ],
+      "objective_anchor": "obj-3-1-3",
+      "objective_href": "AI-103.html#obj-3-1-3",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2233,6 +2367,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/video-generation"
       ],
+      "objective_anchor": "obj-3-1-4",
+      "objective_href": "AI-103.html#obj-3-1-4",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2269,6 +2405,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/dall-e",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/video-generation"
       ],
+      "objective_anchor": "obj-3-1-5",
+      "objective_href": "AI-103.html#obj-3-1-5",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2301,6 +2439,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/gpt-with-vision",
         "https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis"
       ],
+      "objective_anchor": "obj-3-2-1",
+      "objective_href": "AI-103.html#obj-3-2-1",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2333,6 +2473,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/gpt-with-vision"
       ],
+      "objective_anchor": "obj-3-2-2",
+      "objective_href": "AI-103.html#obj-3-2-2",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2357,6 +2499,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-3-2-3",
+      "objective_href": "AI-103.html#obj-3-2-3",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2389,6 +2533,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis",
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/gpt-with-vision"
       ],
+      "objective_anchor": "obj-3-2-4",
+      "objective_href": "AI-103.html#obj-3-2-4",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2422,6 +2568,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/overview",
         "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/quickstart/use-rest-api"
       ],
+      "objective_anchor": "obj-3-2-5",
+      "objective_href": "AI-103.html#obj-3-2-5",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2454,6 +2602,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/video/overview",
         "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/overview"
       ],
+      "objective_anchor": "obj-3-2-6",
+      "objective_href": "AI-103.html#obj-3-2-6",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2490,6 +2640,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/overview-image-analysis",
         "https://learn.microsoft.com/en-us/azure/ai-services/content-understanding/video/overview"
       ],
+      "objective_anchor": "obj-3-2-8",
+      "objective_href": "AI-103.html#obj-3-2-8",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2521,6 +2673,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/jailbreak-detection"
       ],
+      "objective_anchor": "obj-3-3-2",
+      "objective_href": "AI-103.html#obj-3-3-2",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2557,6 +2711,8 @@
         "https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/content-credentials",
         "https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/harm-categories"
       ],
+      "objective_anchor": "obj-3-3-3",
+      "objective_href": "AI-103.html#obj-3-3-3",
       "domain": 3,
       "domain_title": "Implement computer vision solutions"
     },
@@ -2589,6 +2745,8 @@
         "https://learn.microsoft.com/azure/ai-services/language-service/named-entity-recognition/overview",
         "https://learn.microsoft.com/azure/ai-services/language-service/summarization/overview"
       ],
+      "objective_anchor": "obj-4-1-1",
+      "objective_href": "AI-103.html#obj-4-1-1",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -2621,6 +2779,8 @@
         "https://learn.microsoft.com/azure/ai-services/language-service/summarization/overview",
         "https://learn.microsoft.com/azure/ai-services/language-service/named-entity-recognition/overview"
       ],
+      "objective_anchor": "obj-4-1-1",
+      "objective_href": "AI-103.html#obj-4-1-1",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -2653,6 +2813,8 @@
         "https://learn.microsoft.com/azure/ai-services/language-service/sentiment-opinion-mining/overview",
         "https://learn.microsoft.com/azure/ai-services/language-service/personally-identifiable-information/overview"
       ],
+      "objective_anchor": "obj-4-1-2",
+      "objective_href": "AI-103.html#obj-4-1-2",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -2689,6 +2851,8 @@
         "https://learn.microsoft.com/azure/ai-services/language-service/personally-identifiable-information/overview",
         "https://learn.microsoft.com/azure/ai-services/language-service/sentiment-opinion-mining/overview"
       ],
+      "objective_anchor": "obj-4-1-2",
+      "objective_href": "AI-103.html#obj-4-1-2",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -2721,6 +2885,8 @@
         "https://learn.microsoft.com/azure/ai-services/translator/overview",
         "https://learn.microsoft.com/azure/ai-services/translator/text-translation/overview"
       ],
+      "objective_anchor": "obj-4-1-3",
+      "objective_href": "AI-103.html#obj-4-1-3",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -2745,6 +2911,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-4-1-3",
+      "objective_href": "AI-103.html#obj-4-1-3",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -2781,6 +2949,8 @@
         "https://learn.microsoft.com/azure/ai-services/language-service/named-entity-recognition/overview",
         "https://learn.microsoft.com/azure/ai-services/translator/overview"
       ],
+      "objective_anchor": "obj-4-1-4",
+      "objective_href": "AI-103.html#obj-4-1-4",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -2813,6 +2983,8 @@
         "https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk",
         "https://learn.microsoft.com/azure/ai-services/speech-service/overview"
       ],
+      "objective_anchor": "obj-4-2-1",
+      "objective_href": "AI-103.html#obj-4-2-1",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -2846,6 +3018,8 @@
         "https://learn.microsoft.com/azure/ai-services/speech-service/overview",
         "https://learn.microsoft.com/azure/ai-services/speech-service/speech-sdk"
       ],
+      "objective_anchor": "obj-4-2-1",
+      "objective_href": "AI-103.html#obj-4-2-1",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -2878,6 +3052,8 @@
         "https://learn.microsoft.com/azure/ai-services/speech-service/custom-speech-overview",
         "https://learn.microsoft.com/azure/ai-services/speech-service/how-to-custom-speech-train-model"
       ],
+      "objective_anchor": "obj-4-2-2",
+      "objective_href": "AI-103.html#obj-4-2-2",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -2910,6 +3086,8 @@
         "https://learn.microsoft.com/azure/ai-services/openai/realtime-audio-quickstart",
         "https://learn.microsoft.com/azure/ai-services/speech-service/llm-speech"
       ],
+      "objective_anchor": "obj-4-2-3",
+      "objective_href": "AI-103.html#obj-4-2-3",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -2946,6 +3124,8 @@
         "https://learn.microsoft.com/azure/ai-services/speech-service/llm-speech",
         "https://learn.microsoft.com/azure/ai-services/openai/realtime-audio-quickstart"
       ],
+      "objective_anchor": "obj-4-2-3",
+      "objective_href": "AI-103.html#obj-4-2-3",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -2978,6 +3158,8 @@
         "https://learn.microsoft.com/azure/ai-services/speech-service/speech-translation",
         "https://learn.microsoft.com/azure/ai-services/speech-service/how-to-translate-speech"
       ],
+      "objective_anchor": "obj-4-2-4",
+      "objective_href": "AI-103.html#obj-4-2-4",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -3010,6 +3192,8 @@
         "https://learn.microsoft.com/azure/ai-services/speech-service/speech-translation",
         "https://learn.microsoft.com/azure/ai-services/speech-service/how-to-translate-speech"
       ],
+      "objective_anchor": "obj-4-2-4",
+      "objective_href": "AI-103.html#obj-4-2-4",
       "domain": 4,
       "domain_title": "Implement text analysis solutions"
     },
@@ -3042,6 +3226,8 @@
         "https://learn.microsoft.com/azure/search/search-indexer-overview",
         "https://learn.microsoft.com/azure/search/search-how-to-create-indexers"
       ],
+      "objective_anchor": "obj-5-1-1",
+      "objective_href": "AI-103.html#obj-5-1-1",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3074,6 +3260,8 @@
         "https://learn.microsoft.com/azure/search/search-indexer-overview",
         "https://learn.microsoft.com/azure/search/cognitive-search-concept-image-scenarios"
       ],
+      "objective_anchor": "obj-5-1-1",
+      "objective_href": "AI-103.html#obj-5-1-1",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3106,6 +3294,8 @@
         "https://learn.microsoft.com/azure/search/vector-search-overview",
         "https://learn.microsoft.com/azure/search/hybrid-search-overview"
       ],
+      "objective_anchor": "obj-5-1-2",
+      "objective_href": "AI-103.html#obj-5-1-2",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3142,6 +3332,8 @@
         "https://learn.microsoft.com/azure/search/hybrid-search-overview",
         "https://learn.microsoft.com/azure/search/semantic-search-overview"
       ],
+      "objective_anchor": "obj-5-1-2",
+      "objective_href": "AI-103.html#obj-5-1-2",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3178,6 +3370,8 @@
         "https://learn.microsoft.com/azure/search/cognitive-search-concept-intro",
         "https://learn.microsoft.com/azure/search/cognitive-search-predefined-skills"
       ],
+      "objective_anchor": "obj-5-1-3",
+      "objective_href": "AI-103.html#obj-5-1-3",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3211,6 +3405,8 @@
         "https://learn.microsoft.com/azure/search/vector-search-how-to-chunk-documents",
         "https://learn.microsoft.com/azure/search/vector-search-integrated-vectorization"
       ],
+      "objective_anchor": "obj-5-1-4",
+      "objective_href": "AI-103.html#obj-5-1-4",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3243,6 +3439,8 @@
         "https://learn.microsoft.com/azure/search/vector-search-integrated-vectorization",
         "https://learn.microsoft.com/azure/ai-services/document-intelligence/concept/retrieval-augmented-generation"
       ],
+      "objective_anchor": "obj-5-1-4",
+      "objective_href": "AI-103.html#obj-5-1-4",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3275,6 +3473,8 @@
         "https://learn.microsoft.com/azure/search/agentic-retrieval-overview",
         "https://learn.microsoft.com/azure/search/agentic-retrieval-how-to-create-knowledge-base"
       ],
+      "objective_anchor": "obj-5-1-5",
+      "objective_href": "AI-103.html#obj-5-1-5",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3299,6 +3499,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-5-1-5",
+      "objective_href": "AI-103.html#obj-5-1-5",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3332,6 +3534,8 @@
         "https://learn.microsoft.com/azure/ai-services/document-intelligence/concept/query-fields?view=doc-intel-4.0.0",
         "https://learn.microsoft.com/azure/ai-services/document-intelligence/prebuilt/layout?view=doc-intel-4.0.0"
       ],
+      "objective_anchor": "obj-5-2-1",
+      "objective_href": "AI-103.html#obj-5-2-1",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3364,6 +3568,8 @@
         "https://learn.microsoft.com/azure/ai-services/document-intelligence/prebuilt/layout?view=doc-intel-4.0.0",
         "https://learn.microsoft.com/azure/ai-services/document-intelligence/model-overview?view=doc-intel-4.0.0"
       ],
+      "objective_anchor": "obj-5-2-1",
+      "objective_href": "AI-103.html#obj-5-2-1",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3396,6 +3602,8 @@
         "https://learn.microsoft.com/azure/ai-services/content-understanding/overview",
         "https://learn.microsoft.com/azure/search/retrieval-augmented-generation-overview"
       ],
+      "objective_anchor": "obj-5-2-2",
+      "objective_href": "AI-103.html#obj-5-2-2",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3432,6 +3640,8 @@
         "https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/analyzer-reference",
         "https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/prebuilt-analyzers"
       ],
+      "objective_anchor": "obj-5-2-3",
+      "objective_href": "AI-103.html#obj-5-2-3",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     },
@@ -3464,6 +3674,8 @@
         "https://learn.microsoft.com/azure/ai-services/content-understanding/concepts/analyzer-reference",
         "https://learn.microsoft.com/azure/ai-services/content-understanding/overview"
       ],
+      "objective_anchor": "obj-5-2-3",
+      "objective_href": "AI-103.html#obj-5-2-3",
       "domain": 5,
       "domain_title": "Implement information extraction solutions"
     }

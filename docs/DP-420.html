@@ -1,6 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DP-420 Study Guide (Community Edition) — Azure Cosmos DB</title>
+<script>(function(){var r=document.documentElement,T="msg-theme",O="dp600-theme",S="msg-textscale";function g(k){try{return localStorage.getItem(k)}catch(e){return null}}function s(k,v){try{localStorage.setItem(k,v)}catch(e){}}var theme=g(T);if(theme!=="light"&&theme!=="dark"){var old=g(O);if(old==="light"||old==="dark"){theme=old;s(T,theme)}}if(theme==="light"||theme==="dark")r.setAttribute("data-theme",theme);var step=parseInt(g(S),10);if(isNaN(step))step=0;if(step<-2)step=-2;if(step>3)step=3;r.setAttribute("data-textscale",String(step));})();</script>
 <style>/* ===== DP-600 Study Guide — screen styles ===== */
 :root{
   --navy:#0b3d63; --blue:#0f6cbd; --blue-light:#3a9bdc; --blue-bg:#eaf3fb;
@@ -8,7 +9,14 @@
   --code-bg:#f6f8fa; --code-ink:#1b2733; --ok:#107c41; --warn:#b45309; --key:#0f6cbd;
   --sidebar-w:320px; --top-h:56px; --maxw:900px;
   --kw:#0000c0; --str:#0a7d3c; --com:#6a737d; --num:#b45309; --fn:#6f42c1;
+  --ui-scale:1;
 }
+:root[data-textscale="-2"]{--ui-scale:.88}
+:root[data-textscale="-1"]{--ui-scale:.94}
+:root[data-textscale="0"]{--ui-scale:1}
+:root[data-textscale="1"]{--ui-scale:1.08}
+:root[data-textscale="2"]{--ui-scale:1.18}
+:root[data-textscale="3"]{--ui-scale:1.3}
 :root[data-theme="dark"]{
   --navy:#0a2a44; --blue:#4aa8e0; --blue-light:#5fb3e6; --blue-bg:#12242f;
   --ink:#e7edf3; --muted:#9fb0bf; --line:#25323d; --bg:#0d1519; --card:#121c22;
@@ -22,16 +30,16 @@ a{color:var(--blue);text-decoration:none}
 a:hover{text-decoration:underline}
 
 /* Top bar */
-.topbar{position:fixed;top:0;left:0;right:0;height:var(--top-h);z-index:40;
-  display:flex;align-items:center;gap:14px;padding:0 18px;
+.topbar{position:fixed;top:0;left:0;right:0;min-height:var(--top-h);z-index:40;
+  display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:0 18px;
   background:var(--navy);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15)}
-.topbar .brand{font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.topbar .brand{font-weight:700;letter-spacing:.2px;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .topbar .brand small{font-weight:400;opacity:.8;margin-left:8px}
 .topbar .home-link{color:#fff;text-decoration:none;font-size:13px;white-space:nowrap;
   background:rgba(255,255,255,.14);border-radius:6px;padding:7px 12px}
 .topbar .home-link:hover{background:rgba(255,255,255,.28)}
-.topbar .spacer{flex:1}
-#search{width:min(360px,40vw);padding:8px 12px;border-radius:20px;border:none;
+.topbar .spacer{flex:1 1 auto}
+#search{width:min(360px,40vw);min-width:180px;flex:0 1 360px;padding:8px 12px;border-radius:20px;border:none;
   background:rgba(255,255,255,.15);color:#fff;font-size:14px}
 #search::placeholder{color:rgba(255,255,255,.7)}
 #search:focus{outline:2px solid var(--blue-light);background:rgba(255,255,255,.25)}
@@ -157,6 +165,28 @@ table.cmp td:first-child{font-weight:600;color:var(--navy);background:var(--card
 #noresults{display:none;color:var(--muted);padding:20px;font-style:italic}
 mark{background:#ffe58a;color:inherit;border-radius:3px;padding:0 2px}
 
+/* Text scaling targets readable content without stretching fixed UI chrome */
+#content{font-size:calc(16px * var(--ui-scale));overflow-wrap:anywhere}
+#content h1{font-size:calc(30px * var(--ui-scale));line-height:1.25}
+#content h2{font-size:calc(23px * var(--ui-scale));line-height:1.3}
+#content h3{font-size:calc(18.5px * var(--ui-scale));line-height:1.35;align-items:flex-start}
+#content h4{font-size:calc(14px * var(--ui-scale));line-height:1.35}
+#content p,#content li,.concept p,.facts li,.tips li{font-size:calc(16px * var(--ui-scale))}
+.domain-intro{font-size:calc(15px * var(--ui-scale));line-height:1.55}
+p.note{font-size:calc(14px * var(--ui-scale));line-height:1.5}
+.callout{font-size:calc(14.5px * var(--ui-scale));line-height:1.5}
+details.q summary,details.q .answer{font-size:calc(14.5px * var(--ui-scale));line-height:1.5}
+.learn-more{font-size:calc(13.5px * var(--ui-scale));line-height:1.45}
+.disclaimer{font-size:calc(13.8px * var(--ui-scale));line-height:1.5}
+table.cmp{font-size:calc(13.7px * var(--ui-scale))}
+section.objective,details.q,.callout,.tips{overflow-wrap:anywhere}
+
+@media(max-width:1100px){
+  :root{--top-h:106px}
+  .topbar{align-content:center}
+  #search{order:10;flex:1 1 100%;width:auto}
+}
+
 @media(max-width:1000px){
   :root{--sidebar-w:0px}
   .sidebar{transform:translateX(-100%);transition:transform .2s;width:300px;z-index:45;box-shadow:4px 0 16px rgba(0,0,0,.2)}
@@ -186,6 +216,8 @@ figure.diagram svg{max-width:100%;height:auto;display:block;margin:0 auto}
   <span id="progress-indicator"></span>
   <button id="collapse-btn">Collapse all</button>
   <button id="theme-btn" title="Toggle light/dark">&#9681;</button>
+  <button id="textdec" title="Decrease text size">A&minus;</button>
+  <button id="textinc" title="Increase text size">A+</button>
   <button id="print-btn" title="Print / Save as PDF">Print</button>
 </header>
 <nav id="toc" class="sidebar"></nav>
@@ -6956,6 +6988,39 @@ az cosmosdb failover-priority-change `
   var content = document.getElementById("content");
   var toc = document.getElementById("toc");
   var STORE = "dp600-progress-v1";
+  var THEME_KEY = "msg-theme";
+  var OLD_THEME_KEY = "dp600-theme";
+  var SCALE_KEY = "msg-textscale";
+  var SCALE_MIN = -2, SCALE_MAX = 3, SCALE_DEFAULT = 0;
+
+  function safeGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function safeSet(k,v){ try{ localStorage.setItem(k, v); }catch(e){} }
+  function clampScale(v){
+    v = parseInt(v, 10);
+    if(isNaN(v)) v = SCALE_DEFAULT;
+    return Math.max(SCALE_MIN, Math.min(SCALE_MAX, v));
+  }
+  function savedTheme(){
+    var theme = safeGet(THEME_KEY);
+    if(theme !== "light" && theme !== "dark"){
+      var old = safeGet(OLD_THEME_KEY);
+      if(old === "light" || old === "dark"){
+        theme = old;
+        safeSet(THEME_KEY, theme);
+      }
+    }
+    return theme === "dark" ? "dark" : "light";
+  }
+  function applyTheme(theme){
+    document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+  }
+  function applyTextScale(step){
+    step = clampScale(step);
+    document.documentElement.setAttribute("data-textscale", String(step));
+    return step;
+  }
+  var textScale = applyTextScale(safeGet(SCALE_KEY));
+  applyTheme(savedTheme());
 
   /* ---------- Build Table of Contents ---------- */
   function slug(el, fb){ return el.id || fb; }
@@ -7087,14 +7152,23 @@ az cosmosdb failover-priority-change `
   window.addEventListener("scroll", function(){ clearTimeout(spyT); spyT = setTimeout(spy, 80); });
   spy();
 
-  /* ---------- Theme toggle ---------- */
+  /* ---------- Appearance controls ---------- */
   var tb = document.getElementById("theme-btn");
-  var TKEY = "dp600-theme";
-  try{ if(localStorage.getItem(TKEY)==="dark") document.documentElement.setAttribute("data-theme","dark"); }catch(e){}
   if(tb) tb.addEventListener("click", function(){
     var dark = document.documentElement.getAttribute("data-theme")==="dark";
-    document.documentElement.setAttribute("data-theme", dark?"light":"dark");
-    try{ localStorage.setItem(TKEY, dark?"light":"dark"); }catch(e){}
+    var next = dark ? "light" : "dark";
+    applyTheme(next);
+    safeSet(THEME_KEY, next);
+  });
+  var dec = document.getElementById("textdec");
+  var inc = document.getElementById("textinc");
+  if(dec) dec.addEventListener("click", function(){
+    textScale = applyTextScale(textScale - 1);
+    safeSet(SCALE_KEY, String(textScale));
+  });
+  if(inc) inc.addEventListener("click", function(){
+    textScale = applyTextScale(textScale + 1);
+    safeSet(SCALE_KEY, String(textScale));
   });
 
   /* ---------- Mobile menu + print ---------- */

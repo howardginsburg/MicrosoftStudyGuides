@@ -151,6 +151,7 @@ app_js     = read(os.path.join(SHARED_ASSETS,"app.js"))
 INTERACTIVE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>%s</title>
+<script>(function(){var r=document.documentElement,T="msg-theme",O="dp600-theme",S="msg-textscale";function g(k){try{return localStorage.getItem(k)}catch(e){return null}}function s(k,v){try{localStorage.setItem(k,v)}catch(e){}}var theme=g(T);if(theme!=="light"&&theme!=="dark"){var old=g(O);if(old==="light"||old==="dark"){theme=old;s(T,theme)}}if(theme==="light"||theme==="dark")r.setAttribute("data-theme",theme);var step=parseInt(g(S),10);if(isNaN(step))step=0;if(step<-2)step=-2;if(step>3)step=3;r.setAttribute("data-textscale",String(step));})();</script>
 <style>%s</style></head><body>
 <header class="topbar">
   <button id="menu-btn" title="Menu">&#9776;</button>
@@ -161,6 +162,8 @@ INTERACTIVE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
   <span id="progress-indicator"></span>
   <button id="collapse-btn">Collapse all</button>
   <button id="theme-btn" title="Toggle light/dark">&#9681;</button>
+  <button id="textdec" title="Decrease text size">A&minus;</button>
+  <button id="textinc" title="Increase text size">A+</button>
   <button id="print-btn" title="Print / Save as PDF">Print</button>
 </header>
 <nav id="toc" class="sidebar"></nav>

@@ -1,7 +1,7 @@
 {
   "exam": "DP-600",
   "title": "Implementing Analytics Solutions Using Microsoft Fabric",
-  "generated": "2026-07-15",
+  "generated": "2026-07-16",
   "weights": {
     "Maintain a data analytics solution": "25–30%",
     "Prepare data": "45–50%",
@@ -78,6 +78,8 @@
         "https://learn.microsoft.com/en-us/fabric/fundamentals/roles-workspaces",
         "https://learn.microsoft.com/en-us/fabric/security/permission-model"
       ],
+      "objective_anchor": "obj-1-1-1",
+      "objective_href": "DP-600.html#obj-1-1-1",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -110,6 +112,8 @@
         "https://learn.microsoft.com/en-us/fabric/fundamentals/roles-workspaces",
         "https://learn.microsoft.com/en-us/fabric/security/permission-model"
       ],
+      "objective_anchor": "obj-1-1-1",
+      "objective_href": "DP-600.html#obj-1-1-1",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -150,6 +154,8 @@
         "https://learn.microsoft.com/en-us/fabric/fundamentals/roles-workspaces",
         "https://learn.microsoft.com/en-us/fabric/security/permission-model"
       ],
+      "objective_anchor": "obj-1-1-1",
+      "objective_href": "DP-600.html#obj-1-1-1",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -182,6 +188,8 @@
         "https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-share",
         "https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-permissions"
       ],
+      "objective_anchor": "obj-1-1-2",
+      "objective_href": "DP-600.html#obj-1-1-2",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -214,6 +222,8 @@
         "https://learn.microsoft.com/en-us/fabric/security/permission-model",
         "https://learn.microsoft.com/en-us/fabric/onelake/security/data-access-control-model"
       ],
+      "objective_anchor": "obj-1-1-2",
+      "objective_href": "DP-600.html#obj-1-1-2",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -246,6 +256,8 @@
         "https://learn.microsoft.com/en-us/fabric/security/permission-model",
         "https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-share"
       ],
+      "objective_anchor": "obj-1-1-2",
+      "objective_href": "DP-600.html#obj-1-1-2",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -278,6 +290,8 @@
         "https://learn.microsoft.com/en-us/power-bi/enterprise/service-admin-rls",
         "https://learn.microsoft.com/en-us/dax/userprincipalname-function-dax"
       ],
+      "objective_anchor": "obj-1-1-3",
+      "objective_href": "DP-600.html#obj-1-1-3",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -310,6 +324,8 @@
         "https://learn.microsoft.com/en-us/analysis-services/tabular-models/object-level-security",
         "https://learn.microsoft.com/en-us/power-bi/enterprise/service-admin-object-level-security"
       ],
+      "objective_anchor": "obj-1-1-3",
+      "objective_href": "DP-600.html#obj-1-1-3",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -334,6 +350,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-1-1-3",
+      "objective_href": "DP-600.html#obj-1-1-3",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -374,6 +392,8 @@
         "https://learn.microsoft.com/en-us/fabric/onelake/security/data-access-control-model",
         "https://learn.microsoft.com/en-us/fabric/security/permission-model"
       ],
+      "objective_anchor": "obj-1-1-3",
+      "objective_href": "DP-600.html#obj-1-1-3",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -406,6 +426,8 @@
         "https://learn.microsoft.com/en-us/fabric/onelake/security/data-access-control-model",
         "https://learn.microsoft.com/en-us/fabric/security/permission-model"
       ],
+      "objective_anchor": "obj-1-1-3",
+      "objective_href": "DP-600.html#obj-1-1-3",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -438,6 +460,8 @@
         "https://learn.microsoft.com/en-us/fabric/governance/information-protection",
         "https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-overview"
       ],
+      "objective_anchor": "obj-1-1-4",
+      "objective_href": "DP-600.html#obj-1-1-4",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -470,6 +494,8 @@
         "https://learn.microsoft.com/en-us/fabric/governance/information-protection",
         "https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-overview"
       ],
+      "objective_anchor": "obj-1-1-4",
+      "objective_href": "DP-600.html#obj-1-1-4",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -510,6 +536,8 @@
         "https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-overview",
         "https://learn.microsoft.com/en-us/fabric/governance/information-protection"
       ],
+      "objective_anchor": "obj-1-1-4",
+      "objective_href": "DP-600.html#obj-1-1-4",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -542,6 +570,8 @@
         "https://learn.microsoft.com/en-us/fabric/governance/endorsement-overview",
         "https://learn.microsoft.com/en-us/fabric/fundamentals/endorsement-promote-certify"
       ],
+      "objective_anchor": "obj-1-1-5",
+      "objective_href": "DP-600.html#obj-1-1-5",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -574,6 +604,8 @@
         "https://learn.microsoft.com/en-us/fabric/fundamentals/endorsement-promote-certify",
         "https://learn.microsoft.com/en-us/fabric/governance/endorsement-overview"
       ],
+      "objective_anchor": "obj-1-1-5",
+      "objective_href": "DP-600.html#obj-1-1-5",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -614,6 +646,8 @@
         "https://learn.microsoft.com/en-us/fabric/governance/endorsement-overview",
         "https://learn.microsoft.com/en-us/fabric/admin/endorsement-certification-enable"
       ],
+      "objective_anchor": "obj-1-1-5",
+      "objective_href": "DP-600.html#obj-1-1-5",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -646,6 +680,8 @@
         "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/intro-to-git-integration",
         "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/git-get-started"
       ],
+      "objective_anchor": "obj-1-2-1",
+      "objective_href": "DP-600.html#obj-1-2-1",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -678,6 +714,8 @@
         "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/source-code-format",
         "https://learn.microsoft.com/en-us/fabric/cicd/git-integration/intro-to-git-integration"
       ],
+      "objective_anchor": "obj-1-2-1",
+      "objective_href": "DP-600.html#obj-1-2-1",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -702,6 +740,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-1-2-1",
+      "objective_href": "DP-600.html#obj-1-2-1",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -734,6 +774,8 @@
         "https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-overview",
         "https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-dataset"
       ],
+      "objective_anchor": "obj-1-2-2",
+      "objective_href": "DP-600.html#obj-1-2-2",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -766,6 +808,8 @@
         "https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-report",
         "https://learn.microsoft.com/en-us/power-bi/developer/projects/projects-dataset"
       ],
+      "objective_anchor": "obj-1-2-2",
+      "objective_href": "DP-600.html#obj-1-2-2",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -799,6 +843,8 @@
         "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/create-rules",
         "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines"
       ],
+      "objective_anchor": "obj-1-2-3",
+      "objective_href": "DP-600.html#obj-1-2-3",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -839,6 +885,8 @@
         "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines",
         "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/create-rules"
       ],
+      "objective_anchor": "obj-1-2-3",
+      "objective_href": "DP-600.html#obj-1-2-3",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -871,6 +919,8 @@
         "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/get-started-with-deployment-pipelines",
         "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines"
       ],
+      "objective_anchor": "obj-1-2-3",
+      "objective_href": "DP-600.html#obj-1-2-3",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -904,6 +954,8 @@
         "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/create-rules",
         "https://learn.microsoft.com/en-us/fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines"
       ],
+      "objective_anchor": "obj-1-2-3",
+      "objective_href": "DP-600.html#obj-1-2-3",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -936,6 +988,8 @@
         "https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-dataset-impact-analysis",
         "https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-data-lineage"
       ],
+      "objective_anchor": "obj-1-2-4",
+      "objective_href": "DP-600.html#obj-1-2-4",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -968,6 +1022,8 @@
         "https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-data-lineage",
         "https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-dataset-impact-analysis"
       ],
+      "objective_anchor": "obj-1-2-4",
+      "objective_href": "DP-600.html#obj-1-2-4",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -1000,6 +1056,8 @@
         "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-connect-tools",
         "https://learn.microsoft.com/en-us/analysis-services/tmsl/tabular-model-scripting-language-tmsl-reference"
       ],
+      "objective_anchor": "obj-1-2-5",
+      "objective_href": "DP-600.html#obj-1-2-5",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -1024,6 +1082,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-1-2-5",
+      "objective_href": "DP-600.html#obj-1-2-5",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -1056,6 +1116,8 @@
         "https://learn.microsoft.com/en-us/power-bi/connect-data/desktop-data-sources",
         "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-templates"
       ],
+      "objective_anchor": "obj-1-2-6",
+      "objective_href": "DP-600.html#obj-1-2-6",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -1096,6 +1158,8 @@
         "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-templates",
         "https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-build-permissions"
       ],
+      "objective_anchor": "obj-1-2-6",
+      "objective_href": "DP-600.html#obj-1-2-6",
       "domain": 1,
       "domain_title": "Maintain a data analytics solution"
     },
@@ -1128,6 +1192,8 @@
         "https://learn.microsoft.com/fabric/data-factory/how-to-access-on-premises-data",
         "https://learn.microsoft.com/fabric/data-factory/data-source-management"
       ],
+      "objective_anchor": "obj-2-1-1",
+      "objective_href": "DP-600.html#obj-2-1-1",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1160,6 +1226,8 @@
         "https://learn.microsoft.com/fabric/data-factory/data-source-management",
         "https://learn.microsoft.com/fabric/data-factory/how-to-access-on-premises-data"
       ],
+      "objective_anchor": "obj-2-1-1",
+      "objective_href": "DP-600.html#obj-2-1-1",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1200,6 +1268,8 @@
         "https://learn.microsoft.com/fabric/data-factory/data-source-management",
         "https://learn.microsoft.com/fabric/data-factory/how-to-access-on-premises-data"
       ],
+      "objective_anchor": "obj-2-1-1",
+      "objective_href": "DP-600.html#obj-2-1-1",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1232,6 +1302,8 @@
         "https://learn.microsoft.com/fabric/governance/use-microsoft-purview-hub",
         "https://learn.microsoft.com/fabric/real-time-intelligence/real-time-hub/real-time-hub-overview"
       ],
+      "objective_anchor": "obj-2-1-2",
+      "objective_href": "DP-600.html#obj-2-1-2",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1264,6 +1336,8 @@
         "https://learn.microsoft.com/fabric/real-time-intelligence/real-time-hub/real-time-hub-overview",
         "https://learn.microsoft.com/fabric/governance/use-microsoft-purview-hub"
       ],
+      "objective_anchor": "obj-2-1-2",
+      "objective_href": "DP-600.html#obj-2-1-2",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1296,6 +1370,8 @@
         "https://learn.microsoft.com/fabric/governance/use-microsoft-purview-hub",
         "https://learn.microsoft.com/fabric/real-time-intelligence/real-time-hub/real-time-hub-overview"
       ],
+      "objective_anchor": "obj-2-1-2",
+      "objective_href": "DP-600.html#obj-2-1-2",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1329,6 +1405,8 @@
         "https://learn.microsoft.com/fabric/data-engineering/lakehouse-shortcuts",
         "https://learn.microsoft.com/fabric/data-factory/pipeline-copy-activity"
       ],
+      "objective_anchor": "obj-2-1-3",
+      "objective_href": "DP-600.html#obj-2-1-3",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1361,6 +1439,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/ingest-data-copy",
         "https://learn.microsoft.com/fabric/data-factory/pipeline-copy-activity"
       ],
+      "objective_anchor": "obj-2-1-3",
+      "objective_href": "DP-600.html#obj-2-1-3",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1401,6 +1481,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/ingest-data-copy",
         "https://learn.microsoft.com/fabric/data-engineering/lakehouse-shortcuts"
       ],
+      "objective_anchor": "obj-2-1-3",
+      "objective_href": "DP-600.html#obj-2-1-3",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1433,6 +1515,8 @@
         "https://learn.microsoft.com/fabric/data-factory/pipeline-copy-activity",
         "https://learn.microsoft.com/fabric/data-engineering/lakehouse-shortcuts"
       ],
+      "objective_anchor": "obj-2-1-3",
+      "objective_href": "DP-600.html#obj-2-1-3",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1466,6 +1550,8 @@
         "https://learn.microsoft.com/fabric/get-started/decision-guide-data-store",
         "https://learn.microsoft.com/fabric/data-warehouse/sql-analytics-endpoint"
       ],
+      "objective_anchor": "obj-2-1-4",
+      "objective_href": "DP-600.html#obj-2-1-4",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1498,6 +1584,8 @@
         "https://learn.microsoft.com/fabric/get-started/decision-guide-data-store",
         "https://learn.microsoft.com/fabric/data-warehouse/sql-analytics-endpoint"
       ],
+      "objective_anchor": "obj-2-1-4",
+      "objective_href": "DP-600.html#obj-2-1-4",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1522,6 +1610,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-2-1-4",
+      "objective_href": "DP-600.html#obj-2-1-4",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1562,6 +1652,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/sql-analytics-endpoint",
         "https://learn.microsoft.com/fabric/get-started/decision-guide-data-store"
       ],
+      "objective_anchor": "obj-2-1-4",
+      "objective_href": "DP-600.html#obj-2-1-4",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1594,6 +1686,8 @@
         "https://learn.microsoft.com/fabric/real-time-intelligence/one-lake-availability",
         "https://learn.microsoft.com/power-bi/enterprise/directlake-overview"
       ],
+      "objective_anchor": "obj-2-1-5",
+      "objective_href": "DP-600.html#obj-2-1-5",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1626,6 +1720,8 @@
         "https://learn.microsoft.com/power-bi/enterprise/directlake-overview",
         "https://learn.microsoft.com/fabric/real-time-intelligence/one-lake-availability"
       ],
+      "objective_anchor": "obj-2-1-5",
+      "objective_href": "DP-600.html#obj-2-1-5",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1666,6 +1762,8 @@
         "https://learn.microsoft.com/power-bi/enterprise/directlake-overview",
         "https://learn.microsoft.com/fabric/real-time-intelligence/one-lake-availability"
       ],
+      "objective_anchor": "obj-2-1-5",
+      "objective_href": "DP-600.html#obj-2-1-5",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1698,6 +1796,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/create-views",
         "https://learn.microsoft.com/fabric/data-warehouse/functions"
       ],
+      "objective_anchor": "obj-2-2-1",
+      "objective_href": "DP-600.html#obj-2-2-1",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1730,6 +1830,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/create-views",
         "https://learn.microsoft.com/fabric/data-warehouse/stored-procedures"
       ],
+      "objective_anchor": "obj-2-2-1",
+      "objective_href": "DP-600.html#obj-2-2-1",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1770,6 +1872,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/functions",
         "https://learn.microsoft.com/fabric/data-warehouse/stored-procedures"
       ],
+      "objective_anchor": "obj-2-2-1",
+      "objective_href": "DP-600.html#obj-2-2-1",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1802,6 +1906,8 @@
         "https://learn.microsoft.com/fabric/data-engineering/author-execute-notebook",
         "https://learn.microsoft.com/powerquery-m/table-addcolumn"
       ],
+      "objective_anchor": "obj-2-2-2",
+      "objective_href": "DP-600.html#obj-2-2-2",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1834,6 +1940,8 @@
         "https://learn.microsoft.com/fabric/data-engineering/author-execute-notebook",
         "https://learn.microsoft.com/powerquery-m/table-addcolumn"
       ],
+      "objective_anchor": "obj-2-2-2",
+      "objective_href": "DP-600.html#obj-2-2-2",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1867,6 +1975,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview",
         "https://learn.microsoft.com/power-bi/guidance/star-schema"
       ],
+      "objective_anchor": "obj-2-2-3",
+      "objective_href": "DP-600.html#obj-2-2-3",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1899,6 +2009,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview",
         "https://learn.microsoft.com/power-bi/guidance/star-schema"
       ],
+      "objective_anchor": "obj-2-2-3",
+      "objective_href": "DP-600.html#obj-2-2-3",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1931,6 +2043,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview",
         "https://learn.microsoft.com/power-bi/guidance/star-schema"
       ],
+      "objective_anchor": "obj-2-2-3",
+      "objective_href": "DP-600.html#obj-2-2-3",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -1971,6 +2085,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/dimensional-modeling-overview",
         "https://learn.microsoft.com/power-bi/guidance/star-schema"
       ],
+      "objective_anchor": "obj-2-2-3",
+      "objective_href": "DP-600.html#obj-2-2-3",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2003,6 +2119,8 @@
         "https://learn.microsoft.com/power-bi/guidance/star-schema",
         "https://learn.microsoft.com/fabric/data-warehouse/create-table"
       ],
+      "objective_anchor": "obj-2-2-4",
+      "objective_href": "DP-600.html#obj-2-2-4",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2027,6 +2145,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-2-2-4",
+      "objective_href": "DP-600.html#obj-2-2-4",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2059,6 +2179,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/query",
         "https://learn.microsoft.com/powerquery-m/table-group"
       ],
+      "objective_anchor": "obj-2-2-5",
+      "objective_href": "DP-600.html#obj-2-2-5",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2091,6 +2213,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/query",
         "https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql"
       ],
+      "objective_anchor": "obj-2-2-5",
+      "objective_href": "DP-600.html#obj-2-2-5",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2131,6 +2255,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/query",
         "https://learn.microsoft.com/powerquery-m/table-group"
       ],
+      "objective_anchor": "obj-2-2-5",
+      "objective_href": "DP-600.html#obj-2-2-5",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2163,6 +2289,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/merge",
         "https://learn.microsoft.com/fabric/data-warehouse/query"
       ],
+      "objective_anchor": "obj-2-2-6",
+      "objective_href": "DP-600.html#obj-2-2-6",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2195,6 +2323,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/merge",
         "https://learn.microsoft.com/fabric/data-warehouse/query"
       ],
+      "objective_anchor": "obj-2-2-6",
+      "objective_href": "DP-600.html#obj-2-2-6",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2227,6 +2357,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/merge",
         "https://learn.microsoft.com/fabric/data-warehouse/query"
       ],
+      "objective_anchor": "obj-2-2-6",
+      "objective_href": "DP-600.html#obj-2-2-6",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2267,6 +2399,8 @@
         "https://learn.microsoft.com/fabric/data-warehouse/merge",
         "https://learn.microsoft.com/fabric/data-warehouse/query"
       ],
+      "objective_anchor": "obj-2-2-6",
+      "objective_href": "DP-600.html#obj-2-2-6",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2299,6 +2433,8 @@
         "https://learn.microsoft.com/sql/t-sql/functions/coalesce-transact-sql",
         "https://learn.microsoft.com/azure/databricks/pyspark/missing-data"
       ],
+      "objective_anchor": "obj-2-2-7",
+      "objective_href": "DP-600.html#obj-2-2-7",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2323,6 +2459,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-2-2-7",
+      "objective_href": "DP-600.html#obj-2-2-7",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2363,6 +2501,8 @@
         "https://learn.microsoft.com/sql/t-sql/functions/coalesce-transact-sql",
         "https://learn.microsoft.com/azure/databricks/pyspark/missing-data"
       ],
+      "objective_anchor": "obj-2-2-7",
+      "objective_href": "DP-600.html#obj-2-2-7",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2395,6 +2535,8 @@
         "https://learn.microsoft.com/sql/t-sql/functions/try-cast-transact-sql",
         "https://learn.microsoft.com/fabric/data-engineering/spark-data-types"
       ],
+      "objective_anchor": "obj-2-2-8",
+      "objective_href": "DP-600.html#obj-2-2-8",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2427,6 +2569,8 @@
         "https://learn.microsoft.com/fabric/data-engineering/spark-data-types",
         "https://learn.microsoft.com/sql/t-sql/functions/try-cast-transact-sql"
       ],
+      "objective_anchor": "obj-2-2-8",
+      "objective_href": "DP-600.html#obj-2-2-8",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2459,6 +2603,8 @@
         "https://learn.microsoft.com/sql/t-sql/functions/try-cast-transact-sql",
         "https://learn.microsoft.com/fabric/data-engineering/spark-data-types"
       ],
+      "objective_anchor": "obj-2-2-8",
+      "objective_href": "DP-600.html#obj-2-2-8",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2491,6 +2637,8 @@
         "https://learn.microsoft.com/fabric/data-engineering/delta-optimization-and-v-order",
         "https://learn.microsoft.com/power-query/query-folding-basics"
       ],
+      "objective_anchor": "obj-2-2-9",
+      "objective_href": "DP-600.html#obj-2-2-9",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2523,6 +2671,8 @@
         "https://learn.microsoft.com/power-query/query-folding-basics",
         "https://learn.microsoft.com/fabric/data-engineering/delta-optimization-and-v-order"
       ],
+      "objective_anchor": "obj-2-2-9",
+      "objective_href": "DP-600.html#obj-2-2-9",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2563,6 +2713,8 @@
         "https://learn.microsoft.com/power-query/query-folding-basics",
         "https://learn.microsoft.com/fabric/data-engineering/delta-optimization-and-v-order"
       ],
+      "objective_anchor": "obj-2-2-9",
+      "objective_href": "DP-600.html#obj-2-2-9",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2595,6 +2747,8 @@
         "https://learn.microsoft.com/power-query/query-folding-basics",
         "https://learn.microsoft.com/fabric/data-warehouse/visual-query-editor"
       ],
+      "objective_anchor": "obj-2-3-1",
+      "objective_href": "DP-600.html#obj-2-3-1",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2619,6 +2773,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-2-3-1",
+      "objective_href": "DP-600.html#obj-2-3-1",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2651,6 +2807,8 @@
         "https://learn.microsoft.com/power-query/query-folding-basics",
         "https://learn.microsoft.com/fabric/data-warehouse/visual-query-editor"
       ],
+      "objective_anchor": "obj-2-3-1",
+      "objective_href": "DP-600.html#obj-2-3-1",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2683,6 +2841,8 @@
         "https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql",
         "https://learn.microsoft.com/fabric/data-warehouse/query"
       ],
+      "objective_anchor": "obj-2-3-2",
+      "objective_href": "DP-600.html#obj-2-3-2",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2715,6 +2875,8 @@
         "https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql",
         "https://learn.microsoft.com/fabric/data-warehouse/query"
       ],
+      "objective_anchor": "obj-2-3-2",
+      "objective_href": "DP-600.html#obj-2-3-2",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2755,6 +2917,8 @@
         "https://learn.microsoft.com/sql/t-sql/queries/select-over-clause-transact-sql",
         "https://learn.microsoft.com/fabric/data-warehouse/query"
       ],
+      "objective_anchor": "obj-2-3-2",
+      "objective_href": "DP-600.html#obj-2-3-2",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2787,6 +2951,8 @@
         "https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric",
         "https://learn.microsoft.com/kusto/query/bin-function?view=microsoft-fabric"
       ],
+      "objective_anchor": "obj-2-3-3",
+      "objective_href": "DP-600.html#obj-2-3-3",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2819,6 +2985,8 @@
         "https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric",
         "https://learn.microsoft.com/kusto/query/tutorials/use-aggregation-functions?view=microsoft-fabric"
       ],
+      "objective_anchor": "obj-2-3-3",
+      "objective_href": "DP-600.html#obj-2-3-3",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2851,6 +3019,8 @@
         "https://learn.microsoft.com/kusto/query/tutorials/use-aggregation-functions?view=microsoft-fabric",
         "https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric"
       ],
+      "objective_anchor": "obj-2-3-3",
+      "objective_href": "DP-600.html#obj-2-3-3",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2891,6 +3061,8 @@
         "https://learn.microsoft.com/kusto/query/summarize-operator?view=microsoft-fabric",
         "https://learn.microsoft.com/kusto/query/bin-function?view=microsoft-fabric"
       ],
+      "objective_anchor": "obj-2-3-3",
+      "objective_href": "DP-600.html#obj-2-3-3",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2923,6 +3095,8 @@
         "https://learn.microsoft.com/dax/divide-function-dax",
         "https://learn.microsoft.com/dax/dax-overview"
       ],
+      "objective_anchor": "obj-2-3-4",
+      "objective_href": "DP-600.html#obj-2-3-4",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2955,6 +3129,8 @@
         "https://learn.microsoft.com/dax/calculate-function-dax",
         "https://learn.microsoft.com/dax/dax-overview"
       ],
+      "objective_anchor": "obj-2-3-4",
+      "objective_href": "DP-600.html#obj-2-3-4",
       "domain": 2,
       "domain_title": "Prepare data"
     },
@@ -2987,6 +3163,8 @@
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview",
         "https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand"
       ],
+      "objective_anchor": "obj-3-1-1",
+      "objective_href": "DP-600.html#obj-3-1-1",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3019,6 +3197,8 @@
         "https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand",
         "https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-composite-models"
       ],
+      "objective_anchor": "obj-3-1-1",
+      "objective_href": "DP-600.html#obj-3-1-1",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3059,6 +3239,8 @@
         "https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand",
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"
       ],
+      "objective_anchor": "obj-3-1-1",
+      "objective_href": "DP-600.html#obj-3-1-1",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3091,6 +3273,8 @@
         "https://learn.microsoft.com/en-us/power-bi/guidance/star-schema",
         "https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-relationships-understand"
       ],
+      "objective_anchor": "obj-3-1-2",
+      "objective_href": "DP-600.html#obj-3-1-2",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3123,6 +3307,8 @@
         "https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-relationships-understand",
         "https://learn.microsoft.com/en-us/dax/userelationship-function-dax"
       ],
+      "objective_anchor": "obj-3-1-2",
+      "objective_href": "DP-600.html#obj-3-1-2",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3155,6 +3341,8 @@
         "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-many-to-many",
         "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-bidirectional-filtering"
       ],
+      "objective_anchor": "obj-3-1-3",
+      "objective_href": "DP-600.html#obj-3-1-3",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3187,6 +3375,8 @@
         "https://learn.microsoft.com/en-us/dax/crossfilter-function-dax",
         "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-bidirectional-filtering"
       ],
+      "objective_anchor": "obj-3-1-3",
+      "objective_href": "DP-600.html#obj-3-1-3",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3227,6 +3417,8 @@
         "https://learn.microsoft.com/en-us/power-bi/guidance/relationships-many-to-many",
         "https://learn.microsoft.com/en-us/dax/userelationship-function-dax"
       ],
+      "objective_anchor": "obj-3-1-3",
+      "objective_href": "DP-600.html#obj-3-1-3",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3259,6 +3451,8 @@
         "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables",
         "https://learn.microsoft.com/en-us/dax/userprincipalname-function-dax"
       ],
+      "objective_anchor": "obj-3-1-4",
+      "objective_href": "DP-600.html#obj-3-1-4",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3291,6 +3485,8 @@
         "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables",
         "https://learn.microsoft.com/en-us/dax/datesytd-function-dax"
       ],
+      "objective_anchor": "obj-3-1-4",
+      "objective_href": "DP-600.html#obj-3-1-4",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3315,6 +3511,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-3-1-4",
+      "objective_href": "DP-600.html#obj-3-1-4",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3355,6 +3553,8 @@
         "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables",
         "https://learn.microsoft.com/en-us/dax/userprincipalname-function-dax"
       ],
+      "objective_anchor": "obj-3-1-4",
+      "objective_href": "DP-600.html#obj-3-1-4",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3387,6 +3587,8 @@
         "https://learn.microsoft.com/en-us/power-bi/transform-model/calculation-groups",
         "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-dynamic-format-strings"
       ],
+      "objective_anchor": "obj-3-1-5",
+      "objective_href": "DP-600.html#obj-3-1-5",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3419,6 +3621,8 @@
         "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-dynamic-format-strings",
         "https://learn.microsoft.com/en-us/power-bi/transform-model/calculation-groups"
       ],
+      "objective_anchor": "obj-3-1-5",
+      "objective_href": "DP-600.html#obj-3-1-5",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3451,6 +3655,8 @@
         "https://learn.microsoft.com/en-us/power-bi/create-reports/power-bi-field-parameters",
         "https://learn.microsoft.com/en-us/power-bi/transform-model/calculation-groups"
       ],
+      "objective_anchor": "obj-3-1-5",
+      "objective_href": "DP-600.html#obj-3-1-5",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3483,6 +3689,8 @@
         "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-large-models",
         "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-scale-out"
       ],
+      "objective_anchor": "obj-3-1-6",
+      "objective_href": "DP-600.html#obj-3-1-6",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3515,6 +3723,8 @@
         "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-scale-out",
         "https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-large-models"
       ],
+      "objective_anchor": "obj-3-1-6",
+      "objective_href": "DP-600.html#obj-3-1-6",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3547,6 +3757,8 @@
         "https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-composite-models",
         "https://learn.microsoft.com/en-us/power-bi/connect-data/service-dataset-modes-understand"
       ],
+      "objective_anchor": "obj-3-1-7",
+      "objective_href": "DP-600.html#obj-3-1-7",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3579,6 +3791,8 @@
         "https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-composite-models",
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"
       ],
+      "objective_anchor": "obj-3-1-7",
+      "objective_href": "DP-600.html#obj-3-1-7",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3612,6 +3826,8 @@
         "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-performance-analyzer",
         "https://learn.microsoft.com/en-us/power-bi/guidance/report-performance-troubleshoot"
       ],
+      "objective_anchor": "obj-3-2-1",
+      "objective_href": "DP-600.html#obj-3-2-1",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3644,6 +3860,8 @@
         "https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-performance-analyzer",
         "https://learn.microsoft.com/en-us/power-bi/guidance/report-performance-troubleshoot"
       ],
+      "objective_anchor": "obj-3-2-1",
+      "objective_href": "DP-600.html#obj-3-2-1",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3677,6 +3895,8 @@
         "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables",
         "https://learn.microsoft.com/en-us/power-bi/guidance/dax-avoid-avoid-filter-as-filter-argument"
       ],
+      "objective_anchor": "obj-3-2-2",
+      "objective_href": "DP-600.html#obj-3-2-2",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3709,6 +3929,8 @@
         "https://learn.microsoft.com/en-us/power-bi/guidance/dax-avoid-avoid-filter-as-filter-argument",
         "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables"
       ],
+      "objective_anchor": "obj-3-2-2",
+      "objective_href": "DP-600.html#obj-3-2-2",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3749,6 +3971,8 @@
         "https://learn.microsoft.com/en-us/power-bi/guidance/dax-variables",
         "https://learn.microsoft.com/en-us/power-bi/guidance/dax-countrows"
       ],
+      "objective_anchor": "obj-3-2-2",
+      "objective_href": "DP-600.html#obj-3-2-2",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3782,6 +4006,8 @@
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works",
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"
       ],
+      "objective_anchor": "obj-3-2-3",
+      "objective_href": "DP-600.html#obj-3-2-3",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3814,6 +4040,8 @@
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works",
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"
       ],
+      "objective_anchor": "obj-3-2-3",
+      "objective_href": "DP-600.html#obj-3-2-3",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3854,6 +4082,8 @@
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works",
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview"
       ],
+      "objective_anchor": "obj-3-2-3",
+      "objective_href": "DP-600.html#obj-3-2-3",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3886,6 +4116,8 @@
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview",
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works"
       ],
+      "objective_anchor": "obj-3-2-4",
+      "objective_href": "DP-600.html#obj-3-2-4",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3918,6 +4150,8 @@
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-overview",
         "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-how-it-works"
       ],
+      "objective_anchor": "obj-3-2-4",
+      "objective_href": "DP-600.html#obj-3-2-4",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3950,6 +4184,8 @@
         "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-configure",
         "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-overview"
       ],
+      "objective_anchor": "obj-3-2-5",
+      "objective_href": "DP-600.html#obj-3-2-5",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -3974,6 +4210,8 @@
           "text": "False"
         }
       ],
+      "objective_anchor": "obj-3-2-5",
+      "objective_href": "DP-600.html#obj-3-2-5",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     },
@@ -4014,6 +4252,8 @@
         "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-overview",
         "https://learn.microsoft.com/en-us/power-bi/connect-data/incremental-refresh-configure"
       ],
+      "objective_anchor": "obj-3-2-5",
+      "objective_href": "DP-600.html#obj-3-2-5",
       "domain": 3,
       "domain_title": "Implement and manage semantic models"
     }
