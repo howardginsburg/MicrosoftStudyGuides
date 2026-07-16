@@ -1,7 +1,7 @@
 {
   "exam": "GH-300",
   "title": "GitHub Copilot",
-  "generated": "2026-07-15",
+  "generated": "2026-07-16",
   "weights": {
     "Use GitHub Copilot responsibly": "15–20%",
     "Use GitHub Copilot features": "25–30%",
@@ -90,6 +90,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"
       ],
+      "objective_anchor": "obj-1-1-1",
+      "objective_href": "GH-300.html#obj-1-1-1",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -121,6 +123,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"
       ],
+      "objective_anchor": "obj-1-1-1",
+      "objective_href": "GH-300.html#obj-1-1-1",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -156,6 +160,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"
       ],
+      "objective_anchor": "obj-1-1-1",
+      "objective_href": "GH-300.html#obj-1-1-1",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -187,6 +193,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai"
       ],
+      "objective_anchor": "obj-1-1-2",
+      "objective_href": "GH-300.html#obj-1-1-2",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -218,6 +226,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai"
       ],
+      "objective_anchor": "obj-1-1-2",
+      "objective_href": "GH-300.html#obj-1-1-2",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -249,6 +259,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai"
       ],
+      "objective_anchor": "obj-1-1-2",
+      "objective_href": "GH-300.html#obj-1-1-2",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -272,6 +284,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai"
       ],
+      "objective_anchor": "obj-1-1-2",
+      "objective_href": "GH-300.html#obj-1-1-2",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -303,6 +317,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"
       ],
+      "objective_anchor": "obj-1-1-3",
+      "objective_href": "GH-300.html#obj-1-1-3",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -334,6 +350,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"
       ],
+      "objective_anchor": "obj-1-1-3",
+      "objective_href": "GH-300.html#obj-1-1-3",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -369,6 +387,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"
       ],
+      "objective_anchor": "obj-1-1-3",
+      "objective_href": "GH-300.html#obj-1-1-3",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -400,6 +420,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"
       ],
+      "objective_anchor": "obj-1-2-1",
+      "objective_href": "GH-300.html#obj-1-2-1",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -431,6 +453,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/3-six-principles-of-responsible-ai"
       ],
+      "objective_anchor": "obj-1-2-1",
+      "objective_href": "GH-300.html#obj-1-2-1",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -462,6 +486,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"
       ],
+      "objective_anchor": "obj-1-2-1",
+      "objective_href": "GH-300.html#obj-1-2-1",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -493,6 +519,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/5-summary"
       ],
+      "objective_anchor": "obj-1-2-2",
+      "objective_href": "GH-300.html#obj-1-2-2",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -528,6 +556,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/"
       ],
+      "objective_anchor": "obj-1-2-2",
+      "objective_href": "GH-300.html#obj-1-2-2",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -551,6 +581,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/5-summary"
       ],
+      "objective_anchor": "obj-1-2-2",
+      "objective_href": "GH-300.html#obj-1-2-2",
       "domain": 1,
       "domain_title": "Use GitHub Copilot responsibly"
     },
@@ -582,6 +614,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-to-github-copilot/4-setup-configure-troubleshoot"
       ],
+      "objective_anchor": "obj-2-1-1",
+      "objective_href": "GH-300.html#obj-2-1-1",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -622,6 +656,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/2-code-completion-with-git-hub-copilot"
       ],
+      "objective_anchor": "obj-2-1-1",
+      "objective_href": "GH-300.html#obj-2-1-1",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -653,6 +689,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-to-github-copilot/3-interacting-with-copilot"
       ],
+      "objective_anchor": "obj-2-1-2",
+      "objective_href": "GH-300.html#obj-2-1-2",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -684,6 +722,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-agent-mode/2-what-is-agent-mode"
       ],
+      "objective_anchor": "obj-2-1-2",
+      "objective_href": "GH-300.html#obj-2-1-2",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -715,6 +755,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions"
       ],
+      "objective_anchor": "obj-2-1-3",
+      "objective_href": "GH-300.html#obj-2-1-3",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -738,6 +780,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions"
       ],
+      "objective_anchor": "obj-2-1-3",
+      "objective_href": "GH-300.html#obj-2-1-3",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -769,6 +813,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"
       ],
+      "objective_anchor": "obj-2-2-1",
+      "objective_href": "GH-300.html#obj-2-2-1",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -800,6 +846,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"
       ],
+      "objective_anchor": "obj-2-2-2",
+      "objective_href": "GH-300.html#obj-2-2-2",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -831,6 +879,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"
       ],
+      "objective_anchor": "obj-2-2-3",
+      "objective_href": "GH-300.html#obj-2-2-3",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -862,6 +912,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"
       ],
+      "objective_anchor": "obj-2-2-3",
+      "objective_href": "GH-300.html#obj-2-2-3",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -893,6 +945,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"
       ],
+      "objective_anchor": "obj-2-2-4",
+      "objective_href": "GH-300.html#obj-2-2-4",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -924,6 +978,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"
       ],
+      "objective_anchor": "obj-2-2-4",
+      "objective_href": "GH-300.html#obj-2-2-4",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -964,6 +1020,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/5-git-hub-copilot-for-the-command-line"
       ],
+      "objective_anchor": "obj-2-2-5",
+      "objective_href": "GH-300.html#obj-2-2-5",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -995,6 +1053,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-code-agent/3-assign-track-troubleshoot-copilot-code-agent-tasks"
       ],
+      "objective_anchor": "obj-2-3-1",
+      "objective_href": "GH-300.html#obj-2-3-1",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -1026,6 +1086,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/mcp-server/3-configure-connect"
       ],
+      "objective_anchor": "obj-2-3-1",
+      "objective_href": "GH-300.html#obj-2-3-1",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -1049,6 +1111,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/code-reviews-pull-requests-github-copilot/3-copilot-reviewer-github"
       ],
+      "objective_anchor": "obj-2-3-2",
+      "objective_href": "GH-300.html#obj-2-3-2",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -1080,6 +1144,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/code-reviews-pull-requests-github-copilot/4-issues-early-automated-reviews-copilot"
       ],
+      "objective_anchor": "obj-2-3-2",
+      "objective_href": "GH-300.html#obj-2-3-2",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -1111,6 +1177,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-copilot-spaces/3-share-discover-govern"
       ],
+      "objective_anchor": "obj-2-3-3",
+      "objective_href": "GH-300.html#obj-2-3-3",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -1142,6 +1210,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/3-git-hub-copilot-chat"
       ],
+      "objective_anchor": "obj-2-3-4",
+      "objective_href": "GH-300.html#obj-2-3-4",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -1173,6 +1243,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-across-environments/3-git-hub-copilot-chat"
       ],
+      "objective_anchor": "obj-2-3-4",
+      "objective_href": "GH-300.html#obj-2-3-4",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -1204,6 +1276,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/3-github-copilot-contractual-protections-disabling-matching-public-code"
       ],
+      "objective_anchor": "obj-2-4-1",
+      "objective_href": "GH-300.html#obj-2-4-1",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -1239,6 +1313,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/2-explore-github-copilot-plans-associated-management-customization-features"
       ],
+      "objective_anchor": "obj-2-4-1",
+      "objective_href": "GH-300.html#obj-2-4-1",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -1270,6 +1346,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/2-explore-github-copilot-plans-associated-management-customization-features"
       ],
+      "objective_anchor": "obj-2-4-2",
+      "objective_href": "GH-300.html#obj-2-4-2",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -1301,6 +1379,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-code-agent/3-assign-track-troubleshoot-copilot-code-agent-tasks"
       ],
+      "objective_anchor": "obj-2-4-3",
+      "objective_href": "GH-300.html#obj-2-4-3",
       "domain": 2,
       "domain_title": "Use GitHub Copilot features"
     },
@@ -1332,6 +1412,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/4-github-copilot-data"
       ],
+      "objective_anchor": "obj-3-1-1",
+      "objective_href": "GH-300.html#obj-3-1-1",
       "domain": 3,
       "domain_title": "Understand GitHub Copilot data and architecture"
     },
@@ -1363,6 +1445,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/4-github-copilot-data"
       ],
+      "objective_anchor": "obj-3-1-1",
+      "objective_href": "GH-300.html#obj-3-1-1",
       "domain": 3,
       "domain_title": "Understand GitHub Copilot data and architecture"
     },
@@ -1398,6 +1482,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/4-github-copilot-data"
       ],
+      "objective_anchor": "obj-3-1-1",
+      "objective_href": "GH-300.html#obj-3-1-1",
       "domain": 3,
       "domain_title": "Understand GitHub Copilot data and architecture"
     },
@@ -1429,6 +1515,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"
       ],
+      "objective_anchor": "obj-3-1-2",
+      "objective_href": "GH-300.html#obj-3-1-2",
       "domain": 3,
       "domain_title": "Understand GitHub Copilot data and architecture"
     },
@@ -1460,6 +1548,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"
       ],
+      "objective_anchor": "obj-3-1-2",
+      "objective_href": "GH-300.html#obj-3-1-2",
       "domain": 3,
       "domain_title": "Understand GitHub Copilot data and architecture"
     },
@@ -1491,6 +1581,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"
       ],
+      "objective_anchor": "obj-3-1-3",
+      "objective_href": "GH-300.html#obj-3-1-3",
       "domain": 3,
       "domain_title": "Understand GitHub Copilot data and architecture"
     },
@@ -1526,6 +1618,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"
       ],
+      "objective_anchor": "obj-3-1-3",
+      "objective_href": "GH-300.html#obj-3-1-3",
       "domain": 3,
       "domain_title": "Understand GitHub Copilot data and architecture"
     },
@@ -1549,6 +1643,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"
       ],
+      "objective_anchor": "obj-3-1-3",
+      "objective_href": "GH-300.html#obj-3-1-3",
       "domain": 3,
       "domain_title": "Understand GitHub Copilot data and architecture"
     },
@@ -1580,6 +1676,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"
       ],
+      "objective_anchor": "obj-3-2-1",
+      "objective_href": "GH-300.html#obj-3-2-1",
       "domain": 3,
       "domain_title": "Understand GitHub Copilot data and architecture"
     },
@@ -1611,6 +1709,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-to-github-copilot/2-github-copilot-your-ai-pair-programmer"
       ],
+      "objective_anchor": "obj-3-2-1",
+      "objective_href": "GH-300.html#obj-3-2-1",
       "domain": 3,
       "domain_title": "Understand GitHub Copilot data and architecture"
     },
@@ -1642,6 +1742,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/5-github-copilot-large-language-models"
       ],
+      "objective_anchor": "obj-3-2-2",
+      "objective_href": "GH-300.html#obj-3-2-2",
       "domain": 3,
       "domain_title": "Understand GitHub Copilot data and architecture"
     },
@@ -1673,6 +1775,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/5-github-copilot-large-language-models"
       ],
+      "objective_anchor": "obj-3-2-2",
+      "objective_href": "GH-300.html#obj-3-2-2",
       "domain": 3,
       "domain_title": "Understand GitHub Copilot data and architecture"
     },
@@ -1704,6 +1808,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"
       ],
+      "objective_anchor": "obj-4-1-1",
+      "objective_href": "GH-300.html#obj-4-1-1",
       "domain": 4,
       "domain_title": "Apply prompt engineering and context crafting"
     },
@@ -1727,6 +1833,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"
       ],
+      "objective_anchor": "obj-4-1-1",
+      "objective_href": "GH-300.html#obj-4-1-1",
       "domain": 4,
       "domain_title": "Apply prompt engineering and context crafting"
     },
@@ -1758,6 +1866,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"
       ],
+      "objective_anchor": "obj-4-1-2",
+      "objective_href": "GH-300.html#obj-4-1-2",
       "domain": 4,
       "domain_title": "Apply prompt engineering and context crafting"
     },
@@ -1793,6 +1903,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"
       ],
+      "objective_anchor": "obj-4-1-2",
+      "objective_href": "GH-300.html#obj-4-1-2",
       "domain": 4,
       "domain_title": "Apply prompt engineering and context crafting"
     },
@@ -1824,6 +1936,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"
       ],
+      "objective_anchor": "obj-4-1-3",
+      "objective_href": "GH-300.html#obj-4-1-3",
       "domain": 4,
       "domain_title": "Apply prompt engineering and context crafting"
     },
@@ -1855,6 +1969,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"
       ],
+      "objective_anchor": "obj-4-1-3",
+      "objective_href": "GH-300.html#obj-4-1-3",
       "domain": 4,
       "domain_title": "Apply prompt engineering and context crafting"
     },
@@ -1886,6 +2002,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"
       ],
+      "objective_anchor": "obj-4-1-4",
+      "objective_href": "GH-300.html#obj-4-1-4",
       "domain": 4,
       "domain_title": "Apply prompt engineering and context crafting"
     },
@@ -1917,6 +2035,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"
       ],
+      "objective_anchor": "obj-4-1-4",
+      "objective_href": "GH-300.html#obj-4-1-4",
       "domain": 4,
       "domain_title": "Apply prompt engineering and context crafting"
     },
@@ -1948,6 +2068,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"
       ],
+      "objective_anchor": "obj-4-2-1",
+      "objective_href": "GH-300.html#obj-4-2-1",
       "domain": 4,
       "domain_title": "Apply prompt engineering and context crafting"
     },
@@ -1984,6 +2106,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/2-prompt-engineering-foundations-best-practices"
       ],
+      "objective_anchor": "obj-4-2-1",
+      "objective_href": "GH-300.html#obj-4-2-1",
       "domain": 4,
       "domain_title": "Apply prompt engineering and context crafting"
     },
@@ -2015,6 +2139,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"
       ],
+      "objective_anchor": "obj-4-2-2",
+      "objective_href": "GH-300.html#obj-4-2-2",
       "domain": 4,
       "domain_title": "Apply prompt engineering and context crafting"
     },
@@ -2046,6 +2172,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/introduction-prompt-engineering-with-github-copilot/3-github-copilot-user-prompt-process-flow"
       ],
+      "objective_anchor": "obj-4-2-2",
+      "objective_href": "GH-300.html#obj-4-2-2",
       "domain": 4,
       "domain_title": "Apply prompt engineering and context crafting"
     },
@@ -2077,6 +2205,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/2-boost-developer-productivity"
       ],
+      "objective_anchor": "obj-5-1-1",
+      "objective_href": "GH-300.html#obj-5-1-1",
       "domain": 5,
       "domain_title": "Improve developer productivity with GitHub Copilot"
     },
@@ -2112,6 +2242,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/2-boost-developer-productivity"
       ],
+      "objective_anchor": "obj-5-1-1",
+      "objective_href": "GH-300.html#obj-5-1-1",
       "domain": 5,
       "domain_title": "Improve developer productivity with GitHub Copilot"
     },
@@ -2143,6 +2275,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/2-boost-developer-productivity"
       ],
+      "objective_anchor": "obj-5-1-2",
+      "objective_href": "GH-300.html#obj-5-1-2",
       "domain": 5,
       "domain_title": "Improve developer productivity with GitHub Copilot"
     },
@@ -2174,6 +2308,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/2-boost-developer-productivity"
       ],
+      "objective_anchor": "obj-5-1-2",
+      "objective_href": "GH-300.html#obj-5-1-2",
       "domain": 5,
       "domain_title": "Improve developer productivity with GitHub Copilot"
     },
@@ -2205,6 +2341,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/4-ai-software-development-lifecycle"
       ],
+      "objective_anchor": "obj-5-1-3",
+      "objective_href": "GH-300.html#obj-5-1-3",
       "domain": 5,
       "domain_title": "Improve developer productivity with GitHub Copilot"
     },
@@ -2236,6 +2374,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/4-ai-software-development-lifecycle"
       ],
+      "objective_anchor": "obj-5-1-3",
+      "objective_href": "GH-300.html#obj-5-1-3",
       "domain": 5,
       "domain_title": "Improve developer productivity with GitHub Copilot"
     },
@@ -2267,6 +2407,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/3-generate-unit-tests-chat-view"
       ],
+      "objective_anchor": "obj-5-2-1",
+      "objective_href": "GH-300.html#obj-5-2-1",
       "domain": 5,
       "domain_title": "Improve developer productivity with GitHub Copilot"
     },
@@ -2302,6 +2444,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/4-plan-automate-tests-using-agents"
       ],
+      "objective_anchor": "obj-5-2-1",
+      "objective_href": "GH-300.html#obj-5-2-1",
       "domain": 5,
       "domain_title": "Improve developer productivity with GitHub Copilot"
     },
@@ -2333,6 +2477,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/3-generate-unit-tests-chat-view"
       ],
+      "objective_anchor": "obj-5-2-2",
+      "objective_href": "GH-300.html#obj-5-2-2",
       "domain": 5,
       "domain_title": "Improve developer productivity with GitHub Copilot"
     },
@@ -2364,6 +2510,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/5-extend-fix-tests-using-github-copilot"
       ],
+      "objective_anchor": "obj-5-2-2",
+      "objective_href": "GH-300.html#obj-5-2-2",
       "domain": 5,
       "domain_title": "Improve developer productivity with GitHub Copilot"
     },
@@ -2387,6 +2535,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/developer-use-cases-for-ai-with-github-copilot/5-understand-limitations-measure-impact"
       ],
+      "objective_anchor": "obj-5-2-3",
+      "objective_href": "GH-300.html#obj-5-2-3",
       "domain": 5,
       "domain_title": "Improve developer productivity with GitHub Copilot"
     },
@@ -2418,6 +2568,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/develop-unit-tests-using-github-copilot-tools/5-extend-fix-tests-using-github-copilot"
       ],
+      "objective_anchor": "obj-5-2-3",
+      "objective_href": "GH-300.html#obj-5-2-3",
       "domain": 5,
       "domain_title": "Improve developer productivity with GitHub Copilot"
     },
@@ -2449,6 +2601,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions"
       ],
+      "objective_anchor": "obj-6-1-1",
+      "objective_href": "GH-300.html#obj-6-1-1",
       "domain": 6,
       "domain_title": "Configure privacy, content exclusions, and safeguards"
     },
@@ -2484,6 +2638,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions"
       ],
+      "objective_anchor": "obj-6-1-1",
+      "objective_href": "GH-300.html#obj-6-1-1",
       "domain": 6,
       "domain_title": "Configure privacy, content exclusions, and safeguards"
     },
@@ -2515,6 +2671,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/4-manage-content-exclusions"
       ],
+      "objective_anchor": "obj-6-1-1",
+      "objective_href": "GH-300.html#obj-6-1-1",
       "domain": 6,
       "domain_title": "Configure privacy, content exclusions, and safeguards"
     },
@@ -2546,6 +2704,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/3-github-copilot-contractual-protections-disabling-matching-public-code"
       ],
+      "objective_anchor": "obj-6-1-2",
+      "objective_href": "GH-300.html#obj-6-1-2",
       "domain": 6,
       "domain_title": "Configure privacy, content exclusions, and safeguards"
     },
@@ -2569,6 +2729,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/responsible-ai-with-github-copilot/2-manage-ai-risks"
       ],
+      "objective_anchor": "obj-6-1-2",
+      "objective_href": "GH-300.html#obj-6-1-2",
       "domain": 6,
       "domain_title": "Configure privacy, content exclusions, and safeguards"
     },
@@ -2600,6 +2762,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/3-github-copilot-contractual-protections-disabling-matching-public-code"
       ],
+      "objective_anchor": "obj-6-2-1",
+      "objective_href": "GH-300.html#obj-6-2-1",
       "domain": 6,
       "domain_title": "Configure privacy, content exclusions, and safeguards"
     },
@@ -2631,6 +2795,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/3-github-copilot-contractual-protections-disabling-matching-public-code"
       ],
+      "objective_anchor": "obj-6-2-1",
+      "objective_href": "GH-300.html#obj-6-2-1",
       "domain": 6,
       "domain_title": "Configure privacy, content exclusions, and safeguards"
     },
@@ -2666,6 +2832,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/2-explore-github-copilot-plans-associated-management-customization-features"
       ],
+      "objective_anchor": "obj-6-2-1",
+      "objective_href": "GH-300.html#obj-6-2-1",
       "domain": 6,
       "domain_title": "Configure privacy, content exclusions, and safeguards"
     },
@@ -2697,6 +2865,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/5-troubleshoot-common-issues-with-github-copilot"
       ],
+      "objective_anchor": "obj-6-2-2",
+      "objective_href": "GH-300.html#obj-6-2-2",
       "domain": 6,
       "domain_title": "Configure privacy, content exclusions, and safeguards"
     },
@@ -2728,6 +2898,8 @@
       "refs": [
         "https://learn.microsoft.com/en-us/training/modules/github-copilot-management-and-customizations/5-troubleshoot-common-issues-with-github-copilot"
       ],
+      "objective_anchor": "obj-6-2-2",
+      "objective_href": "GH-300.html#obj-6-2-2",
       "domain": 6,
       "domain_title": "Configure privacy, content exclusions, and safeguards"
     }

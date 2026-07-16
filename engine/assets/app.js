@@ -4,6 +4,39 @@
   var content = document.getElementById("content");
   var toc = document.getElementById("toc");
   var STORE = "dp600-progress-v1";
+  var THEME_KEY = "msg-theme";
+  var OLD_THEME_KEY = "dp600-theme";
+  var SCALE_KEY = "msg-textscale";
+  var SCALE_MIN = -2, SCALE_MAX = 3, SCALE_DEFAULT = 0;
+
+  function safeGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function safeSet(k,v){ try{ localStorage.setItem(k, v); }catch(e){} }
+  function clampScale(v){
+    v = parseInt(v, 10);
+    if(isNaN(v)) v = SCALE_DEFAULT;
+    return Math.max(SCALE_MIN, Math.min(SCALE_MAX, v));
+  }
+  function savedTheme(){
+    var theme = safeGet(THEME_KEY);
+    if(theme !== "light" && theme !== "dark"){
+      var old = safeGet(OLD_THEME_KEY);
+      if(old === "light" || old === "dark"){
+        theme = old;
+        safeSet(THEME_KEY, theme);
+      }
+    }
+    return theme === "dark" ? "dark" : "light";
+  }
+  function applyTheme(theme){
+    document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+  }
+  function applyTextScale(step){
+    step = clampScale(step);
+    document.documentElement.setAttribute("data-textscale", String(step));
+    return step;
+  }
+  var textScale = applyTextScale(safeGet(SCALE_KEY));
+  applyTheme(savedTheme());
 
   /* ---------- Build Table of Contents ---------- */
   function slug(el, fb){ return el.id || fb; }
@@ -135,14 +168,23 @@
   window.addEventListener("scroll", function(){ clearTimeout(spyT); spyT = setTimeout(spy, 80); });
   spy();
 
-  /* ---------- Theme toggle ---------- */
+  /* ---------- Appearance controls ---------- */
   var tb = document.getElementById("theme-btn");
-  var TKEY = "dp600-theme";
-  try{ if(localStorage.getItem(TKEY)==="dark") document.documentElement.setAttribute("data-theme","dark"); }catch(e){}
   if(tb) tb.addEventListener("click", function(){
     var dark = document.documentElement.getAttribute("data-theme")==="dark";
-    document.documentElement.setAttribute("data-theme", dark?"light":"dark");
-    try{ localStorage.setItem(TKEY, dark?"light":"dark"); }catch(e){}
+    var next = dark ? "light" : "dark";
+    applyTheme(next);
+    safeSet(THEME_KEY, next);
+  });
+  var dec = document.getElementById("textdec");
+  var inc = document.getElementById("textinc");
+  if(dec) dec.addEventListener("click", function(){
+    textScale = applyTextScale(textScale - 1);
+    safeSet(SCALE_KEY, String(textScale));
+  });
+  if(inc) inc.addEventListener("click", function(){
+    textScale = applyTextScale(textScale + 1);
+    safeSet(SCALE_KEY, String(textScale));
   });
 
   /* ---------- Mobile menu + print ---------- */

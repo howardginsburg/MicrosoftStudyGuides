@@ -40,6 +40,40 @@ questions or courseware. Readiness bands are unofficial (based on percent correc
 
 ---
 
+## What's new: objective links and appearance controls
+
+The guide and practice-exam experiences now share a few quality-of-life improvements that make it easier
+to move between assessment and study without changing the content model or scoring behavior:
+
+- **Quiz objective deep-links.** In the practice-exam review screens, a question's objective now links
+  directly to the matching objective section in the generated guide when the build can prove a matching
+  anchor exists. Links open in a new tab (`target="_blank" rel="noopener"`) so an in-progress timed run is
+  not replaced. If an objective cannot be matched, the simulator safely falls back to the same plain-text
+  objective label it used before.
+- **Shared theme and text-size controls.** The light/dark theme toggle is available on both the guide
+  pages and the practice-exam page, and both surfaces now include **A-** / **A+** controls for text size.
+  The controls use shared browser storage keys: `msg-theme` for the selected theme (`light` or `dark`)
+  and `msg-textscale` for the text-size step (integer range `-2` through `+3`, default `0`). Older guide
+  preferences stored under `dp600-theme` migrate once into `msg-theme`.
+
+For authors and maintainers, objective links are generated at build time rather than hand-edited in the
+published HTML. `engine/build_quiz.py` reads each guide's `config.json` to find the guide output file
+(`output_html`) and derives each question's anchor from its objective code:
+
+```text
+objective code 2.2.3 -> objective_anchor obj-2-2-3 -> objective_href <EXAM>.html#obj-2-2-3
+```
+
+When a question has a matching objective anchor in the guide source content, the built quiz JSON includes
+the derived `objective_anchor` and `objective_href` fields in `docs/quiz/<EXAM>.json`. The simulator
+renders `objective_href` as the clickable target and otherwise renders the objective as plain text. The
+validation is warn-only, so unmatched objectives are visible to maintainers without blocking the build.
+Run `python engine\build_quiz.py guides\<EXAM>` to regenerate a single quiz bank or
+`python engine\build_all.py` to regenerate every guide, quiz bank, and manifest; no manual edits to
+`docs/<EXAM>.html` or `docs/quiz/<EXAM>.json` are required.
+
+---
+
 ## How it works
 
 ```
